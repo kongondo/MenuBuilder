@@ -1,0 +1,200 @@
+<?php
+
+/**
+* Markup Menu Builder Module for ProcessWire
+* This module enables you to display on your website custom menus built using ProcessMenuBuilder
+*
+* @author Kongondo
+* Code based on work by Soma and Ryun (stackoverflow)
+* https://github.com/kongondo/ProcessMenuBuilder
+* Created 1 September 2013
+* 
+* ProcessWire 2.x
+* Copyright (C) 2011 by Ryan Cramer
+* Licensed under GNU/GPL v2, see LICENSE.TXT
+*
+* http://www.processwire.com
+*
+*/
+
+class MarkupMenuBuilder extends WireData implements Module {
+	
+	/**
+	 * Return information about this module (required)
+	 * @ Requires ProcessMenubuilder
+	 *
+	 */
+	
+	public static function getModuleInfo() {
+	
+		return array(
+			'title' => 'Markup Menu Builder',
+			'summary' => 'Easy, drag and drop menu builder',
+			'author' => 'Kongondo',
+			'version' => 1,
+			'href' => 'http://processwire.com/talk/topic/xxxxxxxxxx/',
+			'singular' => true, 
+			'autoload' => false, 
+			'requires' => 'ProcessMenuBuilder'
+		);
+
+	}
+	
+	public function init() {
+	//required
+	
+	}
+	
+	
+	/**
+	 * Method to render the menu (frontend)
+	 * 
+	*/
+	
+	
+	public function render($menu, $parent=0, $menuitems=Array(), $level = 0, $first=0) {
+    
+		$has_child = false;
+		$out = "";
+
+		$menuname = wire('sanitizer')->name($menu);
+		
+		//Fetch menu items if $menuitems is empty => VERY IMPORTANT; ENSURE DB IS ONLY ACCESSED ONCE [i.e. if $menuitems is empty]. Caching too?
+		if (empty($menuitems)) {
+			
+			//select both menu and menu items values
+			$sql = "SELECT id, title, parent_id, url, css_itemid, css_itemclass, pages_id, new_tab, css_menuid, css_menuclass, css_current, css_first, css_last, css_parent, css_haschildren FROM mb_menuitems t1, mb_menus t2 WHERE t1.menu_id = t2.menu_id AND t2.menu_name = '$menuname' ORDER BY sort";
+			$result = wire('db')->query($sql);
+
+			
+			//feedback to user if no menu found (e.g. spelling errors) or empty menu (no menu items found).
+			//if(!$result->num_rows) throw new WireException("Unknown Menu");//not appropriate here?
+			
+			$nomenu = "<p style='color:red'>No such menu (check spelling) or menu empty (add items to menu first).</p>";
+			if(!$result->num_rows) return $nomenu;
+			
+			while ( $row = $result->fetch_assoc())  {//important; fetch as associative array
+                    
+				//create an assoc array with id as key of the outer array and title, parent, url, css properties, newtab, pages_id and their respective values as the keys and values of the inner array. 
+					
+				$menuitems[$row['id']] = array(
+				
+					'title' => $row['title'],
+					'parent_id' => (int) $row['parent_id'],
+					'url' => $row['url'],
+					'css_itemid' => $row['css_itemid'],
+					'css_itemclass' => $row['css_itemclass'],
+					'pages_id' => (int) $row['pages_id'],
+					'newtab' => (int) $row['new_tab'],
+					'css_current' => $row['css_current'],//adding this as a workaround here. Having problems using $csscurrent as a variable below in the $cssitemclass. 
+					
+				);
+								
+				//Create variables and assign them values for the menu itself (note: overwriting occurs in each loop - only need one set of values)
+				$cssmenuid = $row['css_menuid'];
+				$cssmenuclass = $row['css_menuclass'];
+				//$csscurrent = $row['css_current'];//added in $menuitems array above as a workaround..
+				$cssfirst = $row['css_first'];
+				$csslast = $row['css_last'];
+				$cssparent = $row['css_parent'];
+				$csshaschildren = $row['css_haschildren'];
+
+				$parents [] = $row['parent_id'];//@@temporary workaround? to be used to identify which items are parents (i.e. identify haschildren)
+
+            } //end while  
+        
+		
+			//expand the $menuitems array to identify which menu items are parents/have children
+			foreach ($menuitems as $id => $item) {
+
+				if (in_array($id, $parents)) {
+	
+					//yes, is a parent
+					$menuitems [$id]['isparent'] = $csshaschildren;
+	
+				}
+	
+				else {
+					//no, is not a parent
+					$menuitems [$id]['isparent'] = "";
+
+				}
+
+			}
+
+		
+		}
+
+        foreach ($menuitems as $id => $item) {//$id is = id; $item = arrays of title, url, newtab, etc
+
+			//set variables [less typing!]
+			$title = $item['title'];
+			$parent_id = $item['parent_id'];
+			$url = $item['url'];
+			$cssitemid = $item['css_itemid'];
+			$cssitemclass = $item['css_itemclass'];
+			$pages_id = $item['pages_id'];
+			$newtab = $item['newtab'];
+			$csscurrent = $item['css_current'];
+			$issparent = $item['isparent'];
+			
+			$url = $pages_id!==0 ? wire('pages')->get($pages_id)->url : $url;
+
+			$newtab = $newtab == 1 ? "target='_blank'" : "";
+						
+			$cssitemid = $cssitemid !== "" ? "id='{$cssitemid}'" : "";
+
+			$cssitemclass .= $pages_id == wire('page')->id ? " " . $csscurrent : "";//@@
+			$cssitemclass .= $issparent !== "" ? " ". $issparent : "";	//@@todo deal with space
+
+			// remove first space char//@@todo...not working for items with 'current' as well
+			//$cssitemclass = substr($cssitemclass,1);
+			if(strlen($cssitemclass) > 0) {
+				$cssitemclass = "class='". $cssitemclass . "'";
+			}
+
+			if ($parent_id == $parent) {//if this menu item is a parent; create the inner-items/child-menu-items
+
+                //if this is the first child output '<ul>'           
+                if ($has_child === false) {
+				
+					$has_child = true;//This is a parent
+					
+					if ($first == 0){
+						
+						//assign menu css id and class if provided
+						$cssmenuid = $cssmenuid !== "" ? "id ='$cssmenuid' " : "";
+						$cssmenuclass = $cssmenuclass !== "" ? "class ='$cssmenuclass' " : "";
+						
+						$out .= "<ul {$cssmenuid} {$cssmenuclass} >\n";
+						
+						$first = 1;
+					} 
+					
+					else {
+						$out .= "\n<ul>\n";
+					}
+                }
+
+				$out .= "<li {$cssitemid} {$cssitemclass}><a {$newtab} href='{$url}'>{$title}</a>";
+ 
+				//call function again to generate nested list for sub-menu items belonging to this menu item. 
+				//IMPORTANT TO NOTE: values are being fetched from the array
+				$out .= $this->render($menu, $id, $menuitems, $level+1, $first);
+
+                $out .= "</li>\n";
+				
+            }
+        }
+        
+
+		if ($has_child === true) $out .= "</ul>\n";
+		
+		return $out;
+   
+   }
+
+
+}
+
+?>

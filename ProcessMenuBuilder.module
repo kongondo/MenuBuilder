@@ -1,0 +1,1022 @@
+<?php
+
+/**
+* Process Menu Builder Module for ProcessWire
+* This module enables you to create custom menus for your website using drag and drop in the ProcessWire Admin Panel
+*
+* @author Kongondo
+* Code based on work by Soma, Wanze, Ryan and Ryun (stackoverflow)
+* https://github.com/kongondo/ProcessMenuBuilder
+* Created 4 August 2013
+* 
+* ProcessWire 2.x
+* Copyright (C) 2011 by Ryan Cramer
+* Licensed under GNU/GPL v2, see LICENSE.TXT
+*
+* http://www.processwire.com
+*
+*/
+
+class ProcessMenuBuilder extends Process implements Module {
+	
+	/**
+	 * Return information about this module (required)
+	 *
+	 */
+	
+	public static function getModuleInfo() {
+	
+		//@ User role needs 'menubuilder' permission
+		//@ $permission = 'menubuilder';
+		//@ Installs MarkupMenuBuilder
+
+		return array(
+			'title' => 'Menu Builder',
+			'summary' => 'Easy, drag and drop menu builder',
+			'author' => 'Kongondo',
+			'version' => 1,
+			'href' => 'http://processwire.com/talk/topic/xxxxxxxxxx/',
+			'singular' => true, 
+			'autoload' => false, 
+			'permission' => 'menubuilder',
+			'installs' => 'MarkupMenuBuilder'
+		);
+
+	}
+	
+		
+	const PAGE_NAME = 'menu-builder';//
+	
+	/**
+	 * Holds the avaiable actions in the edit-mode. Moved initialization to Constructor to make Strings translatable
+	 *
+	 */
+	//protected $menus = array();//will created menus for selection to edit
+				
+
+	public function init() {
+
+		if ($this->permissions->get('menubuilder')->id && !$this->user->hasPermission('menubuilder')) throw new WirePermissionException("You have no permission to use this module");
+		parent::init();
+
+		$this->modules->get('JqueryWireTabs'); // @kongondo - I need this for Create Menu/Edit Menu
+		$this->config->scripts->add($this->config->urls->ProcessMenuBuilder . 'jquery.mjs.nestedSortable.js');//@kongondo - change to nestedSortable.js
+
+	}
+
+	
+	
+	/**
+	 * Display list of menus table
+	 * 
+	 * @access protected
+	 * @return void
+	 */
+	
+	
+	/**
+	* 
+	* Displays a list of the menus
+	* This function is executed when a menu with Menu Builder Process assigned is accessed. 
+	*
+	*/
+	public function ___execute() {
+	
+	//table to display available menus and their settings
+	
+		$table = $this->modules->get('MarkupAdminDataTable'); 
+		$table->setEncodeEntities(false);
+		$table->setClass('menu_settings_table');
+		$table->headerRow(array(
+			$this->_('Name'),
+			$this->_('CSS ID'),
+			$this->_('CSS Class'),
+			$this->_('First'),
+			$this->_('Last'),
+			$this->_('Current'),
+			$this->_('Current Parents'),
+			$this->_('Parents'),
+			$this->_('Menu Items')
+		)); 
+
+	//fetch existings menus to display their names, settings and number of menu items they have [for display - not editing directly]
+		//$sort = 'menu_name';
+		//if($this->input->get->sort == 'menu_name') $sort = 'menu_name ASC';
+		
+
+		$result = $this->db->query("SELECT Menu.menu_id, menu_name, css_menuid, css_menuclass, css_current, css_first, css_last, css_parent, css_haschildren, COUNT(Items.id) AS numItems FROM mb_menus AS Menu LEFT JOIN mb_menuitems AS Items ON Menu.menu_id = Items.menu_id GROUP BY menu_name"); 
+
+
+		while($row = $result->fetch_row()) {
+			list($menuid, $name, $cssmenuid, $cssmenuclass, $current, $first, $last, $currentparentclass, $haschildren, $items) = $row; 
+			
+			$table->row(array(
+				wire('sanitizer')->entities($name) => "edit/?id=$menuid",
+				$cssmenuid, 
+				$cssmenuclass,
+				$first,
+				$last,
+				$current,
+				$currentparentclass,
+				$haschildren,
+				$items
+			)); 
+		
+		
+		}
+
+		//if there are no menus show this message
+		if(!$result->num_rows) $this->message($this->_('No menu has been created yet. Create one to get started.')); 
+
+		$button1 = $this->modules->get('InputfieldButton'); 
+		$button1->attr('id', 'button_create'); 
+		$button1->attr('value', $this->_('Create New')); 
+		$button1->attr('href', './edit/'); 
+		$button1->class .= ' head_button_clone';
+		
+		return $table->render() . $button1->render();	
+						
+	}
+	
+	/**
+	 *	EDIT MENU
+	 *	Called when the URL is Menu Builders page URL + "/edit/"
+	 *
+	 */
+	public function ___executeEdit() {
+
+		// add a breadcrumb that returns to our main page 
+		$this->breadcrumbs->add(new Breadcrumb('../', $this->page->title)); 
+		$this->modules->get('JqueryWireTabs'); 
+
+		
+		//fetch menu settings for menu selected to edit
+		$menuid = (int) $this->input->get->id; 
+		if($menuid) {
+			$result = $this->db->query("SELECT menu_name, css_menuid, css_menuclass, css_current, css_first, css_last, css_parent, css_haschildren FROM mb_menus WHERE menu_id=$menuid"); 
+			if(!$result->num_rows) throw new WireException("Unknown Menu ID"); 
+			
+			list($name, $cssmenuid, $cssmenuclass, $current, $first, $last, $currentparentclass, $haschildren) = $result->fetch_row();
+			
+			Wire::setFuel('processHeadline', $this->_("Editing Menu:") . " $name");
+		}
+
+		else {
+			$name = '';
+			$cssmenuid = '';
+			$cssmenuclass = '';
+			$first = '';
+			$last = '';
+			$current = '';
+			$currentparentclass = '';
+			$haschildren = '';
+			Wire::setFuel('processHeadline', $this->_("Adding New Menu")); 
+		}
+
+		$form = $this->modules->get('InputfieldForm'); 
+		$form->attr('id', 'MenuBuilderEdit'); 
+		$form->action = './';
+		$form->method = 'post';
+
+		//First Tab - Main
+		$tab = new InputfieldWrapper();
+		$tab->attr('title', $this->_('Main')); 
+		$tab->class .= " WireTab";
+		
+
+		$menuName = $this->modules->get('InputfieldName');
+		$menuName->required = true;
+		$menuName->attr('name', 'menu_name');
+		$menuName->attr('value', $name); 
+		$menuName->description = $this->_('A menu name is required. Any combination of these characters: -_.a-zA-Z0-9 (i.e. letters, numbers, hyphens, underscores, periods, no spaces)');
+		$tab->add($menuName); 
+		
+		$table = $this->modules->get('MarkupAdminDataTable'); 
+		$table->setEncodeEntities(false);
+		$table->setClass('menu_settings_edit_table');
+		$table->headerRow(array(
+			$this->_('CSS ID'),
+			$this->_('CSS Class'),
+			$this->_('First'),
+			$this->_('Last'),
+			$this->_('Current'),
+			$this->_('Current Parents'),
+			$this->_('Parents'),
+		));
+		
+
+		$menuCSSID = $this->modules->get('InputfieldName');
+		$menuCSSID->attr('name', 'menu_cssid');
+		$menuCSSID->attr('value', $cssmenuid); 
+		
+		$menuClass = $this->modules->get('InputfieldName');
+		$menuClass->attr('name', 'menu_class');
+		$menuClass->attr('value', $cssmenuclass); 
+		
+		$menuFirstItemClass = $this->modules->get('InputfieldName');
+		$menuFirstItemClass->attr('name', 'menu_firstitemclass');
+		$menuFirstItemClass->attr('value', $first); 
+	
+		$menuLastItemClass = $this->modules->get('InputfieldName');
+		$menuLastItemClass->attr('name', 'menu_lastitemclass');
+		$menuLastItemClass->attr('value', $last); 
+		
+		$menuCurrentItemClass = $this->modules->get('InputfieldName');
+		$menuCurrentItemClass->attr('name', 'menu_currentitemclass');
+		$menuCurrentItemClass->attr('value', $current); 
+		
+		$menuCurrentParentsClass = $this->modules->get('InputfieldName');
+		$menuCurrentParentsClass->attr('name', 'menu_currentparentsclass');
+		$menuCurrentParentsClass->attr('value', $currentparentclass); 
+		
+		$menuParentsClass = $this->modules->get('InputfieldName');
+		$menuParentsClass->attr('name', 'menu_parentsclass');
+		$menuParentsClass->attr('value', $haschildren); 
+	
+		$table->row(array(
+			$menuCSSID->render(),
+			$menuClass->render(),
+			$menuFirstItemClass->render(),
+			$menuLastItemClass->render(),
+			$menuCurrentItemClass->render(),
+			$menuCurrentParentsClass->render(),
+			$menuParentsClass->render(),
+
+		)); 
+		
+		
+		$menuSettings = $this->modules->get('InputfieldMarkup');
+		//$menuSettings->collapsed = 1;
+		$menuSettings->label = $this->_('Menu CSS settings (Optional)');
+		$menuSettings->description = $this->_('If left blank, default values will be used. Only use any combination of these characters: -_.a-zA-Z0-9. The CSS ID must begin with a letter and must be unique.');//@@TODO - will need to sanitize [options] for values starting with numbers!!
+		$menuSettings->attr('value', $table->render());
+		
+		$tab->add($menuSettings); 
+		$form->add($tab);
+
+		
+		//Second Tab - Drag & Drop + add menu items. Only show if a menu exists
+		if($menuid) {
+			
+			$tab = new InputfieldWrapper();
+			$tab->attr('title', $this->_('Build Menu')); 
+			$tab->class .= " WireTab";
+			
+			
+			$fieldset = $this->modules->get("InputfieldFieldset"); 
+			$fieldset->label = $this->_('Add menu items');
+			
+			$addRow = "<a class='addrow' href='#'>" . $this->_('add row') . "</a>";
+			
+			
+			//Page Select to add menu items from pages
+			
+			//$menuAddPageItems = $this->modules->get('InputfieldAsmSelect');
+			$menuAddPageItems = $this->modules->get('InputfieldPageListSelectMultiple');
+			//$menuAddPageItems = $this->modules->get('InputfieldSelectMultipleTransfer');@@todo - thinking of using this in the future. Not working currently. New input field for PW
+			$menuAddPageItems->label = $this->_('Pages');
+			$menuAddPageItems->columnWidth = 35;
+			$menuAddPageItems->attr('name+id', 'item_addpages');
+			$menuAddPageItems->description = $this->_('Select Pages to add to your menu.');
+		
+			
+			//Add Custom menu items
+			$table = $this->modules->get('MarkupAdminDataTable');
+			$table->setEncodeEntities(false);
+			$table->setSortable(false);
+			$table->setClass('menu_add_custom_items_table');
+			$table->headerRow(array(
+				$this->_('Title'),
+				$this->_('Link'),
+				$this->_('CSS ID'),
+				$this->_('CSS Class'),
+				$this->_('New Tab'),
+				)); 
+
+			$itemCustomTitle = $this->modules->get('InputfieldName');
+			$itemCustomTitle->required = true;
+			$itemCustomTitle->attr('name', 'new_item_custom_title[]');
+			
+			$itemCustomURL = $this->modules->get('InputfieldURL');
+			$itemCustomURL->attr('name', 'new_item_custom_url[]');
+			$itemCustomURL->required = true;// may not work since in table. Check other ways both cs & ss
+			
+			$itemCustomCSSID = $this->modules->get('InputfieldName');
+			$itemCustomCSSID->attr('name', 'new_css_itemid[]');
+						
+			$itemCustomClass = $this->modules->get('InputfieldName');
+			$itemCustomClass->attr('name', 'new_css_itemclass[]');
+						
+			/*$itemCustomNewTab = $this->modules->get('InputfieldCheckbox');
+			$itemCustomNewTab->attr('name', 'new_newtab[]');
+			$itemCustomNewTab->class = "newtab";
+			$itemCustomNewTab->label = $this->_(' ');//space/blank to leave out label, otherwise name applied*/
+			
+			$itemCustomNewTab = "<input type='checkbox' name='new_newtab[]' class='newtab'>";//for some reason, PW is setting a value='1' in above. Need that to be empty
+		
+			$table->row(array(
+				$itemCustomTitle->render(),
+				$itemCustomURL->render(),
+				$itemCustomCSSID->render(),
+				$itemCustomClass->render(),
+				//$itemCustomNewTab->render(),
+				$itemCustomNewTab
+			));
+			
+			$menuAddCustomItems = $this->modules->get('InputfieldMarkup');
+			$menuAddCustomItems->columnWidth = 65;
+			$menuAddCustomItems->label = $this->_('Custom links');
+			$menuAddCustomItems->description = $this->_('Add custom menu items. Title and Link are required.');
+			$menuAddCustomItems->attr('value', $addRow . $table->render());
+			
+			$f = $this->modules->get('InputfieldSubmit'); 
+			$f->attr('id+name', 'menu_add_items'); 
+			$f->attr('value', $this->_('Add & Save Items'));
+			$f->class .= " menu_save";//add a custom class to this submit button
+
+			$fieldset->add($menuAddPageItems);
+			$fieldset->add($menuAddCustomItems);
+			$fieldset->add($f);//@@todo - retain this button?
+				
+			$tab->add($fieldset); 
+			$form->add($tab); 
+		
+		
+			//Drag and drop to sort + reorder menu items area
+			$menuItemsDragDrop = $this->modules->get('InputfieldMarkup');
+			$menuItemsDragDrop->label = $this->_('Drag and drop menu items to reorder/nest');
+			$menuItemsDragDrop->attr('id', 'dragdrop');
+			$menuItemsDragDrop->description = $this->_('Add items to start building your menu. You can add both Pages and Custom links. Drag and drop each item in the order you wish. Advanced settings can be edited by clicking the "down-arrow" button to the right of the menu item title.<br><br>');
+					
+			
+			/*
+			
+			ALSO, below, add a html message such as "no menu items found" to the div accordion to be shown only when no items found. meaning, need to query database and count num_rows or similar
+			
+			*/
+			$f= $this->modules->get('InputfieldButton'); 
+			$f->attr('id+name', 'delete_items'); 
+			$f->attr('value', $this->_('Delete Selected Items'));		
+			
+			$menuItemsDragDrop->attr('value', $f->render() . "<div id='accordion'>". $this->listMenu(0) . "</div>");//render drag & drop menu + delete selected items button //not working here; not clickable!
+			
+			/*$menuItemsDragDrop->attr('value', "<div id='accordion'><p class='deleteSelectedItems'><a>Delete Selected Items</a></p>". $this->listMenu(0) . "<p><a>Delete Selected Items</a></p></div>");*///render drag & drop menu + delete selected items button
+		
+			$tab->add($menuItemsDragDrop); 
+			$form->add($tab); 
+			//$form->add($f);//add 'Delete Items' button to form - ADDED TO menuItemsDragDrop InputfieldMarkup MARKUP instead (z-index issue solved)
+		}
+		
+		
+		//Third Tab - Item Settings Overview [read only]. Only show if a menu exists
+		if($menuid) {
+			$tab = new InputfieldWrapper();
+			$tab->attr('title', $this->_('Items Overview')); 
+			$tab->class .= ' WireTab';
+
+			//we'll use this to wrap the table below
+			$menuItems = $this->modules->get('InputfieldMarkup');
+			$menuItems->label = $this->_('Menu items settings');
+			
+			$table = $this->modules->get('MarkupAdminDataTable');
+			$table->setEncodeEntities(false);
+			$table->setClass('menu_items_table');
+			$table->headerRow(array(
+				//$this->_('ID'),//id of item in menu; not pw page id!!!
+				$this->_('Title'),//for PW pages, actual title inserted in this MB's db table (mb_menuitems). The title can also be edited in the add menu item settings
+				$this->_('URL'),//path to PW pages + normal url for custom menu items
+				$this->_('Parent'),//parent in this menu! NOT PW PAGE PARENT!
+				$this->_('CSS ID'),
+				$this->_('CSS Class'),
+				$this->_('New Tab'),//custom or pw page
+				$this->_('Type'),//custom or pw page
+
+
+			)); 
+		 	
+			//fetch menu ITEMS settings for overview table
+			$result = $this->db->query("SELECT Child.id, Child.title, Parent.title, Child.url, Child.css_itemid, Child.css_itemclass, Child.pages_id, Child.new_tab FROM mb_menuitems AS Child LEFT JOIN mb_menuitems AS Parent ON Child.parent_id = Parent.id WHERE Child.menu_id=$menuid ORDER BY Child.sort"); 
+			
+			
+			if($result->num_rows) {
+			
+			
+				while($row = $result->fetch_row()) {
+				list($id, $title, $parent, $url, $cssitemid, $cssitemclass, $pages_id, $ntab) = $row;
+				
+					if ($pages_id) {$url = $this->pages->get($pages_id)->url;}
+					$newtab = $ntab == 0 ? "No" : "Yes";// Boolean: 0 = new tab false [for PW pages]; 1 = new tab true [for custom links]; set during add items to menu
+									
+					$type = $pages_id ? "Page" : "Custom";
+				
+					$table->row(array(
+						$title,
+						$url,
+						$parent,
+						$cssitemid,
+						$cssitemclass,
+						$newtab,
+						$type				
+						
+					)); 
+				}
+			
+			}
+			
+			else {
+			
+				$title = '';
+				$url = '';
+				$parent = '';
+				$cssitemid = '';
+				$cssitemclass = '';
+				$newtab = '';
+				$type = '';
+
+				
+				$table->row(array(
+					$title,
+					$url,
+					$parent,//@@TODO - SHOW NAME OF PARENT IN TABLE
+					$cssitemid,
+					$cssitemclass,
+					$newtab,
+					$type				
+					
+				)); 
+				
+				//user feedback that no menu items have been added to this menu
+				$menuItems->description = $this->_('No items have been added to this menu.');
+			
+			}
+					
+
+			$menuItems->attr('value', $table->render());
+			$tab->add($menuItems); 
+			$form->add($tab);		
+
+		}
+
+		//Fourth Tab - Delete Menu. Only show if a menu exists
+		if($menuid) {
+			$tab = new InputfieldWrapper();
+			$tab->attr('title', $this->_('Delete')); 
+			$tab->class .= " WireTab";
+			$tab->attr('id', 'menudelete'); 
+			
+			$f = $this->modules->get('InputfieldCheckbox'); 
+			$f->attr('name', 'menu_delete'); 
+			$f->attr('value', $menuid); 
+			//$f->label = $tab->attr('title');//this would grab label from this tab's title
+			$f->label = $this->_('Delete menu');
+			$f->description = $this->_('Check the box and click Save to permanently delete this Menu'); 
+			$tab->add($f); 
+			$form->add($tab); 
+		}
+
+		$f = $this->modules->get('InputfieldHidden'); 
+		$f->attr('name', 'menu_id'); 
+		$f->attr('value', $menuid); 
+		$form->add($f); 
+
+		$f = $this->modules->get('InputfieldSubmit'); 
+		$f->class .= ' head_button_clone';
+		$f->attr('id+name', 'menu_save');
+		$f->class .= " menu_save";//add a custom class to this submit button
+		$f->attr('value', $this->_('Save')); 
+		$form->add($f); 
+
+		$f = $this->modules->get('InputfieldSubmit'); 
+		$f->attr('id+name', 'menu_save_exit'); 
+		$f->class .= " ui-priority-secondary";
+		$f->class .= " menu_save";//add a custom class to this submit button
+		$f->attr('value', $this->_('Save & Exit')); 
+		$form->add($f); 
+
+		$post = $this->input->post; 
+		if($post->menu_save || $post->menu_save_exit || $post->menu_add_items) $this->save($form);
+
+		return $form->render();
+
+	}
+	
+	//Function to grab menu items from DB ready for drag and drop sorting and nesting!
+		
+	private function listMenu($parent=0, $menuitems=Array(), $level = 0, $first=0) {
+		
+		$menuid = (int) $this->input->get->id; 
+		
+		if($menuid) {
+		
+		
+			$has_child = false;
+			$out = '';
+
+			//Fetch menu items if $menuitems is empty => VERY IMPORTANT; ENSURE DB IS ONLY ACCESSED ONCE [i.e. if $menuitems is empty]
+			if (empty($menuitems)) {
+				
+				//select both menu and menu items values
+				$sql = "SELECT id, title, parent_id, url, css_itemid, css_itemclass, pages_id, new_tab FROM mb_menuitems WHERE menu_id='$menuid' ORDER BY sort";
+				$result = wire('db')->query($sql);
+
+
+				while ( $row = $result->fetch_assoc())  {//important; fetch as associative array
+						
+				
+					//create an assoc array with id as key of the outer array and title, parent, url, css properties, newtab, pages_id and their respective values as the keys and values of the inner array. 
+						
+					$menuitems[$row['id']] = array(
+					
+						'title' => $row['title'],
+						'parent_id' => (int) $row['parent_id'],
+						'url' => $row['url'],
+						'css_itemid' => $row['css_itemid'],
+						'css_itemclass' => $row['css_itemclass'],
+						'pages_id' => (int) $row['pages_id'],
+						'newtab' => (int) $row['new_tab'],
+					
+					);
+					
+					
+				} //end while  
+			
+			
+				/*
+				*
+				*	For input textboxes 'names', differentiate between custom links and PW pages titles and URLs by:
+				*	using hidden input with pages_id
+				*	
+				*	Also: use hidden input to store $id of each menu item. Helps with tracking when saving
+				*
+				*/
+				
+			
+			}//end if empty $menuitems
+
+			
+			foreach ($menuitems as $id => $item) {//$id is = id; $item = arrays of title, url, newtab, etc
+
+				//set variables [less typing!]
+				$title = $item['title'];
+				$parent_id = $item['parent_id'];
+				$url = $item['url'];
+				$cssitemid = $item['css_itemid'];
+				$cssitemclass = $item['css_itemclass'];
+				$pages_id = $item['pages_id'];
+				$newtab = $item['newtab'];
+
+				$url = $pages_id!==0 ? wire('pages')->get($pages_id)->path : $url;
+				//readonly for PW pages urls
+				$readonly = $pages_id!==0 ? $readonly = ' readonly' : "";
+				$checked = $newtab == 1 ? "checked" : "";
+			
+				if ($parent_id == $parent) {//if this menu item is a parent; create the inner-items/child-menu-items
+
+					//if this is the first child output '<ol>' with the class 'sortable'           .
+					if ($has_child === false) {
+					
+						$has_child = true;//This is a parent
+						
+						if ($first == 0){
+							
+							$out .= "<ol class='dd-list sortable'>\n";
+							
+							$first = 1;
+						} 
+						
+						else {
+							$out .= "\n<ol>\n";
+						}
+					}
+
+					$out .= 
+							"<li id='item_{$id}' class='menu_item'>
+								<h4 class='dd-handle'>{$title}
+									<input type='checkbox' value='{$id}' name='item_delete[]' id='item_delete{$id}' class='deleteitems'>
+								</h4>
+								<span class='toggle'><a href='#' class='item_edit'>edit</a></span>\n";
+								
+					
+					$out .= 
+					"<div class='settings'><span class='disclose'><span></span></span>
+						<label for='item_title{$id}'>Title</label>
+						<input type='text' value='{$title}' name='item_title[]' class='menusettings' id='item_title{$id}'>
+						
+						<label for='item_url{$id}'>URL</label>
+						<input type='text' value='{$url}' name='item_url[]' class='menusettings{$readonly}' id='item_url{$id}' {$readonly}>
+						
+						<label for='css_itemid{$id}'>CSS ID (optional, single value, must start with letter)</label>
+						<input type='text' value='{$cssitemid}' name='css_itemid[]' class='menusettings' id='css_itemid{$id}'>
+						
+						<label for='css_itemclass{$id}'>CSS Class (optional, single value)</label>
+						<input type='text' value='{$cssitemclass}' name='css_itemclass[]' class='menusettings' id='css_itemclass{$id}'>
+						
+						<label for='newtab{$id}'>
+						<input type='checkbox' value='{$newtab}' name='newtab[]' class='menusettings' id='newtab{$id}' {$checked}>
+						Open link in a new tab/window</label>
+						<input type='hidden' value='{$pages_id}' name='pages_id[]' class='menusettings' id='pages_id{$id}'>
+						<input type='hidden' value='{$id}' name='item_id[]' class='menusettings' id='item_id{$id}'>
+						<input type='hidden' value='{$parent_id}' name='item_parent[]' id='item_parent{$id}'> 
+						
+					</div>\n";
+					
+				   
+					//call function again to generate nested list for sub-menu items belonging to this menu item. 
+					//IMPORTANT TO NOTE: values are being fetched from the array
+					$out .= $this->listMenu($id, $menuitems, $level+1, $first);
+
+					$out .= "</li>\n";
+					
+				}//end if parent
+			}//end foreach
+			
+
+		
+			if ($has_child === true) $out .= "</ol>\n";
+			
+			return $out;	
+
+		}//end if menuid
+		
+
+	}
+	
+	//@TODO - EDIT BELOW!
+	/**
+	 * Save Menu
+	 *
+	 */
+	protected function save($form) {
+		
+		//@@TODO - SANITIZE VALUES!!! + ADD DELETE ITEMS!!
+		//menu settings
+		$menuid = (int) $this->input->post->menu_id; 
+		$delete = (int) $this->input->post->menu_delete; 
+		$exitAfterSave = $this->input->post->menu_save_exit; 
+	
+		//delete menu
+		if($delete && $delete === $menuid) {
+			$this->db->query("DELETE FROM mb_menus WHERE menu_id=$delete LIMIT 1"); 	
+			$this->db->query("DELETE FROM mb_menuitems WHERE menu_id=$delete"); 
+			$this->message($this->_('Deleted Menu and its items')); 
+			$this->session->redirect('../'); 
+		}
+
+		//process form
+		$form->processInput($this->input->post); 
+		
+		
+		// ================ 3-PART SAVE PROCESS =====================
+		
+		//SAVE 01: Process and save menu settings
+		$name = $form->get('menu_name')->value; 
+		
+		//these values are from input textboxes rendered in a table; cannot access them using processInput above
+		$cssmenuid = $this->sanitizer->name($this->input->post->menu_cssid); //@@TODO - need to accept only single value that starts with a letter.
+		$cssmenuclass = $this->sanitizer->name($this->input->post->menu_class); //@@for now, only a singlee class
+		$current  = $this->sanitizer->name($this->input->post->menu_currentitemclass); //@@single value
+		$first  = $this->sanitizer->name($this->input->post->menu_firstitemclass); //@@ditto
+		$last  = $this->sanitizer->name($this->input->post->menu_lastitemclass);//@@ditto
+		$currentparentclass = $this->sanitizer->name($this->input->post->menu_currentparentsclass);//@@ditto
+		$haschildren  = $this->sanitizer->name($this->input->post->menu_parentsclass); //@@ditto
+				
+		if(empty($name)) {
+			$form->get('menu_name')->error('A Menu Name is required'); 
+			return false;
+		}
+
+		//update/insert into database
+		$sql1 = 	($menuid ? "UPDATE " : "INSERT INTO ") . "mb_menus " . 
+			"SET " . 
+			"menu_name='" . $this->db->escape_string($name) . "', " . 
+			"css_menuid='" . $cssmenuid . "', " . 
+			"css_menuclass='" . $cssmenuclass . "', " . 
+			"css_current='" . $current . "', " . 
+			"css_first='" . $first . "', " . 
+			"css_last='" . $last . "', " . 
+			"css_parent='" . $currentparentclass . "', " . 
+			"css_haschildren='" . $haschildren . "' " . 
+			($menuid ? "WHERE menu_id=$menuid" : ""); 
+
+
+	
+		$result = $this->db->query($sql1); 
+
+		
+		//SAVE 02: Process and save EXISTING menu items [sql UPDATE]
+				
+		//loop through the existing, updated menu items and save each
+		
+		$count = count($this->input->post->item_id);
+		$n = 0;
+			
+		for ($i=0; $i<$count; $i++) {
+		
+			$id = (int) $this->input->post->item_id[$i];
+			if(!$id) continue;
+			
+			$title = $this->sanitizer->text($this->input->post->item_title[$i]);//@@TODO - not sure if correct sanitizer? 
+			if(!$title) continue;
+		
+			$url = $this->sanitizer->url($this->input->post->item_url[$i]); 
+			if(!$url) continue;
+			
+			$pages_id = (int) $this->input->post->pages_id[$i];
+			
+			$url = $pages_id == 0 ? $url : "";//@@TODO confirm works!
+		
+			$parent = (int) $this->input->post->item_parent[$i];//@@TODO test thoroughly!
+								
+			$cssitemid = $this->sanitizer->name($this->input->post->css_itemid[$i]);//@@ - Single value
+			
+			$cssitemclass = $this->sanitizer->name($this->input->post->css_itemclass[$i]);//@@ - ditto
+			
+			$newtab = (!isset($this->input->post->newtab[$i])) ? 0 : 1;//@@TODO - not working!
+
+
+			$sort = $i;
+			
+			$result = $this->db->query("UPDATE mb_menuitems SET title = '$title', url = '$url', parent_id = $parent, css_itemid = '$cssitemid', css_itemclass = '$cssitemclass', new_tab = $newtab, sort = $sort WHERE menu_id = $menuid AND id = $id");
+			
+			$n++;
+	
+		}
+		
+		//SAVE 03: Process and save NEW menu items [sql INSERT]
+		/*
+		
+		*	Values coming from two sources: Custom menu links & PW pages added to menu
+		*	Tack these at the bottom of the db table according to 'sort'
+		*	Give them parent = 0
+		*	
+		*/
+			
+		//add the new custom menu item links. Cannot add new pages here since their count may be different	
+		$count = count($this->input->post->new_item_custom_title);
+			
+		//$newitems = array();
+
+		//foreach ($newtitles as $items) {
+		for ($i=0; $i<$count; $i++) {
+				
+						
+			$newtitle = $this->sanitizer->text($this->input->post->new_item_custom_title[$i]);//not sure if correct sanitizer? 
+			if (!$newtitle) continue;//only accept new menu items with titles. @@todo - how to deal with "empty ones"; do i return them back to user? Would help with typing up the other fields that were filled!
+			
+			//$newpages_id = '';//not needed. New items, hence new $ids will be created
+			$newurl  = $this->sanitizer->url($this->input->post->new_item_custom_url[$i]);
+			if (!$newurl) continue;//only accept new menu items with URLs. @@todo - ditto
+			
+			//$newparents = ''[$i];//testing; will not need this
+			//$newsort = ''[$i];//testing; will not need this
+			$newcssitemid = $this->sanitizer->name($this->input->post->new_css_itemid[$i]);
+			$newcssitemclass = $this->sanitizer->name($this->input->post->new_css_itemclass[$i]);
+			$new_newtab = (!isset($this->input->post->new_newtab[$i])) ? 0 : 1;//@@TODO - not working! Wrong values set in different scenarios
+			
+			$newitems [] = array(
+			//'id' => $id,//not needed. New items, hence new $ids will be created
+			'title' => $newtitle,
+			'url' => $newurl,
+			'pages_id' => '',//=>$newpages_id not needed here. only need to save for new items, especially PW pages. will auto to zero on INSERT
+			//'parent' => //don't need this; new items will get parent 0 automatically during INSERT
+			'css_itemid' => $newcssitemid,
+			'css_itemclass' => $newcssitemclass,
+			'new_tab' => $new_newtab,
+			//'sort' => $sort,
+		
+			);
+			
+		}
+
+		$itemaddpages = $this->input->post->item_addpages;//$input->post->item_addpages is a one index array
+		
+		// do this in one go - grabb post, sanitize and explode. Not working IF I ADD (int) like this - (int) $this->input->post->item_addpages[0] - this returns only one item. Confirm below is correct sanitization
+		(int) $items = explode(",", $this->input->post->item_addpages[0]);
+		
+		$count = count($items);
+
+		foreach ($items as $item) {
+				
+			$newtitle = $this->pages->get($item)->title;//title of each PW page in this array. Do I need to sanitize again?
+			if(!$newtitle) continue;// if no new pages posted, move one...[otherwise one iterations with empty strings is added to array!]
+			
+			$newpages_id = (int) $item;//do I need to sanitize again?
+			$newurl  = '';//empty since these are PW pages; no needed to copy URL here
+			//$newparents = ''[$i];// will not need this - left here for info until next version
+			//$newsort = ''[$i];// will not need this - ditto
+			//$newcssitemid = ''; - ditto
+			//$newcssitemclass = ''; - ditto
+			//$new_newtab = ''; - ditto
+			
+			//add new page menu items to the $newitems array
+			$newitems [] = array(
+			//'id' => $id,//not needed. New items, hence new $ids will be created
+			'title' => $newtitle,
+			'url' => $newurl,
+			'pages_id' => $newpages_id,//not sure. only need to save for new items, especially PW pages
+			//'parent' => //don't need this; new items will get parent 0 automatically during INSERT
+			'css_itemid' =>'',// => $newcssitemid,
+			'css_itemclass' => '',//=> $newcssitemclass,
+			'new_tab' => '',//=> $new_newtab,
+			//'sort' => //not needed. Will work this out from $n; new items will all get the same sort value and be inserted at the end of the menu. 
+		
+			);
+			
+		}
+
+		$sort = $n+1;
+		
+		foreach ($newitems as $newitems) {
+		
+			$title = $newitems['title'];
+			$url = $newitems['url'];
+			$pages_id = $newitems['pages_id'];
+			//$parent = '';//no need; at this point, parent = 0. Will be set automatically in db.
+			$cssitemid = $newitems['css_itemid'];
+			$cssitemclass = $newitems['css_itemclass'];
+			//$newtab = $newitems['new_tab'];//problematic atm..temp fix below
+			$newtab = 0;
+			$sort = $sort;
+
+			//insert new menu items @@todo - CHECK & CHECK for SQL INJECTION VULNERABILITY - ESP AROUND SINGLE QUOTES!
+			$result = $this->db->query("INSERT INTO mb_menuitems SET title = '$title', url = '$url', pages_id = '$pages_id', css_itemid = '$cssitemid', css_itemclass = '$cssitemclass', new_tab = $newtab, sort = $sort, menu_id = $menuid");
+
+		}
+
+		if($result) {
+			if(!$menuid) $menuid = $this->db->insert_id; 
+			$this->message($this->_("Saved Menu:". $name)); 				
+			
+			//if($exitAfterSave) $this->session->redirect("../?sort=-menu_name"); 
+			if($exitAfterSave) $this->session->redirect("../"); 
+				else $this->session->redirect("./?id=$menuid"); 
+		} 
+		
+		else {
+			$this->error("Error saving Menu"); 
+			return false;
+		}
+
+	}
+	
+	
+	/**
+	 * 	Called only when the module is installed
+	 *
+	 *	A new page with this Process module assigned is created. 
+	 *	A new permission 'menubuilder' is created.
+	 *
+	 */	
+	
+	
+	public function ___install() {
+
+	//create the first table - for menus
+
+		$sql1 = "CREATE TABLE mb_menus (
+			menu_id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			menu_name varchar(128) NOT NULL,
+			css_menuid varchar(128),
+			css_menuclass varchar(128),
+			css_current varchar(128),
+			css_first varchar(128),
+			css_last varchar(128),
+			css_parent varchar(128),
+			css_haschildren varchar(128)
+		
+		)";
+		
+		try {
+			if($this->database) $this->database->exec($sql1); //pdo
+				else $this->db->query($sql1); //mysqli
+
+		} 
+		
+		catch(Exception $e) {
+			$this->error($e->getMessage()); 
+		}
+		
+		
+		//create the second table - for menu items
+		
+		$sql2 = "CREATE TABLE mb_menuitems (
+				id int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				parent_id int unsigned NOT NULL default 0,
+				sort int unsigned NOT NULL,
+				title varchar(128) NOT NULL,
+				url text,
+				css_itemid varchar(128),
+				css_itemclass varchar(128),
+				pages_id int unsigned NOT NULL default 0,
+				menu_id int unsigned NOT NULL,
+				new_tab tinyint unsigned NOT NULL default 0
+			
+			)";
+		
+		try {
+			if($this->database) $this->database->exec($sql2); //pdo
+				else $this->db->query($sql2); //mysqli
+
+		} 
+		
+		catch(Exception $e) {
+			$this->error($e->getMessage()); 
+		}
+		
+	
+		//create menu builder page and permission
+		$page = $this->pages->get('template=admin, name='.self::PAGE_NAME);
+		if (!$page->id) {
+			$page = new Page();
+			$page->template = 'admin';
+			$page->parent = $this->pages->get($this->config->adminRootPageID)->child('name=setup');
+			$page->title = 'Menu Builder';
+			$page->name = self::PAGE_NAME;
+			$page->process = $this;
+			$page->save();
+		
+			// tell the user we created this page
+			$this->message("Created Page: {$page->path}"); 
+		
+		}
+		
+		$permission = $this->permissions->get('menubuilder');
+		if (!$permission->id) {
+			$p = new Permission();
+			$p->name = 'menubuilder';
+			$p->title = $this->_('View Menu Builder Page');
+			$p->save();			
+		
+			// tell the user we created this module's permission
+			$this->message("Created New Permission: menubuilder");
+			
+		}		
+	
+	}
+
+	/**
+	 *	Called only when the module is uninstalled
+	 *
+	 *	This should return the site to the same state it was in before the module was installed. 
+	 *
+	 */
+	 
+	public function ___uninstall() {
+		
+		
+		// find and delete the page we installed, locating it by the process field (which has the module ID)
+		// it would probably be sufficient just to locate by name, but this is just to be extra sure.
+		$moduleID = $this->modules->getModuleID($this); 
+		$page = $this->pages->get("template=admin, process=$moduleID, name=" . self::PAGE_NAME); 
+		//$page = $this->pages->get('template=admin, name='.self::PAGE_NAME);
+			
+		if($page->id) {
+		// if we found the page, let the user know and delete it
+			$this->message("Deleted Page: {$page->path}"); 
+			$page->delete();
+		}
+
+		//find and delete the menu builder permission and let the user know
+		$permission = $this->permissions->get('menubuilder');
+		if ($permission->id){
+			$permission->delete();
+			$this->message("Deleted Permission: menubuilder");
+		
+		}
+		
+		
+		//delete the two menu builder db tables
+		$sql1 = "DROP TABLE mb_menus"; 
+
+		try {
+			if($this->database) $this->database->exec($sql1);//pdo
+				else $this->db->query($sql1);
+
+		} 
+		
+		catch(Exception $e) {
+			$this->error($e->getMessage()); 
+		}
+	
+	
+		$sql2 = "DROP TABLE mb_menuitems"; 
+
+		try {
+			if($this->database) $this->database->exec($sql2);//pdo
+				else $this->db->query($sql2);
+
+		} 
+		
+		catch(Exception $e) {
+			$this->error($e->getMessage()); 
+		}
+	
+	
+	
+	
+	}	
+
+	
+}
+
+?>
