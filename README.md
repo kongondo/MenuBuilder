@@ -49,5 +49,5 @@ The CSS is up to you, of course.
 *	Saving of 'new tab' status is not working properly
 
 ##Resources
-*	[Support Forum](http://processwire.com/talk/topic/xxxxx/)
+*	[Support Forum](http://processwire.com/talk/topic/4451-module-menu-builder/)
 *	Video [demo](http://youtu.be/Ig-UJcx8JH0)
