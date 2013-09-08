@@ -10,6 +10,7 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 *	Ability to create menus that do not mirror your ProcessWire Page Tree hierarchy/structure
 *	Menus can contain both ProcessWire pages and custom links
 *	Create menu hierarchies and nesting via drag and drop
+*	Prevents editing of ProcessWire pages menu items' URLs
 *	Easily apply CSS IDs and Classes to each and every menu item if you wish
 *	Optionally set custom links to open in a new tab
 *	Readily view the structure and settings for each menu and menu item
