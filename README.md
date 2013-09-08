@@ -4,6 +4,8 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 ##WARNING
 #####This is ALPHA CODE. Please do not install this module on a live or production environment. At the moment, it is for testing purposes only and the code may contain bugs and/or other nasties!
 
+<img src='https://raw.github.com/kongondo/MenuBuilder/master/screenshot1.png'>
+
 ##Features
 *	Ability to create menus that do not mirror your ProcessWire Page Tree hierarchy/structure
 *	Menus can contain both ProcessWire pages and custom links
