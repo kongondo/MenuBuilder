@@ -35,7 +35,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Kongondo',
 			'version' => 1,
-			'href' => 'http://processwire.com/talk/topic/xxxxxxxxxx/',
+			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
 			'permission' => 'menubuilder',
@@ -48,7 +48,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	const PAGE_NAME = 'menu-builder';//
 	
 	/**
-	 * Holds the avaiable actions in the edit-mode. Moved initialization to Constructor to make Strings translatable
+	 * Holds the available actions in the edit-mode. Moved initialization to Constructor to make Strings translatable
 	 *
 	 */
 	//protected $menus = array();//will created menus for selection to edit
@@ -60,19 +60,10 @@ class ProcessMenuBuilder extends Process implements Module {
 		parent::init();
 
 		$this->modules->get('JqueryWireTabs'); // @kongondo - I need this for Create Menu/Edit Menu
-		$this->config->scripts->add($this->config->urls->ProcessMenuBuilder . 'jquery.mjs.nestedSortable.js');//@kongondo - change to nestedSortable.js
+		$this->config->scripts->add($this->config->urls->ProcessMenuBuilder . 'jquery.mjs.nestedSortable.js');//
 
 	}
 
-	
-	
-	/**
-	 * Display list of menus table
-	 * 
-	 * @access protected
-	 * @return void
-	 */
-	
 	
 	/**
 	* 
@@ -1018,5 +1009,3 @@ class ProcessMenuBuilder extends Process implements Module {
 
 	
 }
-
-?>

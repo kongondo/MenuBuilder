@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Kongondo',
 			'version' => 1,
-			'href' => 'http://processwire.com/talk/topic/xxxxxxxxxx/',
+			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
 			'requires' => 'ProcessMenuBuilder'
@@ -196,5 +196,3 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 
 }
-
-?>
