@@ -31,6 +31,7 @@ Once you've created a menu, you can view it in the frontend by loading it using 
 ````php
 
 $menu = $modules->get('MarkupMenuBuilder');//Load the module. $menu is an example
+//you can render by menu name, title, id or properly formatted array of menu items
 echo $menu->render('nameofyourmenu');//render the menu
 ````
 
