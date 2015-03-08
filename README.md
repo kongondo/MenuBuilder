@@ -60,7 +60,7 @@ echo $menu->render('1234');//render by ID
 
 //To render by passing an array
 
-//get the Menu Builder field menu_items for this menu. That is what your menu items JSON string is stored
+//get the Menu Builder field menu_items for this menu. That is where your menu items JSON string is stored
 $json = $pages->get(1234)->menu_items;
 //convert the JSON string to an array. Here we assume the JSON string is not empty
 $array = json_decode($json, true);
