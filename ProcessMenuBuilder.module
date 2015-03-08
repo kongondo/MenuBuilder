@@ -5,7 +5,7 @@
 * This module enables you to create custom menus for your website using drag and drop in the ProcessWire Admin Panel
 *
 * @author Kongondo
-* Some code based on work by Soma, Wanze, Ryan and Ryun (stackoverflow)
+*
 * https://github.com/kongondo/ProcessMenuBuilder
 * Created 4 August 2013
 * Major update in March 2015
@@ -35,7 +35,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Kongondo',
-			'version' => 2,
+			'version' => 3,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -499,6 +499,27 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			$tab->add($r);
 
+			
+			//only 'Allow Markup' (Yes) option is saved in the field menu_pages (JSON): 'markup'=> 2. Else we assume default 'markup' => 1 (No)
+			$allowMarkup = isset($menuPages['markup']) ? 1 : 2;
+
+			//radios: allow markup in menu item title/label
+			$r = new InputfieldRadios();
+			$r->attr('id+name', 'menu_item_title_markup');
+			$r->label =  $this->_('Allow HTML in menu items title');
+			$r->notes = $this->_('Example: <span>Home</span>. If you allow this, the HTML will be run through HTML purifier before saving. Take care not to input malformed HTML.');
+
+			$radioOptions = array (
+							 1 => $this->_('Yes'),
+							 2 => $this->_('No'),
+
+		 	);
+
+			$r->addOptions($radioOptions);
+			$r->value = $allowMarkup;
+
+			$tab->add($r);
+
 			$t = $this->modules->get('MarkupAdminDataTable');
 			$t->setEncodeEntities(false);
 			$t->setSortable(false);
@@ -911,7 +932,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 			
 				if ($parent_id == $parent) {//if this menu item is a parent; create the inner-items/child-menu-items
-					//if this is the first child output '<ol>' with the class 'sortable'           .
+					//if this is the first child output '<ol>' with the class 'sortable'
 					if ($has_child === false) {					
 						$has_child = true;//This is a parent
 						
@@ -959,7 +980,7 @@ class ProcessMenuBuilder extends Process implements Module {
 						<input type='hidden' value='{$parent_id}' name='item_parent[{$id}]' id='item_parent{$id}'> 
 						
 					</div>\n";					
-				   
+
 					//call function again to generate nested list for sub-menu items belonging to this menu item. 
 					$out .= $this->listMenu($id, $menuItems, $first);
 
@@ -1355,7 +1376,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				if (!$menuTitle) {
 					$this->error($this->_('A title is required.')); 
 					return false;
-				}		
+				}	
 
 				$menuPages = array();
 
@@ -1366,9 +1387,15 @@ class ProcessMenuBuilder extends Process implements Module {
 				//we only save this if user selects Autcomplete; otherwise defaults to AsmSelect			
 				$menuPages['input'] = (int) $this->input->post->menu_pages_select == 2 ? 2 : '';
 
+				//whether to allow HTML markup in menu item titles/lables -> e.g. <span>Home</span>
+				//we only save this if user selects Yes; otherwise defaults to No (don't allow markup)
+				//we'll then use the correct sanitizer below			
+				$allowMarkup = $menuPages['markup'] = (int) $this->input->post->menu_item_title_markup == 1 ? 1 : '';
+				
 				//nestedSortable settings for this menu. we'll save this as JSON in menu_settings field
 				$menuSettings = array();
-				
+
+
 				foreach ($this->input->post->menu_settings as $key => $value) {
 
 						//only save non-empty $key => $values
@@ -1394,14 +1421,21 @@ class ProcessMenuBuilder extends Process implements Module {
 				//only loop if we have existing menu times. we check the hidden field with IDs of menu items
 				if(count($this->input->post->item_id)) {
 
+
+							if($allowMarkup) $purifier = $this->modules->get('MarkupHTMLPurifier');
+
 							foreach($this->input->post->item_id as $itemID) {
 
 									$itemID = (int) $itemID;
 									if(!$itemID) continue;
 
-									$itemTitle =  $this->sanitizer->text($this->input->post->item_title[$itemID]);
+									//if menu items titles allow HTML (markup) we run them though HTML purifier
+									if($allowMarkup) $itemTitle = $purifier->purify($this->input->post->item_title[$itemID]);
+									//else we sanitize menu item titles as text
+									else$itemTitle =  $this->sanitizer->text($this->input->post->item_title[$itemID]);
+									
 									if(!$itemTitle) continue;
-								
+						
 									$itemURL = $this->sanitizer->url($this->input->post->item_url[$itemID]); 
 									if(!$itemURL) continue;
 									
@@ -1556,7 +1590,6 @@ class ProcessMenuBuilder extends Process implements Module {
 				}//end if count($items)
 
 
-
 				//JSON string of menu pages and menu items to save
 				$menuPagesJSON = count($menuPages) ? wireEncodeJSON($menuPages) : '';//using wireEncodeJSON ensures we only save non-empty values
 				$menuitemsJSON = count($menuItems) ? wireEncodeJSON($menuItems) : '';
@@ -1565,6 +1598,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				#################	06: Save menu 	#################
 									
 				$menu->title = $menuTitle;
+				$menu->name = $this->sanitizer->pageName($menuTitle);
 				$menu->menu_pages = $menuPagesJSON;
 				$menu->menu_items = $menuitemsJSON;
 				$menu->menu_settings = $menuSettingsJSON;				
