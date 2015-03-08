@@ -29,10 +29,10 @@ The module has two components
 * ProcessMenuBuilder: for creating menus in the ProcessWire Admin
 * MarkupMenuBuilder: for displaying menus in the frontend (unstyled, unordered list by default)
 
-1.Install the module from within the ProcessWire admin or download the module and copy the file contents to **/site/modules/MenuBuilder/**
-2.In Admin, click Modules > check for new modules
-3.Click install ProcessMenuBuilder. The module will automatically install MarkupMenuBuilder
-4.Go to Setup > Menu Builder and start creating your menus
+1. 	Install the module from within the ProcessWire admin or download the module and copy the file contents to **/site/modules/MenuBuilder/**
+2. 	In Admin, click Modules > check for new modules
+3. 	Click install ProcessMenuBuilder. The module will automatically install MarkupMenuBuilder
+4. 	Go to Setup > Menu Builder and start creating your menus
 
 ##Note
 
@@ -124,19 +124,20 @@ GPL2
 ##Changelog
 
 #Version 0.0.3
-1.Option to allow markup in menu item title(label) - Supersusers only
-2.Added more options to render() method, e.g. first, last classes
+1. 	Option to allow markup in menu item title(label) - Supersusers only
+2. 	Added more options to render() method, e.g. first, last classes
 
 #Version 0.0.2
-1.First Beta version
-3.Menus saved as ProcessWire pages
-4.Menu items saved as JSON in a field in Menu pages
-5.Add menu items from ProcessWire pages using page fields (option to choose between PageAutocomplete and AsmSelect [default]) or a Selector (e.g. template=basic-page, limit-20).
-6.Specify a selector to return only those specified pages for selection in the page field (i.e. asm and autocomplete)
-7.For page fields, similar to custom menu items, add css classes and IDs as you add the items
-8.Menu settings for nestedSortable - e.g. maxLevels (limit nesting levels)
-9.Lock down menus for editing
-10.Highly configurable MarkupMenuBuilder 
+1.	First Beta version
+2.	Menus saved as ProcessWire pages
+3.	Menu items saved as JSON in a field in Menu pages
+4.	Add menu items from ProcessWire pages using page fields (option to choose between PageAutocomplete and AsmSelect [default]) or a Selector (e.g. template=basic-page, limit-20).
+5.	Specify a selector to return only those specified pages for selection in the page field (i.e. asm and autocomplete)
+6.	For page fields, similar to custom menu items, add css classes and IDs as you add the items
+7.	Menu settings for nestedSortable - e.g. maxLevels (limit nesting levels)
+8.	Lock down menus for editing
+9.	Highly configurable MarkupMenuBuilder
+
 
 #Version 0.0.1
 Initial alpha release
