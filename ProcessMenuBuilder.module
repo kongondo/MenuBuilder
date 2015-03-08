@@ -601,6 +601,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		else $pagesSelector = "has_parent!=2, parent!=7, id!=27, limit=50";
 
 		$description = $this->_('Select Pages to add to your menu. Optionally enter a CSS ID and single/multiple Classes.');
+		$menuPagesInput = 1;
 
 		if (isset($menuPages['input']) && $menuPages['input'] == 2) {
 
@@ -608,6 +609,10 @@ class ProcessMenuBuilder extends Process implements Module {
 				$menuAddPageItems = $this->modules->get('InputfieldPageAutocomplete');
 				$menuAddPageItems->set('findPagesSelector', $pagesSelector);
 				$menuAddPageItems->notes = $this->_('Start typing to search for pages.');
+
+				//we'll use this class property when saving PageAutocomplete values
+				//especially important for non-superusers since the radio input 'menu_pages_select' will not be output for them
+				$menuPagesInput = 2;
 		}
 
 		//else we default to AsmSelect inputfield
@@ -630,7 +635,14 @@ class ProcessMenuBuilder extends Process implements Module {
 		$menuAddPageItems->attr('name+id', 'item_addpages');
 		$menuAddPageItems->description = $description;
 
-		$tab->add($menuAddPageItems);//add page asmSelect/autocomplete to markup		
+		$tab->add($menuAddPageItems);//add page asmSelect/autocomplete to markup	
+
+		//hidden field to store value if using PageAutocomplete to select menu items from pages
+		$h = $this->modules->get('InputfieldHidden');
+		$h->attr('name', 'menu_pages_input');
+		$h->attr('value', $menuPagesInput); 
+
+		$tab->add($h);//add hidden field to markup
 
 		//Add Custom menu items
 		$t = $this->modules->get('MarkupAdminDataTable');
@@ -1111,7 +1123,6 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		return $scripts;
 
-
 	}
 
 	/**
@@ -1380,33 +1391,39 @@ class ProcessMenuBuilder extends Process implements Module {
 
 				$menuPages = array();
 
-				//selector for finding pages that can be added to the menu (for AsmSelect/Autocomplete)				
-				$menuPages['sel'] = $this->sanitizer->text($this->input->post->menu_pages);
-
-				//page inputfield type for finding pages that can be added to the menu (AsmSelect vs. Autocomplete)
-				//we only save this if user selects Autcomplete; otherwise defaults to AsmSelect			
-				$menuPages['input'] = (int) $this->input->post->menu_pages_select == 2 ? 2 : '';
-
-				//whether to allow HTML markup in menu item titles/lables -> e.g. <span>Home</span>
-				//we only save this if user selects Yes; otherwise defaults to No (don't allow markup)
-				//we'll then use the correct sanitizer below			
-				$allowMarkup = $menuPages['markup'] = (int) $this->input->post->menu_item_title_markup == 1 ? 1 : '';
-				
 				//nestedSortable settings for this menu. we'll save this as JSON in menu_settings field
 				$menuSettings = array();
 
 
-				foreach ($this->input->post->menu_settings as $key => $value) {
+				//only save for Superusers
+				//ensures their settings are not overwritten (although hidden for other users)
+				if ($this->user->isSuperuser()) {
+					//selector for finding pages that can be added to the menu (for AsmSelect/Autocomplete)				
+					$menuPages['sel'] = $this->sanitizer->text($this->input->post->menu_pages);
+
+					//page inputfield type for finding pages that can be added to the menu (AsmSelect vs. Autocomplete)
+					//we only save this if user selects Autcomplete; otherwise defaults to AsmSelect			
+					$menuPages['input'] = (int) $this->input->post->menu_pages_select == 2 ? 2 : '';
+
+					//whether to allow HTML markup in menu item titles/lables -> e.g. <span>Home</span>
+					//we only save this if user selects Yes; otherwise defaults to No (don't allow markup)
+					//we'll then use the correct sanitizer below			
+					$allowMarkup = $menuPages['markup'] = (int) $this->input->post->menu_item_title_markup == 1 ? 1 : '';
+
+					//nestedSortable settings
+					foreach ($this->input->post->menu_settings as $key => $value) {
 
 						//only save non-empty $key => $values
-						if($value) {			
-			
+						if($value) {
 							if($key == 'maxLevels' || $key == 'expandOnHover' || $key == 'tabSize') $value = (int) $value;
 							else $value = $this->sanitizer->text($value);
-							$menuSettings[$key]['setting'] = $value;
 
+							$menuSettings[$key]['setting'] = $value;
 						}
+					}
+
 				}
+
 
 				//JSON string of menu settings to save
 				$menuSettingsJSON = count($menuSettings) ? json_encode($menuSettings) : '';
@@ -1429,8 +1446,8 @@ class ProcessMenuBuilder extends Process implements Module {
 									$itemID = (int) $itemID;
 									if(!$itemID) continue;
 
-									//if menu items titles allow HTML (markup) we run them though HTML purifier
-									if($allowMarkup) $itemTitle = $purifier->purify($this->input->post->item_title[$itemID]);
+									//if menu items titles allow HTML (markup) && user is Superuser, we run them though HTML purifier
+									if($allowMarkup && $this->user->isSuperuser()) $itemTitle = $purifier->purify($this->input->post->item_title[$itemID]);
 									//else we sanitize menu item titles as text
 									else$itemTitle =  $this->sanitizer->text($this->input->post->item_title[$itemID]);
 									
@@ -1513,9 +1530,10 @@ class ProcessMenuBuilder extends Process implements Module {
 				$addPages = $this->input->post->item_addpages;
 				$pagesCSSClass = $this->input->post->new_page_css_itemclass;
 				$pagesCSSID = $this->input->post->new_page_css_itemid;
+				$menuPagesInput = $this->input->post->menu_pages_input;
 
 				//if using PageAutocomplete in the 'add pages to menu select'
-				if($menuPages['input'] == 2) {
+				if($menuPagesInput == 2) {
 
 					//In the autocomplete select array, there is only one index with a string of numbers, e.g. ,1087,1364,7895 as a value
 					$addPages = explode(",", $addPages[0]);
@@ -1599,9 +1617,10 @@ class ProcessMenuBuilder extends Process implements Module {
 									
 				$menu->title = $menuTitle;
 				$menu->name = $this->sanitizer->pageName($menuTitle);
-				$menu->menu_pages = $menuPagesJSON;
+				if($this->user->isSuperuser()) $menu->menu_pages = $menuPagesJSON;//only save for supersusers
 				$menu->menu_items = $menuitemsJSON;
-				$menu->menu_settings = $menuSettingsJSON;				
+				if($this->user->isSuperuser()) $menu->menu_settings = $menuSettingsJSON;//only save for supersusers			
+				
 				$menu->save();
 				
 				$this->message($this->_('Saved Menu: '. $menu->title)); 
@@ -1648,7 +1667,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		$fields = array(
 
-		'menu_pages' => array('name'=>'menu_pages', 'type'=> 'FieldtypeText', 'label'=>'Menu Pages', 'description'=>'JSON formatted values of optional ProcessWire selector to limit pages that can be added to this menu. Also, whether to use AsmSelect or PageAutocomplete in adding menu items. Example JSON: {"sel":"template=colours, limit=20, sort=title","input":2}. You don\'t need to edit these directly. Use Menu Builder instead.', 'maxlength'=>2048),
+		'menu_pages' => array('name'=>'menu_pages', 'type'=> 'FieldtypeText', 'label'=>'Menu Pages', 'description'=>'JSON formatted values of optional ProcessWire selector to limit pages that can be added to this menu, whether to allow HTML (markup) in menu item titles and whether to use AsmSelect or PageAutocomplete in adding menu items. Example JSON: {"sel":"template=colours, limit=20, sort=title","input":2}. You don\'t need to edit these directly. Use Menu Builder instead.', 'maxlength'=>2048),
 		'menu_items' => array('name'=>'menu_items', 'type'=> 'FieldtypeTextarea', 'label'=>'Menu Items', 'description'=>'JSON values of the items in this menu. You don\'t need to edit these directly. Use Menu Builder instead.'),
 		'menu_settings' => array('name'=>'menu_settings', 'type'=> 'FieldtypeTextarea', 'label'=>'Menu Settings', 'description'=>'JSON values of this menu\'s settings. You don\'t need to edit these directly. Use Menu Builder instead.'),
 
@@ -1766,7 +1785,6 @@ class ProcessMenuBuilder extends Process implements Module {
 	*/	 
 	public function ___uninstall() {
 		
-		//@@todo - add uninstaller to delete menu pages, templates + fields!
 		//find and delete the page we installed, locating it by the process field (which has the module ID)
 		//it would probably be sufficient just to locate by name, but this is just to be extra sure.
 		$moduleID = $this->modules->getModuleID($this); 
@@ -1800,7 +1818,6 @@ class ProcessMenuBuilder extends Process implements Module {
 		}
 
 		//find and delete the 3 fields used by our menus
-
 		$fields = array('menu_pages', 'menu_items', 'menu_settings');
 		foreach ($fields as $field) {
 
@@ -1809,9 +1826,6 @@ class ProcessMenuBuilder extends Process implements Module {
 					$this->message('Deleted Fields: menu_pages, menu_items, menu_settings');
 		
 		}
-					
-
-
 	
 	}	
 
