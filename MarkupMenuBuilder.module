@@ -70,7 +70,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		//default (mainly css) menu options. For css, we make no assumptions & don't output default values
 		$defaultOptions = array(
 
-				'wrapper_list_type' => 'ul',//ul, ol, nav, div, etc.//@@todo - nav without ul may be problematic (li won't indent)
+				'wrapper_list_type' => 'ul',//ul, ol, nav, div, etc.
 				'list_type' => 'li',//li, a, span, etc.
 				'menu_css_id' => '',
 				'menu_css_class' => '',
