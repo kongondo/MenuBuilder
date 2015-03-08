@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Markup Menu Builder',
 			'summary' => 'Render menus created by Menu Builder',
 			'author' => 'Kongondo',
-			'version' => 2,
+			'version' => 3,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -50,7 +50,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*
 	*/	
 	public function init() {
-	//required
+		//required
 	
 	}
 		
@@ -70,10 +70,11 @@ class MarkupMenuBuilder extends WireData implements Module {
 		//default (mainly css) menu options. For css, we make no assumptions & don't output default values
 		$defaultOptions = array(
 
-				'list_type' => 'ul',//ul or ol only
+				'wrapper_list_type' => 'ul',//ul, ol, nav, div, etc.//@@todo - nav without ul may be problematic (li won't indent)
+				'list_type' => 'li',//li, a, span, etc.
 				'menu_css_id' => '',
 				'menu_css_class' => '',
-				'parent_class' => '',//parent of currently active menu item
+				'submenu_css_class' => '',
 				'has_children_class' => '',//any menu item that has children
 				'first_class'=>'',
 				'last_class' => '',
@@ -89,15 +90,14 @@ class MarkupMenuBuilder extends WireData implements Module {
 		else $options = $defaultOptions;
 
 
-		#### - work on the menu items - ###
-		
+		#### - work on the menu items - ###		
 		
 		//if we got a populated array of menu items
 		if(is_array($menu)) {
 
 			 	if(count($menu)) {
-						//prep IDs of parent items and render the menu
-						foreach ($menu as $key => $value) if (isset($value['parent_id']) && !in_array($value['parent_id'], $parentIDs)) $parentIDs[] = $value['parent_id'];
+						#//prep IDs of parent items and their child last items (for class = last). format: [parent id] => [id of last item for this parent]
+						foreach ($menu as $key => $value) if (isset($value['parent_id'])) $parentIDs[$value['parent_id']] = $key;//overwrite 'parent_id' until last item
 						return $this->renderMenu($menu, $options, $parentIDs);
 			 	}
 
@@ -129,19 +129,20 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		//render menu if we found menu items, else for supersuser throw WireException, else return false
 		if(is_array($menuItems)) {			
-			//prep IDs of parent items and render the menu
-			foreach ($menuItems as $key => $value) if (isset($value['parent_id']) && !in_array($value['parent_id'], $parentIDs)) $parentIDs[] = $value['parent_id'];
+			//prep IDs of parent items and their child last items (for class = last). format: [parent id] => [id of last item for this parent]
+			foreach ($menuItems as $key => $value) if (isset($value['parent_id'])) $parentIDs[$value['parent_id']] = $key;//overwrite 'parent_id' until last item
+
 			return $this->renderMenu($menuItems, $options, $parentIDs);			
 		}
 
 		else return $this->throwError();		
-   
-   }
+
+	}
 
 	/**
 	* Displays a nested list (menu items) of a single menu.
 	* 
-	* This is a recursive function to display list of menu items.
+	* A recursive function to display nested list of menu items.
 	*
 	* @access private
 	* @param Array $menuItems Array of menu items to loop through and display.
@@ -153,68 +154,78 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*/
 	private function renderMenu(Array $menuItems, $options = null, $parentIDs = null, $parent = 0, $first = 0) {
 
-		$has_child = false;
+		$total = count($menuItems);
+		$cnt = 0;
+
 		$out = "";
+		$has_child = false;
+		$wTag = $options['wrapper_list_type'];//item wrapper tag. default = <ul>
+		$iTag = $options['list_type'];//item tag. default = <li>
 
-        foreach ($menuItems as $id => $item) {
+		foreach ($menuItems as $id => $item) {
 
-        	//set properties
+			//set properties
 			$title = $item['title'];
 			$parentID = isset($item['parent_id']) ? $item['parent_id'] : 0;//if parent_id not set, it means they are top tier items
 			$pagesID = isset($item['pages_id']) ? $item['pages_id'] : 0;//for PW pages, use their native IDs
 			$url = $pagesID ? wire('pages')->get($pagesID)->url : $item['url'];//for PW pages, use their native URLs
 			$newtab = isset($item['newtab']) ? "target='_blank'" : '';
 			
-			//CSS @@todo parent_class, last_class, first_class
-			$itemCSSID = isset($item['css_itemid']) ? 'id="' . $item['css_itemid'] . '"' : '';
-
-			$itemCSSClass = isset($item['css_itemclass']) ? $item['css_itemclass'] . ' ' : '';	
-			$itemHasChildren = in_array($id, $parentIDs) ? $options['has_children_class'] . ' ' : '';
-			#$itemHasChildren = in_array($id, $parentIDs) ? 'has_children_class ' : '';
-			$itemCurrent = $pagesID == wire('page')->id ? $options['current_class'] : '';
-			
-			//apply all css classes to <a>
-			$classes = rtrim($itemCSSClass . $itemHasChildren . $itemCurrent);
-			$class = strlen($classes) ? 'class="' . $classes .'"' : '';		
+			$itemFirst = '';
 
 			//if this menu item is a parent; create the sub-items/child-menu-items
 			if ($parentID == $parent) {
 
-                //if this is the first child output '<ul>'           
-                if ($has_child === false) {
-				
-					$has_child = true;//This is a parent
-					
-					if ($first == 0){
-						
-						//assign menu css id and class if provided
-						$cssMenuID =  $options['menu_css_id'] ? ' id ="' . $options['menu_css_id'] . '" ' : '';
-						$cssMenuClass = $options['menu_css_class'] ? 'class ="' . $options['menu_css_class'] . '"' : '';
-						
-						$out .= '<ul ' . $cssMenuID . $cssMenuClass . '>' . "\n";
-						
-						$first = 1;
-					} 
-					
-					else {
-						$out .= "\n<ul>\n";
+				//if this is the first child output '<ul>' or specified $wTag       
+				if ($has_child === false) {
+					$has_child = true;//This is a parent					
+					if ($first == 0) {						
+							//assign menu css id and class if provided
+							$cssMenuID =  $options['menu_css_id'] ? ' id ="' . $options['menu_css_id'] . '" ' : '';
+							$cssMenuClass = $options['menu_css_class'] ? 'class ="' . $options['menu_css_class'] . '"' : '';						
+							$out .= "<{$wTag}" . $cssMenuID . $cssMenuClass . '>' . "\n";						
+							$first = 1;
 					}
-                }
 
-				//we apply css classes to <a> but css id to <li>
-				$out .= "<li {$itemCSSID}><a {$newtab} {$class} href='{$url}'>{$title}</a>";
+					else {
+							//assign sub-menu classes if provided
+							$cssSubMenuClass = $options['submenu_css_class'] ? 'class ="' . $options['submenu_css_class'] . '"' : '';
+							$out .= "\n<{$wTag} {$cssSubMenuClass}>\n";
+					}
+
+					//first <li> item
+					$itemFirst = $options['first_class'];
+
+				}//end if has child
+
+				//item CSS
+				$itemCSSID = isset($item['css_itemid']) ? 'id="' . $item['css_itemid'] . '"' : '';
+				$itemCSSClass = isset($item['css_itemclass']) ? $item['css_itemclass'] . ' ' : '';	
+				$itemHasChildren = isset($parentIDs[$id]) ? $options['has_children_class'] . ' ' : '';
+				$itemLast = (in_array($id, $parentIDs)) || ($total - $cnt == 1) ? $options['last_class'] . ' ' : '';
+
+				$itemCurrent = $pagesID == wire('page')->id ? $options['current_class'] . ' ' : '';
+				$classes = rtrim($itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst);
+				$class = strlen($classes) ? 'class="' . $classes .'"' : '';
+			
+				//if $iTag is empty, apply css id and classes to <a> instead
+				if(!$iTag) $out .= "<a {$itemCSSID} {$class} {$newtab} href='{$url}'>{$title}</a>";
+				else $out .= "<{$iTag} {$itemCSSID} {$class}><a {$newtab} href='{$url}'>{$title}</a>";
  
 				//call function again to generate sub-menu items belonging to this menu item. 
 				$out .= $this->renderMenu($menuItems, $options, $parentIDs, $id, $first);
 
-                $out .= "</li>\n";
+				$out .= $iTag ? "</{$iTag}>\n" : '';//if $iTag specified, close it
 				
-            }//end if $parentID == $parent
+			}//end if $parentID == $parent
 
-        }//end foreach
-        
+			$cnt++;
+		
+		}//end foreach
 
-		if ($has_child === true) $out .= "</ul>\n";
+
+		if ($has_child === true) $out .= "</{$wTag}>\n";
+		
 
 		return $out;
 
