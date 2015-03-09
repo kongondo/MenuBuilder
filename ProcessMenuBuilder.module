@@ -610,7 +610,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				$menuAddPageItems->set('findPagesSelector', $pagesSelector);
 				$menuAddPageItems->notes = $this->_('Start typing to search for pages.');
 
-				//we'll use this class property when saving PageAutocomplete values
+				//we'll use this variable when saving PageAutocomplete values
 				//especially important for non-superusers since the radio input 'menu_pages_select' will not be output for them
 				$menuPagesInput = 2;
 		}
