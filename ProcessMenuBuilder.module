@@ -35,7 +35,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Kongondo',
-			'version' => 4,
+			'version' => 5,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -1880,7 +1880,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		
 		}
 	
-	}	
+	}
 
 	
 }
