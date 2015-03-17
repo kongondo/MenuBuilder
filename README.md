@@ -154,6 +154,9 @@ GPL2
 
 ##Changelog
 
+#Version 0.0.5
+1. 	Corrected some markup errors.
+
 #Version 0.0.4
 1. 	Added various permissions to control visibility and editing of advanced settings
 
