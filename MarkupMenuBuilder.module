@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Markup Menu Builder',
 			'summary' => 'Render menus created by Menu Builder',
 			'author' => 'Kongondo',
-			'version' => 4,
+			'version' => 5,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -183,7 +183,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 							//assign menu css id and class if provided
 							$cssMenuID =  $options['menu_css_id'] ? ' id ="' . $options['menu_css_id'] . '" ' : '';
 							$cssMenuClass = $options['menu_css_class'] ? 'class ="' . $options['menu_css_class'] . '"' : '';						
-							$out .= "<{$wTag}" . $cssMenuID . $cssMenuClass . '>' . "\n";						
+							$out .= "<{$wTag} {$cssMenuID} {$cssMenuClass}>" . "\n";						
 							$first = 1;
 					}
 
@@ -200,13 +200,13 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 				//item CSS
 				$itemCSSID = isset($item['css_itemid']) ? 'id="' . $item['css_itemid'] . '"' : '';
-				$itemCSSClass = isset($item['css_itemclass']) ? $item['css_itemclass'] . ' ' : '';	
+				$itemCSSClass = isset($item['css_itemclass']) ? $item['css_itemclass'] . ' ' : '';
 				$itemHasChildren = isset($parentIDs[$id]) ? $options['has_children_class'] . ' ' : '';
 				$itemLast = (in_array($id, $parentIDs)) || ($total - $cnt == 1) ? $options['last_class'] . ' ' : '';
 
 				$itemCurrent = $pagesID == wire('page')->id ? $options['current_class'] . ' ' : '';
-				$classes = rtrim($itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst);
-				$class = strlen($classes) ? 'class="' . $classes .'"' : '';
+				$classes = trim($itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst);
+				$class = strlen($classes) ? 'class="' . $classes . '"' : '';
 			
 				//if $iTag is empty, apply css id and classes to <a> instead
 				if(!$iTag) $out .= "<a {$itemCSSID} {$class} {$newtab} href='{$url}'>{$title}</a>";
