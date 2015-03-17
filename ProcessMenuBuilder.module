@@ -35,7 +35,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Kongondo',
-			'version' => 3,
+			'version' => 5,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -267,6 +267,17 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			);
 
+			//check for Menu Builder 'lock' and 'delete' permissions
+			//if they exist and user doesn't have these permissions, remove the actions
+			if ($this->permissions->get('menu-builder-lock')->id && !$this->user->hasPermission('menu-builder-lock')) {
+					unset($actions['lock']);
+					unset($actions['unlock']);
+			}
+			if ($this->permissions->get('menu-builder-delete')->id && !$this->user->hasPermission('menu-builder-delete')) {
+					unset($actions['trash']);
+					unset($actions['delete']);
+			}
+
 			$m = $this->modules->get('InputfieldMarkup');
 			$m->label = $this->_('Actions');
 			$m->collapsed = 1;
@@ -460,12 +471,11 @@ class ProcessMenuBuilder extends Process implements Module {
 		
 		$tab->add($tx);
 
-		//display configurable backend menu settings for supersuers: @@todo - also make permission-based?
+		//display configurable backend menu settings for users with right permissions
 		//options for nestedSortable + ProcessWire selector for pages selectable in $menuAddPageItems AsmSelect
 
-		if($this->user->isSuperuser()) {
-
-			$menuID = $this->input->get->id;
+		//if this user has permission to SPECIFY pages selectable as menu items in AsmSelect and PageAutocomplete
+		if($this->user->hasPermission('menu-builder-selectable')) {
 
 			//if selector to find pages to add to menu specified
 			$selectorValue = isset($menuPages['sel']) ? $menuPages['sel'] : '';
@@ -478,6 +488,11 @@ class ProcessMenuBuilder extends Process implements Module {
 			$tx->notes =  $this->_('Example: parent=/products/, template=product, sort=title');
 
 			$tab->add($tx);
+		
+		}//end if user has permission menu-builder-selectable
+
+		//if user has permission to allow changing of page field type used to select pages to add as menu items [AsmSelect vs PageAutocomplete]
+		if($this->user->hasPermission('menu-builder-page-field')) {
 
 			//only 'PageAutocomplete' option is saved in the field menu_pages (JSON): 'input'=> 2. Else we assume default 'input' => 1 (AsmSelect)
 			$pageSel = isset($menuPages['input']) ? 2 : 1;
@@ -499,7 +514,11 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			$tab->add($r);
 
-			
+		}//end if user has permision menu-builder-page-field
+
+		//if user can change and use allow markup/HTML setting
+		if($this->user->hasPermission('menu-builder-markup')) {
+
 			//only 'Allow Markup' (Yes) option is saved in the field menu_pages (JSON): 'markup'=> 2. Else we assume default 'markup' => 1 (No)
 			$allowMarkup = isset($menuPages['markup']) ? 1 : 2;
 
@@ -519,6 +538,11 @@ class ProcessMenuBuilder extends Process implements Module {
 			$r->value = $allowMarkup;
 
 			$tab->add($r);
+
+		}//end if user can change and use allow markup/HTML setting
+			
+		//if user has permission to allow editing of nestedSortable settings
+		if($this->user->hasPermission('menu-builder-settings')) {
 
 			$t = $this->modules->get('MarkupAdminDataTable');
 			$t->setEncodeEntities(false);
@@ -559,7 +583,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			$tab->add($m);
 
-		}
+		}//end if user has permission to edit nestedSortable settings
 
 		return $tab;
 
@@ -589,14 +613,14 @@ class ProcessMenuBuilder extends Process implements Module {
 		$m->label = $this->_('Add menu items');	
 		$m->description = '<span id="add_menu_items"><a href="#" id="add_page_menu_items">' . $this->_('Pages') . '</a> ';
 		$m->description .= '<a href="#" id="add_custom_menu_items">' . $this->_('Custom') . '</a>';
-		if($this->user->isSuperuser()) $m->description .= '<a href="#" id="add_selector_menu_items">' . $this->_('Selector') . '</a>';
+		if($this->user->hasPermission('menu-builder-selector')) $m->description .= '<a href="#" id="add_selector_menu_items">' . $this->_('Selector') . '</a>';
 		$m->description .= '</span>';
 		
 		$tab->add($m);	
 		
 		//if user specified (hence limited) the pages selectable for adding to this menu, we use that
 		//if user has not specified pages to return, we find all pages (except admin) but limit to 50.
-		//@@todo - maybe also check if user has permission to view those pages?
+		//@@todo - maybe also check if user has permission to view those pages? Maybe not; only important if they are editing those pages
 		if(isset($menuPages['sel'])) $pagesSelector = $menuPages['sel'];
 		else $pagesSelector = "has_parent!=2, parent!=7, id!=27, limit=50";
 
@@ -699,9 +723,9 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		$tab->add($m);
 
-		//@@todo - add for other users with othe specified permission?
 		//Add menu items from pages returned by a selector
-		if($this->user->isSuperuser()) {
+		//only add for users with the permission 'menu-builder-selector' (it means that permission has to be created if it doesn't exist)
+		if ($this->user->hasPermission('menu-builder-selector')) {
 
 			$tx = $this->modules->get('InputfieldText');
 			$tx->label = $this->_('Pages search');
@@ -1257,9 +1281,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		
 
 		//apply bulk actions to menus
-
-		//@@todo - unsure if to allow actions for user without edit permission?
-		//e.g. if (!$m->editable()) continue; //Only action if current user can edit
+		//lock/unlock and trash/delete are controlled by permissions
 		
 		//menus bulk actions
 		elseif($actionsMenusBtn && $actionsMenusBtn == 'Apply') {//was the right button pressed
@@ -1389,26 +1411,46 @@ class ProcessMenuBuilder extends Process implements Module {
 					return false;
 				}	
 
-				$menuPages = array();
+				//array for newly set menuPages settings ('sel', 'input' and 'markup')
+				$menuPagesNew = array();
 
-				//nestedSortable settings for this menu. we'll save this as JSON in menu_settings field
-				$menuSettings = array();
+				//only save for users with correct permissions
+				//ensures their settings are not overwritten (although hidden for other users)				
+			
+				//if this user has permission to SPECIFY pages selectable as menu items in AsmSelect and PageAutocomplete
+				if($this->user->hasPermission('menu-builder-selectable')) {
+					//selector for finding pages that can be added to the menu (for AsmSelect/Autocomplete)
+					$menuPagesNew['sel'] = $this->sanitizer->text($this->input->post->menu_pages);
+				}
 
-
-				//only save for Superusers
-				//ensures their settings are not overwritten (although hidden for other users)
-				if ($this->user->isSuperuser()) {
-					//selector for finding pages that can be added to the menu (for AsmSelect/Autocomplete)				
-					$menuPages['sel'] = $this->sanitizer->text($this->input->post->menu_pages);
-
+				//if user has permission to allow changing of page field type used to select pages to add as menu items [AsmSelect vs PageAutocomplete]
+				if($this->user->hasPermission('menu-builder-page-field')) {
 					//page inputfield type for finding pages that can be added to the menu (AsmSelect vs. Autocomplete)
 					//we only save this if user selects Autcomplete; otherwise defaults to AsmSelect			
-					$menuPages['input'] = (int) $this->input->post->menu_pages_select == 2 ? 2 : '';
+					$menuPagesNew['input'] = (int) $this->input->post->menu_pages_select == 2 ? 2 : '';					
+				}
 
+				//if user can change and use allow markup/HTML setting
+				if($this->user->hasPermission('menu-builder-markup')) {
 					//whether to allow HTML markup in menu item titles/lables -> e.g. <span>Home</span>
 					//we only save this if user selects Yes; otherwise defaults to No (don't allow markup)
 					//we'll then use the correct sanitizer below			
-					$allowMarkup = $menuPages['markup'] = (int) $this->input->post->menu_item_title_markup == 1 ? 1 : '';
+					$allowMarkup = $menuPagesNew['markup'] = (int) $this->input->post->menu_item_title_markup == 1 ? 1 : '';					
+				}					
+
+				//merge newly set menuPages values with (any) existing ones
+				$menuPagesSaved = json_decode($menu->menu_pages, true);
+				if(!is_array($menuPagesSaved)) $menuPagesSaved = array();
+				$menuPages = array_merge($menuPagesSaved, $menuPagesNew);
+
+				//JSON string of menu pages and menu items to save
+				$menuPagesJSON = count($menuPages) ? wireEncodeJSON($menuPages) : '';//using wireEncodeJSON ensures we only save non-empty values
+
+				//if user has permission to edit nestedSortable settings
+				if($this->user->hasPermission('menu-builder-settings')) {
+
+					//nestedSortable settings for this menu. we'll save this as JSON in menu_settings field
+					$menuSettings = array();
 
 					//nestedSortable settings
 					foreach ($this->input->post->menu_settings as $key => $value) {
@@ -1420,9 +1462,9 @@ class ProcessMenuBuilder extends Process implements Module {
 
 							$menuSettings[$key]['setting'] = $value;
 						}
-					}
+					}//end foreach
 
-				}
+				}//end if user has menu-builder-settings permission
 
 
 				//JSON string of menu settings to save
@@ -1446,10 +1488,10 @@ class ProcessMenuBuilder extends Process implements Module {
 									$itemID = (int) $itemID;
 									if(!$itemID) continue;
 
-									//if menu items titles allow HTML (markup) && user is Superuser, we run them though HTML purifier
-									if($allowMarkup && $this->user->isSuperuser()) $itemTitle = $purifier->purify($this->input->post->item_title[$itemID]);
+									//if menu items titles allow HTML (markup) && user has correct permission, we run them though HTML purifier
+									if($allowMarkup && $this->user->hasPermission('menu-builder-markup')) $itemTitle = $purifier->purify($this->input->post->item_title[$itemID]);
 									//else we sanitize menu item titles as text
-									else$itemTitle =  $this->sanitizer->text($this->input->post->item_title[$itemID]);
+									else $itemTitle =  $this->sanitizer->text($this->input->post->item_title[$itemID]);
 									
 									if(!$itemTitle) continue;
 						
@@ -1502,7 +1544,7 @@ class ProcessMenuBuilder extends Process implements Module {
 					
 					//$newpages_id = '';//not needed. New items, hence new $ids will be auto-created
 					$itemURL = $this->sanitizer->url($this->input->post->new_item_custom_url[$i]);
-					if (!$itemURL) continue;//only accept new menu items with URLs. @@todo - should this be the case? What if they want a divider like item?
+					if (!$itemURL) continue;//only accept new menu items with URLs. @@todo - should this be the case? What if they want a divider-like item?
 					
 					$itemCSSID = $this->sanitizer->name($this->input->post->new_css_itemid[$i]);
 					$itemCSSClass = $this->sanitizer->name($this->input->post->new_css_itemclass[$i]);
@@ -1608,8 +1650,6 @@ class ProcessMenuBuilder extends Process implements Module {
 				}//end if count($items)
 
 
-				//JSON string of menu pages and menu items to save
-				$menuPagesJSON = count($menuPages) ? wireEncodeJSON($menuPages) : '';//using wireEncodeJSON ensures we only save non-empty values
 				$menuitemsJSON = count($menuItems) ? wireEncodeJSON($menuItems) : '';
 
 
@@ -1617,9 +1657,10 @@ class ProcessMenuBuilder extends Process implements Module {
 									
 				$menu->title = $menuTitle;
 				$menu->name = $this->sanitizer->pageName($menuTitle);
-				if($this->user->isSuperuser()) $menu->menu_pages = $menuPagesJSON;//only save for supersusers
+
+				$menu->menu_pages = $menuPagesJSON;
 				$menu->menu_items = $menuitemsJSON;
-				if($this->user->isSuperuser()) $menu->menu_settings = $menuSettingsJSON;//only save for supersusers			
+				if($this->user->hasPermission('menu-builder-settings')) $menu->menu_settings = $menuSettingsJSON;//only save for users with right permission
 				
 				$menu->save();
 				
@@ -1634,7 +1675,19 @@ class ProcessMenuBuilder extends Process implements Module {
 
 					if($menuDeleteConfirm) {
 
+							//if user does not have permission to trash/delete a menu, exit with an error
+							if ($this->permissions->get('menu-builder-delete')->id && !$this->user->hasPermission('menu-builder-delete')) {
+									$this->error($this->_('You have no permission to delete menus.')); 
+									$this->session->redirect(wire('page')->url. 'edit/?id=' . $menuID);//redirect back to the menu we were editing
+							}
+
 							$menu = wire('pages')->get("id=$menuDeleteConfirm, parent=$this->menusParent, include=all");
+
+							//if menu is locked for editing, exit with an error
+							if($menu->is(Page::statusLocked)) {
+									$this->error($this->_('This menu is locked for edits.')); 
+									$this->session->redirect(wire('page')->url. 'edit/?id=' . $menuID);//redirect back to the menu we were editing
+							}
 
 							if(wire('pages')->trash($menu)) {
 									$this->message(sprintf($this->_('Moved menu %1$s to trash: %2$s'), $menu->title, $menu->url));//tell user menu trashed
@@ -1827,7 +1880,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		
 		}
 	
-	}	
+	}
 
 	
 }

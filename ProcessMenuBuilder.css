@@ -30,8 +30,8 @@ span.limit-select {float: right;}
 #menu_save, #menu_save_exit {float: left;}
 
 
-
 /******** First Tab (Main) ************/
+
 
 /*hide the add menu items wrappers on load*/
 li#wrap_item_addpages, li#item_addcustom, li#wrap_item_addselector {display: none;}
@@ -43,7 +43,6 @@ span.unpublished, span.locked {color: red;}/* for highlighting some text */
 
 
 /** Add page menu items (AsmSelect/Autocomplete) custom inputs + header labels **/
-
 li#menu_items_headers {
 
 		list-style: none;
@@ -55,6 +54,7 @@ li#menu_items_headers {
 }
 
 li#menu_items_headers:hover {
+
 	cursor: auto;
 	background: none !important;
 }
@@ -102,13 +102,7 @@ span.asmMB input, ol#item_addpages_items span.acMB input  {
 span.asmMB input {margin: 1px !important;}/*override above*/
 
 
-/*input#item_addpages_input {margin: 1em 0 0.25em;}*/
-/*i.InputfieldPageAutocompleteStatus {margin-top: 2em;}*/
-
-
-
 /** Add custom menu items table **/
-
 span#add_menu_items a#add_custom_menu_items, span#add_menu_items a#add_selector_menu_items  {margin-left: 30px;}
 
 table.menu_add_custom_items_table input.new_custom {padding: 0 0.3em !important;}
@@ -120,24 +114,17 @@ table.menu_add_custom_items_table i.fa-trash{
 	right: 3px;
 }
 
-
-
 /** Drag n Drop menu items **/
-
 div#menu_sortable_wrapper {margin-bottom: 3em !important;}
 
 /* Anchor on click remove all menus */
 div#menu_sortable_wrapper a#remove_menus {
 
 	display: block;
-	/*margin: 0 0 0.45em 2em;*/
 	margin: 0 0 0.5em;
-	/*float: right;*/
 }
 
-
 /* nestedSortable styles */
-
 .placeholder {outline: 1px dashed #4183C4;}
 
 .notice {color: #C33;}
@@ -161,6 +148,7 @@ ol#sortable_main li {
 }
 
 li.mjs-nestedSortable-collapsed.mjs-nestedSortable-hovering div {
+
 	border-color: #999;
 	background: #FAFAFA;
 }
@@ -178,21 +166,16 @@ ol#sortable_main li.menu_item {
 	line-height: 20px;
 }
 
-
 /* Menu item drag n drop handle (div) as used by nestedSortable */
 div.handle {
 
-		background: #AACAD7 !important;
 		background: #F0F0F0 !important;
 		width: 100%;
-		border: 1px solid #AACAD7;
-		border: 1px solid #DCDCDC;
 		border: 1px solid #DFDFDF;/*ligh grey*/
 		margin-bottom: 3px;
 		cursor: move !important;
 		padding: 5px;
 }
-
 
 /* Menu item settings' reveal/hide icon in drag n drop div handle */
 div.handle i.fa-caret-down, div.handle i.fa-caret-up {
@@ -222,8 +205,6 @@ div.handle span.item_type {
 	font-size: 0.785em;
 	color: #9A9A9A;
 	margin-right: 0.5em;
-	/*font-style: oblique;
-	font-style: italic;*/
 }
 
 /* Anchor for onclick remove the associated menu item */
@@ -232,9 +213,6 @@ div.handle a.remove_menu {}
 div.handle i.fa-trash {
 
 	position: relative;
-	border: 1px solid #DCDCDC;
-	border: 1px solid #DFDFDF;/*ligh grey*/
-	border: 1px solid #F0F0F0;/*lighter grey*/
 	border: none;
 	padding: 0.6em;
 	margin-right: -2.125em;
@@ -242,19 +220,13 @@ div.handle i.fa-trash {
 }
 
 /* Menu settings div */
-
 div.settings {
 	
 	display: none;
 	margin-bottom: 10px;
 	width:29em;
 	width:100%;
-	background: #F7F7F7;
-	background:#C1D9E1;/*blue*/
-	background: inherit;/*@@todo - decide on background*/
-	background:#E2E2E2;/*darker grey*/
 	background: #F9F9F9;/*light grey*/
-	border:1px solid #AACAD7;/*light blue*/
 	border: 1px solid #DFDFDF;/*ligh grey*/
 	position: relative;
 	padding-bottom: 1em;
@@ -290,10 +262,7 @@ div.settings input[type=checkbox].menu_settings {
 }
 
 
-
 /******** Third Tab (Items Overview) ************/
-
-
 
 
 
@@ -305,20 +274,6 @@ div.settings input[type=checkbox].menu_settings {
  *
  */
 .ProcessMenuBuilderDelete #menu_save, .ProcessMenuBuilderDelete #menu_save_exit {display: none;}
-
-
-/*//###################*/
-
-
-/*
-
-
-TESTING FOR MY FLOATING RIGHT ISSUES
-
-
-
-
-*/
 
 
 
