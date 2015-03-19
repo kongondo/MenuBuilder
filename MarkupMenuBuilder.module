@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Markup Menu Builder',
 			'summary' => 'Render menus created by Menu Builder',
 			'author' => 'Kongondo',
-			'version' => 5,
+			'version' => 6,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -55,54 +55,61 @@ class MarkupMenuBuilder extends WireData implements Module {
 	}
 		
 	/**
-	* Prepare menu items for rendering.
+	* Pass on menu items for processing and rendering.
 	* 
-	* On success, send array of menu items to renderMenu().
+	* This is just a method that the user interfaces with.
+	* The processing work is done by other methods.
 	*
 	* @access public
-	* @param Mixed $menu ID, Title, Name of a menu or Array of menu items.
-	* @param Array $menuItems Array of menu options.
-	* @return Array $menu
+	* @param Mixed $menu Page, ID, Title, Name of a menu or Array of menu items.
+	* @param Array $options Array of menu options.
+	* @return Method renderMenu().
 	*
 	*/		
-	public function render($menu = null, Array $options = null) {
+	public function render($menu, Array $options = null) {
 
-		//default (mainly css) menu options. For css, we make no assumptions & don't output default values
-		$defaultOptions = array(
+		//process menu items
+		$menuItems = $this->processMenu($menu);
+		if(!is_array($menuItems)) return $this->throwError();
+		
+		//processed menu options
+		$options = $this->processOptions($options);
+		
+		//to help with 'has_children'
+		$parentIDs = $this->parentIDs($menuItems);
 
-				'wrapper_list_type' => 'ul',//ul, ol, nav, div, etc.
-				'list_type' => 'li',//li, a, span, etc.
-				'menu_css_id' => '',
-				'menu_css_class' => '',
-				'submenu_css_class' => '',
-				'has_children_class' => '',//any menu item that has children
-				'first_class'=>'',
-				'last_class' => '',
-				'current_class' => '',
+		//render the menu
+		return $this->renderMenu($menuItems, $options, $parentIDs);
 
-		);
+	}
+
+	/**
+	* Helper function to process menu items before passing on for rendering.
+	* 
+	* This method determines and processes $menu variable type to return an array of menu items.
+*	*
+	* @access private
+	* @param Mixed $menu Page, ID, Title, Name of a menu or Array of menu items.
+	* @return Array menuItems.
+	*
+	*/
+	private function processMenu($menu) {
 
 		$menuItems = '';
-		$parentIDs = array();
-
-		//merge menu options set by user
-		if($options != null && is_array($options)) $options = array_merge($defaultOptions, $options);
-		else $options = $defaultOptions;
-
-
-		#### - work on the menu items - ###		
 		
+		#### - work on the menu items - ###
+
+		//if we got a Page object
+		if($menu instanceof Page) {
+
+				$menuitemsJSON = $menu->menu_items;
+				$menuItems = json_decode($menuitemsJSON, true);
+		}
+
 		//if we got a populated array of menu items
-		if(is_array($menu)) {
+		elseif(is_array($menu)) {
 
-			 	if(count($menu)) {
-						#//prep IDs of parent items and their child last items (for class = last). format: [parent id] => [id of last item for this parent]
-						foreach ($menu as $key => $value) if (isset($value['parent_id'])) $parentIDs[$value['parent_id']] = $key;//overwrite 'parent_id' until last item
-						return $this->renderMenu($menu, $options, $parentIDs);
-			 	}
-
-			 	else return $this->throwError();
-
+			 	$menuItems = $menu;//for consistency
 		}
 
 		//if we got a menu title|name
@@ -112,30 +119,19 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$menuName = $this->sanitizer->pageName($menu);
 				$menuParent = wire('pages')->get($this->config->adminRootPageID)->child('name=setup, check_access=0')->child('name=menu-builder, check_access=0');
 				$menu = $menuParent->child("name=$menuName, check_access=0");
+				if($menu) $menuItems = json_decode($menu->menu_items, true);
 		}
 
 		//if we got an id
 		elseif(is_integer($menu)) {
 
-						//grab the menu
-						$menuID = (int) $menu;
-						$menu = wire('pages')->get($menu);
-
+				//grab the menu
+				$menuID = (int) $menu;
+				$menu = wire('pages')->get($menu);
+				if($menu) $menuItems = json_decode($menu->menu_items, true);
 		}
-
 		
-		//if we got a valid menu page
-		if($menu) $menuItems = json_decode($menu->menu_items, true);
-
-		//render menu if we found menu items, else for supersuser throw WireException, else return false
-		if(is_array($menuItems)) {			
-			//prep IDs of parent items and their child last items (for class = last). format: [parent id] => [id of last item for this parent]
-			foreach ($menuItems as $key => $value) if (isset($value['parent_id'])) $parentIDs[$value['parent_id']] = $key;//overwrite 'parent_id' until last item
-
-			return $this->renderMenu($menuItems, $options, $parentIDs);			
-		}
-
-		else return $this->throwError();		
+		return $menuItems;
 
 	}
 
@@ -149,7 +145,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	* @param Array $options Array of custom settings for menu and menu items (e.g. CSS classes).
 	* @param Array $parentIDs Array of IDs of menu items that are parents/have children. Note: ID = menu IDs, not native PW!
 	* @param Int $first Helper variable to designate first menu item. Ensures CSS Class 'sortable' is output only once.
-	* @return string $out
+	* @return string $out.
 	*
 	*/
 	private function renderMenu(Array $menuItems, $options = null, $parentIDs = null, $parent = 0, $first = 0) {
@@ -203,9 +199,10 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$itemCSSClass = isset($item['css_itemclass']) ? $item['css_itemclass'] . ' ' : '';
 				$itemHasChildren = isset($parentIDs[$id]) ? $options['has_children_class'] . ' ' : '';
 				$itemLast = (in_array($id, $parentIDs)) || ($total - $cnt == 1) ? $options['last_class'] . ' ' : '';
-
 				$itemCurrent = $pagesID == wire('page')->id ? $options['current_class'] . ' ' : '';
-				$classes = trim($itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst);
+
+				$classes = $itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst;
+				$classes = trim(preg_replace('/\s+/', ' ', $classes));
 				$class = strlen($classes) ? 'class="' . $classes . '"' : '';
 			
 				//if $iTag is empty, apply css id and classes to <a> instead
@@ -223,11 +220,227 @@ class MarkupMenuBuilder extends WireData implements Module {
 		
 		}//end foreach
 
-
 		if ($has_child === true) $out .= "</{$wTag}>\n";
-		
 
 		return $out;
+
+	}
+
+	/**
+	* Displays a breadcrumb of menu items.
+	* 
+	* A recursive function to display a breadcrumb trail of menu items built of the current menu item.
+	*
+	* @access public
+	* @param Mixed $menu Page, ID, Title, Name of a menu or Array of menu items.
+	* @param Array $options Array of markup options for displaying the breadcrumb.
+	* @return string $out.
+	*
+	*/
+	public function renderBreadcrumbs($menu, Array $options = null) {
+
+		$itemIDs = '';
+		$menuItemsIDs = '';
+
+		$menuItems = $this->processMenu($menu);
+		//exit with error if no menu items found
+		if(!is_array($menuItems)) return $this->throwError();
+
+		$options = $this->processOptions($options);
+
+		//grab menu item that matches the current page (i.e. where we currently are in the breadcrumb trail)
+		$currentItem = array_filter($menuItems, function($pid) {
+			if(isset($pid['pages_id'])) return ($pid['pages_id'] == wire('page')->id);
+		});
+
+		//if method called on page that is not part of the breadcrumb navigation, exit with error
+		if(!count($currentItem)) $this->throwError();
+
+		//grab the key == ID of the current menu item
+		reset($currentItem);//we only expect one item in this array but go back to beginning just in case
+
+		//append the current item's ID
+		$itemIDs .= key($currentItem) . ',';
+
+		//the 'parent_id' of the current menu item
+		$parentID = isset($menuItems[key($currentItem)]['parent_id']) ? $menuItems[key($currentItem)]['parent_id'] : '';
+
+		//recursively build the breadcrumbs
+		$itemIDs .= $this->parents($parentID, $menuItems);
+		$itemIDs = rtrim($itemIDs, ',');
+
+		if($itemIDs) {
+				$menuItemsIDs = explode(',', $itemIDs);
+				//we reverse the items, starting with grandparents first....
+				$menuItemsIDs = array_reverse($menuItemsIDs, true);			
+		}
+
+		if (is_array($menuItemsIDs)) {
+
+				$wTag = $options['wrapper_list_type'];//item wrapper tag. default = <ul>
+				$iTag = $options['list_type'];//item tag. default = <li>
+
+				//assign menu css id and class if provided
+				$cssMenuID =  $options['menu_css_id'] ? ' id ="' . $options['menu_css_id'] . '" ' : '';
+				$cssMenuClass = $options['menu_css_class'] ? 'class ="' . $options['menu_css_class'] . '"' : '';
+
+				//css ID for current menu item {there is only one}
+				$itemCurrent = $options['current_css_id'];
+				$cssID = strlen($itemCurrent) ? 'id="' . $itemCurrent . '"' : '';
+
+				//build the breadcrumb
+				$out = '';
+
+				$out .= "<{$wTag} {$cssMenuID} {$cssMenuClass}>" . "\n";
+
+				//if option to prepend home page specified, we prepend to menuItemsIDs
+				if ($options['prepend_home']) $menuItemsIDs = array_merge(array('Home' => 'Home'), $menuItemsIDs);
+
+				$i = 0;
+				$total = count($menuItemsIDs);
+
+				foreach ($menuItemsIDs as $item) {
+
+						//if prepended homepage
+						if ($item === 'Home') {
+									
+									$item = wire('pages')->get('/');									
+									$title = $item->title;
+									
+									//if we prepended homepage AND homepage is also part of this breadcrumb navigation AND we are on the homepage...
+									//we exit early to avoid duplicate Home >> Home
+									if ($item->id === wire('page')->id)  {
+										$out .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} >{$title}</{$iTag}></{$wTag}>";
+										
+										return $out;
+									}
+									
+									$url = $item->url;
+									$newtab = '';
+
+						}
+
+						else {
+									$title = $menuItems[$item]['title'];
+									$pagesID = isset($menuItems[$item]['pages_id']) ? $menuItems[$item]['pages_id'] : 0;//for PW pages, use their native IDs
+									$url = $pagesID ? wire('pages')->get($pagesID)->url : $menuItems[$item]['url'];//for PW pages, use their native URLs
+									$newtab = isset($menuItems[$item]['newtab']) ? "target='_blank'" : '';
+						}
+
+						//ancestor items
+						if ($total - $i != 1) {
+								$divider = " {$options['divider']} ";//note the spaces before and after!
+								//if $iTag is empty, default to <a> instead
+								if(!$iTag) $out .= "<a {$newtab} href='{$url}'>{$title}</a>{$divider}";
+								else $out.= "<$iTag><a {$newtab} href='{$url}'>{$title}</a>{$divider}</$iTag>";
+						}
+
+						//the last breadcrumb item, i.e., the current page
+						else {
+								$out .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} >{$title}</{$iTag}>";
+						}
+
+						$i++;
+				
+				}//end foreach
+
+				$out .= "</{$wTag}>";
+
+				return $out;
+
+		}
+
+	}
+
+	/**
+	* Helper function to find Menu Builder IDs of the parent of the current menu item.
+	* 
+	* A recursive function to return IDs of ancestral parents of the current menu item.
+	*
+	* @access public
+	* @param Page $id ID of the parent of the current item.
+	* @param Array $menuItems Array of menu items to traverse to locate direct ancestors of the current menu item.
+	* @return string $out
+	*
+	*/
+	private function parents($id, Array $menuItems) {
+
+		$out = '';
+
+		if(isset($menuItems[$id]['parent_id'])) {
+				$out .= $id . ',';
+				$parentID = $menuItems[$id]['parent_id'];						
+				//recursively get the next parent item (ancestry: parent, grandparent, great...etc)
+				$out .= $this->parents($parentID, $menuItems);
+		}
+
+		else {
+				//top-most parent
+				$out .= $id;
+		}
+
+		return $out;
+
+	}
+
+	/**
+	* Helper function to process menu options, overwriting defaults.
+	* 
+	* The options are css and markup related.
+	*
+	* @access private
+	* @param Array $options Array of menu options.
+	* @return Array $options
+	*
+	*/
+	private function processOptions(Array $options = null) {
+
+		//default (mainly css) menu options. For css, we make no assumptions & don't output default values
+		//shared with renderBreadcrumbs() where applicable
+		$defaultOptions = array(
+
+				'wrapper_list_type' => 'ul',//ul, ol, nav, div, etc.
+				'list_type' => 'li',//li, a, span, etc.
+				'menu_css_id' => '',
+				'menu_css_class' => '',
+				'submenu_css_class' => '',//NOT for breadcrumbs
+				'has_children_class' => '',//any menu item that has children - NOT for breadcrumbs
+				'first_class'=>'',//NOT for breadcrumbs
+				'last_class' => '',//NOT for breadcrumbs
+				'current_class' => '',
+				'current_css_id' => '',
+				'divider' => '&raquo;',//only for breadcrumbs
+				//prepend home page at the as topmost item even if it isn't part of the breadcrumb
+				'prepend_home' => 0,//only for breadcrumbs => 0=no;1=yes
+
+		);
+
+		//merge menu options set by user
+		if($options != null && is_array($options)) $options = array_merge($defaultOptions, $options);
+		else $options = $defaultOptions;
+
+		return $options;
+
+	}
+
+	/**
+	* Helper function to return IDs of parent menu items.
+	* 
+	* These are eventually passed to renderMenu() as the 3rd parameter.
+*	*
+	* @access private
+	* @param Array $menuItems Array of menu items to select parents from.
+	* @return Array $parentIDs
+	*
+	*/
+	private function parentIDs(Array $menuItems) {
+
+		$parentIDs = array();
+
+		//overwrite 'parent_id' until last item
+		foreach ($menuItems as $key => $value) if (isset($value['parent_id'])) $parentIDs[$value['parent_id']] = $key;
+
+		return $parentIDs;
 
 	}
 
