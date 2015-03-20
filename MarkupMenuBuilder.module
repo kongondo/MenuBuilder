@@ -75,7 +75,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		//processed menu options
 		$options = $this->processOptions($options);
 		
-		//to help with 'has_children'
+		//to help with 'has_children' and 'last_class'
 		$parentIDs = $this->parentIDs($menuItems);
 
 		//render the menu
@@ -270,8 +270,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 		$itemIDs = rtrim($itemIDs, ',');
 
 		if($itemIDs) {
+				//array of menu item IDs
 				$menuItemsIDs = explode(',', $itemIDs);
-				//we reverse the items, starting with grandparents first....
+				//we reverse the items array, starting with grandparents first....
 				$menuItemsIDs = array_reverse($menuItemsIDs, true);			
 		}
 
@@ -293,7 +294,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 				$out .= "<{$wTag} {$cssMenuID} {$cssMenuClass}>" . "\n";
 
-				//if option to prepend home page specified, we prepend to menuItemsIDs
+				//if option to prepend homepage specified, we prepend to menuItemsIDs
 				if ($options['prepend_home']) $menuItemsIDs = array_merge(array('Home' => 'Home'), $menuItemsIDs);
 
 				$i = 0;
