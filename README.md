@@ -12,14 +12,14 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 * Optionally set custom links to open in a new tab
 * Readily view the structure and settings for each menu and menu item
 * For each menu, multiple configurable ways to add menu items from ProcessWire pages - PageAutocomplete OR AsmSelect[default] AND ProcessWire Selector 
-* Using a Selector, you can do for example,  template=basic-page, limit=20, sort=title.
+* Using a Selector, you can do for example, template=basic-page, limit=20, sort=title.
 * Batch edit menus
 * Menus stored as pages (note: just the menu, not the items!)
 * Menu items stored as JSON in a field in the menu pages (empty values not stored)
 * For page fields, you can specify a selector to return only those specified pages for selection in the page field (i.e. Asm and Autocomplete)
-* For page fields, you can also add css classes and IDs as you add the items (similar to custom menu items)
+* For page fields, you can also add CSS classes and IDs as you add the items (similar to custom menu items)
 * Menu settings for nestedSortable - e.g. maxLevels (limit nesting levels)
-* Advanced features (e.g. add pages via selector, menu settings)  permissible to superadmins only
+* Advanced features (e.g. add pages via selector, menu settings) permissible to superadmins only
 * Delete single or all menu items without deleting the menu itself
 * Easily render menus and breadcrumbs in the frontend using MarkupMenuBuilder
 
@@ -97,12 +97,31 @@ $defaultOptions = array(
 		'menu_css_id' => '',
 		'menu_css_class' => '',
 		'current_css_id' => '',
-		'divider' => '&raquo;',// e.g. Home >> Abouts Us >> Leadership
+		'divider' => '&raquo;',// e.g. Home >> About Us >> Leadership
 		//prepend home page at the as topmost item even if it isn't part of the breadcrumb
 		'prepend_home' => 0,//=> 0=no;1=yes
 
 );
 ````
+###Options
+
+1. Unless indicated otherwise, all the following options apply to both **menus (render())** and **breadcrumbs (renderBreadcrumbs())**.
+2. The term navigation is used in the context of both menus and breadcrumbs. 
+3. The term 'Class(es)' indicates that multiple CSS Classes can be applied, separated by space.
+
+
+* **wrapper_list_type**:  Outer HTML/Markup wrapper for navigation items. The default is ** &lt;ul&gt;**.  You can also use **&lt;div&gt;**,  **&lt;nav&gt;**,  **&lt;ol&gt;**, etc, to suit your needs.
+* **list_type**:  The HTML/Markup wrapper for the navigation items themselves. The default is ** &lt;li&gt;**.  You can also use **&lt;span>, etc or even nothing. For menus, in case you specify you want to use nothing, i.e. **'list_type' => ''**, nagivation items' CSS Class(es) and IDs will be applied to the  **&lt;a>, i.e. the link, rather than the default which would have been the list type.
+* **menu_css_id**:  A CSS ID applied to the top-most **'wrapper_list_type'**, i.e. the outermost HTML/Markup wrapper for navigation items. Nothing is applied by default unless you specify you want to use the option.
+* **menu_css_class**:  A CSS Class applied to the top-most **'wrapper_list_type'**, i.e. the outermost HTML/Markup wrapper for navigation items. Nothing is applied by default unless you specify you want to use the option.
+* **submenu_css_class**:  **For menus only**, a CSS Class(es) applied to any nested **'wrapper_list_type'**, i.e. inner HTML/Markup wrapper for sub-menus. Nothing is applied by default unless you specify you want to use the option.
+* **has_children_class**:  **For menus only**, a CSS Class(es) applied to the **'list_type'** of any menu item that has children items, i.e. a parent menu item or in other words, a menu item containing one or more nested menu items. Nothing is applied by default unless you specify you want to use the option.
+* **first_class**:  **For menus only** and at all menu levels (i.e. nesting), a CSS Class(es) applied to the **'list_type'** of any menu item that is at the top-most position at each menu level. Nothing is applied by default unless you specify you want to use the option.
+* **last_class**:  **For menus only** and at all menu levels (i.e. nesting), a CSS Class(es) applied to the **'list_type'** of any menu item that is at the bottom-most position at each menu level. Nothing is applied by default unless you specify you want to use the option. At any level, if there is only a single menu item, it means that it is both the first and last menu item. If you specified both **'last_class'** and **'first_class'** in your menu options, that menu item will have both of these applied to it.
+* **current_class**:  **For menus only**, a CSS Class(es) applied to the **'list_type'** of the current menu item, i.e. the menu item that corresponds to the page that is currently being viewed in your browser. Nothing is applied by default unless you specify you want to use the option.
+* **current_css_id**:  **For breadcrumbs only**, a CSS ID applied to the **'list_type'** of the current breadcrumb item, i.e. the breadcrumb item that corresponds to the page that is currently being viewed in your browser. Nothing is applied by default unless you specify you want to use the option. Note that by default, current breadcrumb items are not wrapped around **&lt;a&gt;** (anchor/link) tags as it makes no sense to do so.
+* **divider**:  **For breadcrumbs only**, a HTML Character Entity applied after the anchor tag **&lt;a&gt;** of breadcrumb items to indicate ancestry, i.e. items to the left of the divider are ancestral parents, grandparents, great grandparents, etc. to the breadcrumb item on the right of the divider. The default character used is **&raquo;**. Note that if there is only one breadcrumb item in the navigation, the divider is not applied. Also, it is not applied after the last breadcrumb item which is always the current breadcrumb item. You are not limited to using [HTML Character Entities](http://dev.w3.org/html5/html-author/charref) but can use whatever character suits your needs or nothing at all by specifying **'divider' => ''** in your options.
+* **prepend_home**:  **For breadcrumbs only**, specifying this option prepends your website's 'Homepage' title and URL as a breadcrumb as the topmost item in the navigation even if it isn't ancestrally part of the breadcrumb. This option is not applied by default. To use it specify **'prepend_home' => 1** in your options array.
 
 ##How to Use
 
@@ -208,7 +227,7 @@ The CSS is up to you, of course.
 
 ##Permissions
 
-You can use the following permissions to control visibility and access to various advanced settings of Menu Builder by non-superusers. In ProcessWire, by default, superusers inherit all permissions. **Note that you will have to create and apply the permissions yourself using the normal ProcessWire way**, i.e.
+You can use the following permissions to control visibility and access to various advanced settings of Menu Builder by non-superusers. In ProcessWire, by default, Supersusers inherit all permissions. **Note that you will have to create and apply the permissions yourself using the normal ProcessWire way**, i.e.
 
 * Create a role, e.g. **menu-editor**.
 * Create **permissions** and add assign them (when editing your role) to the role you created. 
@@ -227,7 +246,7 @@ This permission allows your non-superusers to trash and delete menus using eithe
 (ii)  The permission only kicks in if it is found. In that case, users without the permission will not be able to trash or delete menus.
 
 3. **menu-builder-selector**
-This permission allows your non-superusers to add ProcessWire pages as menu items using a ProcessWire selector. This permission (**and all the rest below**) takes a blacklist approach. The permission does not need to exist in your sytem to kick in and by default all non-superusers are not able to add pages as menu items using selectors. This means that if you intend that only superusers will be allowed to use selectors in this manner, *there is no need to create the permission*. Only create and apply it if you wish to grant a particular non-superuser this feature. **The same applies to all the following permissions**.
+This permission allows your non-superusers to add ProcessWire pages as menu items using a ProcessWire selector. This permission (**and all the rest below**) takes a blacklist approach. The permission does not need to exist in your system to kick in and by default all non-superusers are not able to add pages as menu items using selectors. This means that if you intend that only superusers will be allowed to use selectors in this manner, *there is no need to create the permission*. Only create and apply it if you wish to grant a particular non-superuser this feature. **The same applies to all the following permissions**.
 
 4. **menu-builder-selectable**
 This permission allows non-superusers to specify ProcessWire pages that are selectable as menu items in either of the two configurable page fields in Menu Builder, i.e. AsmSelect and PageAutocomplete.
@@ -264,7 +283,7 @@ GPL2
 1. 	Added various permissions to control visibility and editing of advanced settings
 
 #Version 0.0.3
-1. 	Option to allow markup in menu item title(label) - Supersusers only
+1. 	Option to allow markup in menu item title (label) - superusers only
 2. 	Added more options to render() method, e.g. first, last classes
 
 #Version 0.0.2
@@ -273,7 +292,7 @@ GPL2
 3.	Menu items saved as JSON in a field in Menu pages
 4.	Add menu items from ProcessWire pages using page fields (option to choose between PageAutocomplete and AsmSelect [default]) or a Selector (e.g. template=basic-page, limit-20).
 5.	Specify a selector to return only those specified pages for selection in the page field (i.e. asm and autocomplete)
-6.	For page fields, similar to custom menu items, add css classes and IDs as you add the items
+6.	For page fields, similar to custom menu items, add CSS classes and IDs as you add the items
 7.	Menu settings for nestedSortable - e.g. maxLevels (limit nesting levels)
 8.	Lock down menus for editing
 9.	Highly configurable MarkupMenuBuilder
