@@ -21,6 +21,7 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 * Menu settings for nestedSortable - e.g. maxLevels (limit nesting levels)
 * Advanced features (e.g. add pages via selector, menu settings)  permissible to superadmins only
 * Delete single or all menu items without deleting the menu itself
+* Easily render menus and breadcrumbs in the frontend using MarkupMenuBuilder
 
 ##How to Install
 
@@ -40,56 +41,23 @@ The module has two components:
 * To allow access to the Menu Builder admin, a non-superuser must have the permission **menu-builder**. The persmission is created on install.
 * Some Menu Builder admin options are only available to Supersusers by default. Other users would require specific permissions as described below.
 
-##How to Use
+##API
 
-* Access Menu Builder in your ProcessWire admin and create a menu(s).
-* Edit the menu and add items to it, dragging and dropping them in different positions as you wish.
-* Once you've created a menu, you can view it in the frontend by loading it using MarkupMenuBuilder in a template file as follows.
+MarkupBuilder has two methods available to users.
+
+###render()
+
+This method renders a menu/navigation list of a specified menu. The method accepts two arguments/parameters.
 
 ````php
-
-$menu = $modules->get('MarkupMenuBuilder');//Load the module. $menu is an example
-//you can render by menu name, title, id or properly formatted array of menu items
-echo $menu->render('Title of Your Menu');//render the menu by title
-echo $menu->render('name-of-your-menu');//render the menu by name
-echo $menu->render('1234');//render by ID
-
-//To render by passing an array
-
-//get the Menu Builder field menu_items for this menu. That is where your menu items JSON string is stored
-$json = $pages->get(1234)->menu_items;
-//convert the JSON string to an array. Here we assume the JSON string is not empty
-$array = json_decode($json, true);
-
-echo $menu->render($array);//render by array
+render($menu, $options);
 
 ````
 
-You can render additional menus as well, e.g.
+The first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field.
+The second argument is an optional array and will fall back to defaults if no user configurations are passed to the method.
 
-````php
-
-echo $menu->render('sidenav');
-````
-
-You can additionally pass CSS class/id options to the method. See below for available options
-
-````php
-$options = array(
-	'has_children_class' => 'has_children',
-	'current_class' => 'current',
-	'menu_css_id' => 'main',
-	'menu_css_class' => 'nav',
-);
-
-echo $menu->render('sidenav, $options');
-````
-
-You can also use your own PHP (or even javascript) recursive function to display the menu by decoding the saved JSON string containing menu items and passing the resulting array to your function for traversal.
-
-The CSS is up to you, of course.
-
-#Available render Options
+The available **render()** options are:
 
 ````php
 $defaultOptions = array(
@@ -106,6 +74,137 @@ $defaultOptions = array(
 
 );
 ````
+
+###renderBreadcrumbs()
+
+This method renders a breadcrumb navigation of a specified menu. The method also accepts two arguments/parameters.
+
+````php
+render($menu, $options);
+
+````
+
+Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. This means that you only have to retrieve a menu once and pass that to both **render()** and **renderBreadcrumbs()**.
+The second argument is an optional array and will fall back to defaults if no user configurations are passed to the method. The options are very similar to those of **render()**. Hence, as applicable, you can create one array of options and pass it to both **render()** and **renderCrumbs()**. The methods will pick up what's of relevance to them.
+
+The available **renderBreadcrumbs()** options are:
+
+````php
+$defaultOptions = array(
+
+		'wrapper_list_type' => 'ul',//ul, ol, nav, div, etc.
+		'list_type' => 'li',//li, a, span, etc.
+		'menu_css_id' => '',
+		'menu_css_class' => '',
+		'current_css_id' => '',
+		'divider' => '&raquo;',// e.g. Home >> Abouts Us >> Leadership
+		//prepend home page at the as topmost item even if it isn't part of the breadcrumb
+		'prepend_home' => 0,//=> 0=no;1=yes
+
+);
+````
+
+##How to Use
+
+* Access Menu Builder in your ProcessWire admin and create a menu(s).
+* Edit the menu and add items to it, dragging and dropping them in different positions as you wish.
+* Once you've created a menu, you can view it in the frontend by loading it using MarkupMenuBuilder in a template file as follows.
+
+####Rendering a Menu
+
+````php
+
+//load the module
+$menu = $modules->get('MarkupMenuBuilder');//Load the module. $menu is an example
+
+/**you can render by menu Page object, name, title, id or properly formatted array of menu items**/
+
+//render by name, title or id
+echo $menu->render('Title of Your Menu');//render the menu by title
+echo $menu->render('name-of-your-menu');//render the menu by name
+echo $menu->render('1234');//render by ID
+
+//render by passing a Page object
+$m = $pages->get(1234);
+echo $menu->render($m);//render by Page object
+
+//render by passing an array
+//get the Menu Builder field menu_items for this menu. That is where your menu items JSON string is stored
+$json = $pages->get(1234)->menu_items;
+//convert the JSON string to an array. Here we assume the JSON string is not empty
+$array = json_decode($json, true);
+echo $menu->render($array);//render by array
+
+````
+
+You can render additional menus as well, e.g.
+
+````php
+
+echo $menu->render('sidenav');
+````
+
+You can additionally pass CSS class/id options to the method. See above for available options.
+
+````php
+$options = array(
+	'has_children_class' => 'has_children',
+	'current_class' => 'current',
+	'menu_css_id' => 'main',
+	'menu_css_class' => 'nav',
+);
+
+echo $menu->render('sidenav', $options);
+````
+####Rendering Breadcrumbs
+
+Rendering breadcrumbs is quite similar to the above, the only difference being the method you use and some of the options that can be used to configure the output.
+
+````php
+
+//load the module
+$menu = $modules->get('MarkupMenuBuilder');//Load the module. $menu is an example
+
+/**you can render by menu Page object, name, title, id or properly formatted array of menu items**/
+
+//render by name, title or id
+echo $menu->renderBreadcrumbs('Title of Your Menu');//render the menu by title
+echo $menu->renderBreadcrumbs('name-of-your-menu');//render the menu by name
+echo $menu->renderBreadcrumbs('1234');//render by ID
+
+//render by passing a Page object
+$m = $pages->get(1234);
+echo $menu->renderBreadcrumbs($m);//render by Page object
+
+//render by passing an array
+//get the Menu Builder field menu_items for this menu. That is where your menu items JSON string is stored
+$json = $pages->get(1234)->menu_items;
+//convert the JSON string to an array. Here we assume the JSON string is not empty
+$array = json_decode($json, true);
+echo $menu->renderBreadcrumbs($array);//render by array
+
+````
+
+Additionally, you can pass some options to the method. See above for available options.
+
+````php
+$options = array(
+		'wrapper_list_type' => 'div',
+		'list_type' => 'span',
+		//'list_type' => '',//if empty, no tag will be applied + no CSS ID
+		'menu_css_id' => 'crumbs',
+		'menu_css_class' => 'trail',
+		'current_css_id' => 'current',
+		'divider' => '&ast;',
+		'prepend_home' => 1
+);
+
+echo $menu->renderBreadcrumbs(1234, $options);
+````
+
+Note that you are not limited to using MarkupMenuBuilder. You can also use your own PHP (or even javascript) recursive function to display your menu by decoding the saved JSON string containing menu items and passing the resulting array to your function for traversal.
+
+The CSS is up to you, of course.
 
 ##Permissions
 
@@ -153,6 +252,10 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ##Changelog
+
+#Version 0.0.6
+1. 	Added method in MarkupBuilder for rendering breadcrumbs - renderBreadcrumbs().
+2.  Can now also pass Page object to method render() to render menu items/breadcrumbs
 
 #Version 0.0.5
 1. 	Corrected some markup errors.
