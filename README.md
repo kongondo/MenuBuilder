@@ -111,7 +111,7 @@ $defaultOptions = array(
 
 
 * **wrapper_list_type**:  Outer HTML/Markup wrapper for navigation items. The default is **&lt;ul&gt;**.  You can also use **&lt;div&gt;**,  **&lt;nav&gt;**,  **&lt;ol&gt;**, etc, to suit your needs.
-* **list_type**:  The HTML/Markup wrapper for the navigation items themselves. The default is **&lt;li&gt;**.  You can also use **&lt;span>, etc or even nothing. For menus, in case you specify you want to use nothing, i.e. **'list_type' => ''**, nagivation items' CSS Class(es) and IDs will be applied to the  **&lt;a>, i.e. the link, rather than the default which would have been the list type.
+* **list_type**:  The HTML/Markup wrapper for the navigation items themselves. The default is **&lt;li&gt;**.  You can also use **&lt;span&gt;**, etc or even nothing. For menus, in case you specify you want to use nothing, i.e. **'list_type' => ''**, nagivation items' CSS Class(es) and IDs will be applied to the  **&lt;a>, i.e. the link, rather than the default which would have been the list type.
 * **menu_css_id**:  A CSS ID applied to the top-most **'wrapper_list_type'**, i.e. the outermost HTML/Markup wrapper for navigation items. Nothing is applied by default unless you specify you want to use the option.
 * **menu_css_class**:  A CSS Class applied to the top-most **'wrapper_list_type'**, i.e. the outermost HTML/Markup wrapper for navigation items. Nothing is applied by default unless you specify you want to use the option.
 * **submenu_css_class**:  **For menus only**, a CSS Class(es) applied to any nested **'wrapper_list_type'**, i.e. inner HTML/Markup wrapper for sub-menus. Nothing is applied by default unless you specify you want to use the option.
