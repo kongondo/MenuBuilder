@@ -407,8 +407,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 				'has_children_class' => '',//any menu item that has children - NOT for breadcrumbs
 				'first_class'=>'',//NOT for breadcrumbs
 				'last_class' => '',//NOT for breadcrumbs
-				'current_class' => '',
-				'current_css_id' => '',
+				'current_class' => '',//NOT for breadcrumbs
+				'current_css_id' => '',//only for breadcrumbs
 				'divider' => '&raquo;',//only for breadcrumbs
 				//prepend home page at the as topmost item even if it isn't part of the breadcrumb
 				'prepend_home' => 0,//only for breadcrumbs => 0=no;1=yes
