@@ -22,6 +22,7 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 * Advanced features (e.g. add pages via selector, menu settings) permissible to superadmins only
 * Delete single or all menu items without deleting the menu itself
 * Easily render menus and breadcrumbs in the frontend using MarkupMenuBuilder
+* Fully multilingual
 
 ##How to Install
 
