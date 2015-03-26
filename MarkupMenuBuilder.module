@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Markup Menu Builder',
 			'summary' => 'Render menus created by Menu Builder',
 			'author' => 'Kongondo',
-			'version' => 6,
+			'version' => 7,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -161,9 +161,13 @@ class MarkupMenuBuilder extends WireData implements Module {
 		foreach ($menuItems as $id => $item) {
 
 			//set properties
-			$title = $item['title'];
 			$parentID = isset($item['parent_id']) ? $item['parent_id'] : 0;//if parent_id not set, it means they are top tier items
 			$pagesID = isset($item['pages_id']) ? $item['pages_id'] : 0;//for PW pages, use their native IDs
+			
+			//display saved vs actual/multilingual menu title/label
+			if($options['default_title'] == 0 || $pagesID == 0) $title = $item['title'];
+			elseif($options['default_title'] == 1) $title = wire('pages')->get($pagesID)->title;			
+			
 			$url = $pagesID ? wire('pages')->get($pagesID)->url : $item['url'];//for PW pages, use their native URLs
 			$newtab = isset($item['newtab']) ? "target='_blank'" : '';
 			
@@ -322,8 +326,10 @@ class MarkupMenuBuilder extends WireData implements Module {
 						}
 
 						else {
-									$title = $menuItems[$item]['title'];
 									$pagesID = isset($menuItems[$item]['pages_id']) ? $menuItems[$item]['pages_id'] : 0;//for PW pages, use their native IDs
+									//display saved vs actual/multilingual menu title/label
+									if($options['default_title'] == 0 || $pagesID == 0) $title = $menuItems[$item]['title'];
+									elseif($options['default_title'] == 1) $title = wire('pages')->get($pagesID)->title;
 									$url = $pagesID ? wire('pages')->get($pagesID)->url : $menuItems[$item]['url'];//for PW pages, use their native URLs
 									$newtab = isset($menuItems[$item]['newtab']) ? "target='_blank'" : '';
 						}
@@ -413,6 +419,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 				'divider' => '&raquo;',//only for breadcrumbs
 				//prepend home page at the as topmost item even if it isn't part of the breadcrumb
 				'prepend_home' => 0,//only for breadcrumbs => 0=no;1=yes
+				'default_title' => 0,
 
 		);
 
