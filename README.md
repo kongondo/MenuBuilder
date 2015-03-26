@@ -272,6 +272,9 @@ GPL2
 
 ##Changelog
 
+#Version 0.0.7
+1. 	Added multilingual support for saving and displaying menus/breadcrumbs.
+
 #Version 0.0.6
 1. 	Added method in MarkupBuilder for rendering breadcrumbs - renderBreadcrumbs().
 2.  Can now also pass Page object to method render() to render menu items/breadcrumbs
