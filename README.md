@@ -71,6 +71,7 @@ $defaultOptions = array(
 		'first_class'=>'',//CSS Class for the first item in 
 		'last_class' => '',
 		'current_class' => '',
+		'default_title' => 0,//0=show saved titles;1=show actual/current titles
 
 );
 ````
@@ -100,6 +101,7 @@ $defaultOptions = array(
 		'divider' => '&raquo;',// e.g. Home >> About Us >> Leadership
 		//prepend home page at the as topmost item even if it isn't part of the breadcrumb
 		'prepend_home' => 0,//=> 0=no;1=yes
+		'default_title' => 0,//0=show saved titles;1=show actual/current titles
 
 );
 ````
@@ -122,6 +124,7 @@ $defaultOptions = array(
 0. **current_css_id**:  **For breadcrumbs only**, a CSS ID applied to the **'list_type'** of the current breadcrumb item, i.e. the breadcrumb item that corresponds to the page that is currently being viewed in your browser. Nothing is applied by default unless you specify you want to use the option. Note that by default, current breadcrumb items are not wrapped around **&lt;a&gt;** (anchor/link) tags as it makes no sense to do so.
 1. **divider**:  **For breadcrumbs only**, a HTML Character Entity applied after the anchor tag **&lt;a&gt;** of breadcrumb items to indicate ancestry, i.e. items to the left of the divider are ancestral parents, grandparents, great grandparents, etc. to the breadcrumb item on the right of the divider. The default character used is **&raquo;**. Note that if there is only one breadcrumb item in the navigation, the divider is not applied. Also, it is not applied after the last breadcrumb item which is always the current breadcrumb item. You are not limited to using [HTML Character Entities](http://dev.w3.org/html5/html-author/charref) but can use whatever character suits your needs or nothing at all by specifying **'divider' => ''** in your options.
 2. **prepend_home**:  **For breadcrumbs only**, specifying this option prepends your website's 'Homepage' title and URL as a breadcrumb as the topmost item in the navigation even if it isn't ancestrally part of the breadcrumb. This option is not applied by default. To use it specify **'prepend_home' => 1** in your options array.
+3. **default_title**:  Controls whether to display Menu Builder saved menu item titles/labels versus displaying pages' actual/current titles.  This is useful in scenarios where, for example, you need dynamic titles such as in a multilingual environment where you would want navigation labels to change depending on the current language. The default option is to display saved titles. To instead display actual titles, set option to **'default_title' => 1** in your options array.
 
 ##How to Use
 

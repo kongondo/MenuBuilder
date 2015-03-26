@@ -419,7 +419,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 				'divider' => '&raquo;',//only for breadcrumbs
 				//prepend home page at the as topmost item even if it isn't part of the breadcrumb
 				'prepend_home' => 0,//only for breadcrumbs => 0=no;1=yes
-				'default_title' => 0,
+				//for PW pages, whether to show saved menu item titles/labels vs actual ones, e.g. useful for multilingual sites
+				'default_title' => 0,//0=show saved titles;1=show actual/current titles
 
 		);
 
