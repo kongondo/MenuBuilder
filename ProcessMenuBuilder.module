@@ -35,7 +35,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Kongondo',
-			'version' => 6,
+			'version' => 7,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -1388,6 +1388,9 @@ class ProcessMenuBuilder extends Process implements Module {
 			
 				$menu = wire('pages')->get($menuID);
 
+				//for multilingual environments
+				$language = wire('user')->language; //save the current user's language
+
 				//if we didn't get a menu, exit with an error
 				if(!$menu->id) {
 						$this->error($this->_('Error saving Menu.')); 
@@ -1596,7 +1599,9 @@ class ProcessMenuBuilder extends Process implements Module {
 					//if there are menu items added from the AsmSelect, add them to the menu
 					$itemID = (int) $addPages[$i];//sanitize: we need this to be an integer
 
-					$itemTitle = wire('pages')->get($itemID)->title;//title of each PW page in this array
+					//multilingual environments
+					if($language != null) $itemTitle = wire('pages')->get($itemID)->title->getLanguageValue($language);//title of each PW page in this array
+					else $itemTitle = wire('pages')->get($itemID)->title;//title of each PW page in this array
 					if(!$itemTitle) continue;// if no new pages posted, move one...[otherwise one iteration with empty strings is added to array!]
 
 					$itemCSSID = $this->sanitizer->name($pagesCSSID[$i]);
@@ -1634,7 +1639,8 @@ class ProcessMenuBuilder extends Process implements Module {
 							//add PW pages (internal) menu items from the selector to our menu
 							$menuItems[$menuItemID] = array(
 
-									'title' => $item->title,
+									//multilingual environments
+									'title' => $title = is_null($language) ? $item->title : $item->title->getLanguageValue($language),
 									'parent_id' => 0,//for new items before they are sorted in drag & drop
 									//'url' => '',//empty since these are PW pages; no needed to copy URL here + need to make sure always have latest
 									//'css_itemid' => ''//empty until edited
