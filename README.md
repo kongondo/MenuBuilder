@@ -86,7 +86,7 @@ render($menu, $options);
 
 ````
 
-Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. **Note that for multilingual environments, you cannot pass the method a title or a name; only the other three choices will work**. This means that you only have to retrieve a menu once and pass that to both **render()** and **renderBreadcrumbs()**.
+Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. This means that you only have to retrieve a menu once and pass that to both **render()** and **renderBreadcrumbs()**. **Note that for multilingual environments, you cannot pass the method a title or a name; only the other three choices will work**.
 The second argument is an optional array and will fall back to defaults if no user configurations are passed to the method. The options are very similar to those of **render()**. Hence, as applicable, you can create one array of options and pass it to both **render()** and **renderCrumbs()**. The methods will pick up what's of relevance to them.
 
 The available **renderBreadcrumbs()** options are:
