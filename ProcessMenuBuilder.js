@@ -24,7 +24,6 @@ $(document).ready(function(){
 		skipRememberTabIDs: ['ProcessMenuBuilderDelete'],
 		rememberTabs: true
 	});
-
 	
 	/* 02. #### MB CUSTOM AsmSelect OUTPUT #### */
 
@@ -46,8 +45,8 @@ $(document).ready(function(){
 	/* 03. #### MB CUSTOM Autocomplete OUTPUT #### */
 
 
-
 	/* 04. #### MarkupAdminDataTable #### */
+
 	/** Toggle all checkboxes in the list of menus tables **/
 	$('input.toggle_all').click(function(){
 		if ($(this).prop('checked')) {
@@ -72,9 +71,27 @@ $(document).ready(function(){
 
 	/* 05. #### BUILD MENU TAB #### */
 
+	/** insert li with header labels in the PageAutocomplete list items **/
+	//@note: mod for MB
+	var extraLabels ='<li id="menu_items_headers">';
+	extraLabels +='<span id="ac_title">Title</span>';
+	extraLabels +='<span id="ac_css_id">CSS ID</span>';
+	extraLabels +='<span id="ac_css_class">CSS Class</span>';
 
-	/** insert li with header labels in the PageAutocomplete list items **/	
-	var headers = $('<li id="menu_items_headers"><span>Title</span><span>CSS ID</span><span>CSS Class</span></li>');
+	//conditionally add 'include children' markup
+	var moduleConfigIncludeChildren = config.ProcessMenuBuilder2;
+
+	if(!jQuery.isEmptyObject(moduleConfigIncludeChildren)) {
+			var incChildren = moduleConfigIncludeChildren.config.children;
+			if(incChildren == 1) {
+				extraLabels +='<span id="ac_children">Children</span>';
+				extraLabels +='<span id="ac_level">Level</span>';
+			}			
+	}
+
+	extraLabels +='</li>';
+
+	var headers = $(extraLabels);
 	$('#item_addpages_items').prepend(headers);
 	//$('#menu_items_headers').removeClass('ui-state-default');
 
@@ -124,13 +141,13 @@ $(document).ready(function(){
 	});
 
 	/** toggle view/hide each menu's settings editor **/
+		$('div.settings').hide();
 		$('.item_expand_settings, .item_title_main').click(function(){
 		var id = $(this).attr('data-id');
 		//$('#menu_edit'+id).toggle();
 		$('#menu_edit'+id).slideToggle(500);
 		$('a').find('[data-id="'+ id + '"]').toggleClass('fa-caret-down').toggleClass('fa-caret-up');
 		});
-
 
 	/** Toggle view/hide add page menu items panel **/	 
 	$("#wrap_item_addpages").hide();//hide li wrapper for add page menus items on load
@@ -140,7 +157,6 @@ $(document).ready(function(){
 		e.preventDefault(); //prevent default click <a> action from happening!
 	});
 
-
 	/** Toggle view/hide add custom menu items panel **/ 
 	$("#item_addcustom").hide();//hide li wrapper for add custom menu items settings on load
 	$('#add_custom_menu_items').click(function(e) {
@@ -148,15 +164,12 @@ $(document).ready(function(){
 		e.preventDefault();
 	});
 
-
 	/** Toggle view/hide add pages selector menu items panel **/ 
 	$("#wrap_item_addselector").hide();//hide div for add custom menu items settings on load
 	$('#add_selector_menu_items').click(function(e) {
 		$("#wrap_item_addselector").toggle(250);
 		e.preventDefault();
 	});
-
-
 
 	/* 06. #### DELETE MENU TAB #### */
 
@@ -172,7 +185,6 @@ $(document).ready(function(){
 		$("#MenuBuilderEdit").submit();
 	});
 
-
 	/* 07. #### nestedSortable #### */
 
 	//###############################################################################################################
@@ -180,9 +192,9 @@ $(document).ready(function(){
 	/** nestedSortable js configurations **/
 
 	//nestedSortable custom configs for each menu (defined in ProcessMenuBuilder::nestedSortableConfigs())
-	var moduleConfig = config.ProcessMenuBuilder;
+	var moduleConfigNested = config.ProcessMenuBuilder1;
 
-	if(!jQuery.isEmptyObject(moduleConfig)) {
+	if(!jQuery.isEmptyObject(moduleConfigNested)) {
 
 			//**Configuration***
 			$('ol.sortable').nestedSortable({
@@ -201,21 +213,21 @@ $(document).ready(function(){
 
 					
 					//****** custom ******
-					maxLevels: moduleConfig.config.maxLevels,
-					//disableParentChange: moduleConfig.config.disableParentChange,//@@todo -not working; stops drag n drop
-					expandOnHover: moduleConfig.config.expandOnHover,
-					//protectRoot: moduleConfig.config.protectRoot,//@@todo - unsure: //@@todo -not working; stops drag n drop
-					//rtl: moduleConfig.config.rtl,//@@todo -not working; stops drag n drop
-					startCollapsed: moduleConfig.config.startCollapsed,
-					tabSize: moduleConfig.config.tabSize,
-					doNotClear: moduleConfig.config.doNotClear,
-					/*isTree: moduleConfig.config.isTree,*///@@todo -not working; stops drag n drop
+					maxLevels: moduleConfigNested.config.maxLevels,
+					//disableParentChange: moduleConfigNested.config.disableParentChange,//@@todo -not working; stops drag n drop
+					expandOnHover: moduleConfigNested.config.expandOnHover,
+					//protectRoot: moduleConfigNested.config.protectRoot,//@@todo - unsure: //@@todo -not working; stops drag n drop
+					//rtl: moduleConfigNested.config.rtl,//@@todo -not working; stops drag n drop
+					startCollapsed: moduleConfigNested.config.startCollapsed,
+					tabSize: moduleConfigNested.config.tabSize,
+					doNotClear: moduleConfigNested.config.doNotClear,
+					/*isTree: moduleConfigNested.config.isTree,*///@@todo -not working; stops drag n drop
 					//disableNesting: //@@todo - not sure whether to add this
 			
 			});
 
 
-	}//end if moduleConfig not empty
+	}//end if moduleConfigNested not empty
 
 	/** End nestedSortable configs
 
