@@ -618,7 +618,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 		//get current page's parents
 		$parents = wire('page')->parents->reverse();
 		
-		$i = 0;
+		$i = 1;//using this for current_class_level
+		$j = 0;//using this for breadcrumb 'include_children' setting
+		
 		//if true, return an array 
 		if($format) {
 				$parentIDs = array();				
@@ -637,8 +639,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 				foreach($parents as $parent) {		 
 					//filter for viewable parents and homepage
 					if($parent->viewable() && $parent->id !=1) $parentIDs->add($parent);
-					$i++;//this means even non-viewable parents are counted		 			
-		 			if($i == $o->breadcrumbMaxLevel) break;//@@todo. note: for now, no $m->breadcrumbMaxLevel
+					$j++;//this means even non-viewable parents are counted		 			
+		 			if($j == $o->breadcrumbMaxLevel) break;//@@todo. note: for now, no $m->breadcrumbMaxLevel
 				}
 
 		}
