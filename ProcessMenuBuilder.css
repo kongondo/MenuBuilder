@@ -59,23 +59,18 @@ li#menu_items_headers:hover {
 	background: none !important;
 }
 
-li#menu_items_headers span {
-
-	display: inline-block;
-	width: 22%;
-	font-weight: bold;
-}
-
 /* only for the Auocomplete field */
 li#menu_items_headers span {
 	
-	margin: 1.5em 0 0.5em 0 !important;
+	margin: 1.5em 0 0.5em 0.1em !important;
 	display: inline-block;
+	width: 20%!important;
+	font-weight: bold;
 }
 
-li#menu_items_headers span:nth-child(1) {margin-left: 0 !important;}/* item title (span as th in table) */
-li#menu_items_headers span:nth-child(2) {margin-left: 0.25em !important;}
-li#menu_items_headers span:nth-child(3) {margin-left: 2.25em !important;}
+li#menu_items_headers span#asm_title, li#menu_items_headers span#ac_title {width: 22% !important;}
+li#menu_items_headers span#asm_children, li#menu_items_headers span#ac_children {width: 15.5%!important;}
+li#menu_items_headers span#asm_level, li#menu_items_headers span#ac_level {width: 15%!important;}
 
 span#add_menu_items {
 
@@ -93,11 +88,17 @@ span.asmListItemLabel, ol#item_addpages_items span.itemLabel {
 
 span.asmMB input, ol#item_addpages_items span.acMB input  {
 
-	width: 25% !important;
 	margin: 0 !important;
 	text-align: bottom;
 	padding: 0 0.2em !important;
 }
+
+ol#item_addpages_items span.acMB input.ac_itemid, span.asmMB input.asm_itemid {width: 20% !important;}
+ol#item_addpages_items span.acMB input.ac_itemclass, span.asmMB input.asm_itemclass {width: 20% !important;}
+ol#item_addpages_items span.acMB select.ac_include_children, span.asmMB select.asm_include_children {width: 15% !important;}
+ol#item_addpages_items span.acMB input.ac_mb_max_level, span.asmMB input.asm_mb_max_level {width: 8% !important;}
+
+/**** TESTING UP TO HERE DELETE WHEN DONE ****/
 
 span.asmMB input {margin: 1px !important;}/*override above*/
 
@@ -222,9 +223,8 @@ div.handle i.fa-trash {
 /* Menu settings div */
 div.settings {
 	
-	display: none;
+	display: inline-block;
 	margin-bottom: 10px;
-	width:29em;
 	width:100%;
 	background: #F9F9F9;/*light grey*/
 	border: 1px solid #DFDFDF;/*ligh grey*/
@@ -259,6 +259,35 @@ div.settings input[type=checkbox].menu_settings {
 
 	margin-right: 0.3em;
 	vertical-align: middle;
+}
+
+div.settings span.include_children {
+
+	display: block;
+	margin: 0.5em 0 0 1em;
+	font-style: italic;
+}
+
+div.settings label.include_children {
+
+	font-style: normal !important;
+	padding-top: 0 !important;
+	margin-top: -0.3em;
+}
+
+div.settings select.include_children, div.settings label.include_children input[type='text']{
+
+	vertical-align: middle;
+	float: left;
+}
+
+div.settings select.include_children {margin: 0.3em 1em;}
+
+div.settings label.include_children input[type='text']{
+
+	width:12%;
+	margin-right: 0.5em;
+	height: 1.7em;
 }
 
 
