@@ -325,6 +325,9 @@ GPL2
 
 ##Changelog
 
+#Version 0.0.9
+1. 	Fixed bug in 'current_class_level' when 'include_children' is active.
+
 #Version 0.0.8
 1. 	Added new feature 'include children'. Allows global (menu-level) or item-level inclusion of a ProcessWire page menu item's 'natural' descendants (children, grandchildren, etc) in menus/breadcrumbs at runtime. This means such pages do not have to be added as part of the navigation during editing in Menu Builder.
 2. 	Added a 'current_class_level' to specify how far up menus the 'current_class' should be applied (i.e. current/active parents).
