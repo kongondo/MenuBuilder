@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Markup Menu Builder',
 			'summary' => 'Render menus created by Menu Builder',
 			'author' => 'Kongondo',
-			'version' => 9,
+			'version' => 10,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -209,7 +209,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		}//end 2nd foreach
 
-		//### APPLYING 'current_class_level' to both mb and non-mb (included) menu items ###
+		#### -  APPLY 'current_class_level' to both mb and non-mb (included) menu items - ####
 
 		//if current page being viewed is NOT already part of this menu
 		//we we will check if it is perhaps an included item
@@ -289,14 +289,13 @@ class MarkupMenuBuilder extends WireData implements Module {
 	* A recursive function to display nested list of menu items.
 	*
 	* @access private
-	* @param Int $parent ID of a menu item's parents to determine if to build sub-menus.
+	* @param Int $parent ID of a menu item's parent to determine if to build sub-menus.
 	* @return string $out.
 	*
 	*/
 	private function buildMenu($parent = 0) {
 
 		$menu = $this->menuItems;//WireArray with Menu objects
-
 		$total = count($menu);
 		$cnt = 0;
 		$o = $this->options;
@@ -309,7 +308,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		foreach ($menu as $m) {
 
 			//set properties
-			$newtab = $m->newtab ? "target='_blank'" : '';
+			$newtab = $m->newtab ? " target='_blank'" : '';
 			
 			//if this menu item is a parent; create the sub-items/child-menu-items
 			if ($m->parentID == $parent) {
@@ -319,22 +318,22 @@ class MarkupMenuBuilder extends WireData implements Module {
 					$has_child = true;//This is a parent
 					if ($cnt == 0) {							
 							//assign menu css id and class if provided
-							$cssMenuID =  $o->menucssID ? ' id ="' . $o->menucssID . '" ' : '';
-							$cssMenuClass = $o->menucssClass ? 'class ="' . $o->menucssClass . '"' : '';
-							$out .= "<{$wTag} {$cssMenuID} {$cssMenuClass}>" . "\n";						
+							$cssMenuID =  $o->menucssID ? ' id="' . $o->menucssID . '"' : '';
+							$cssMenuClass = $o->menucssClass ? ' class="' . $o->menucssClass . '"' : '';
+							$out .= "\n<{$wTag}{$cssMenuID}{$cssMenuClass}>";						
 							$first = 1;
 					}
 
 					elseif($cnt > 0 && $m->isFirst) {
 							//assign sub-menu classes if provided
-							$cssSubMenuClass = $o->submenucssClass ? 'class ="' . $o->submenucssClass . '"' : '';
-							$out .= "\n<{$wTag} {$cssSubMenuClass}>\n";
+							$cssSubMenuClass = $o->submenucssClass ? ' class="' . $o->submenucssClass . '"' : '';
+							$out .= "\n<{$wTag}{$cssSubMenuClass}>";
 					}
 
 				}//end if has child
 
 				//item CSS
-				$itemCSSID = $m->cssID ? 'id="' . $m->cssID . '"' : '';				
+				$itemCSSID = $m->cssID ? ' id="' . $m->cssID . '"' : '';				
 				$itemCSSClass = $m->cssClass ? $m->cssClass . ' ' : '';
 				$itemFirst = $m->isFirst || $cnt == 0 ? $o->firstClass : '';	
 				$itemHasChildren = $m->isParent ? $o->hasChildrenClass . ' ' : '';	
@@ -345,16 +344,16 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 				$classes = $itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst;
 				$classes = trim(preg_replace('/\s+/', ' ', $classes));
-				$class = strlen($classes) ? 'class="' . $classes . '"' : '';
+				$class = strlen($classes) ? ' class="' . $classes . '"' : '';
 		
 				//if $iTag is empty, apply css id and classes to <a> instead
-				if(!$iTag) $out .= "<a {$itemCSSID} {$class} {$newtab} href='{$m->url}'>{$m->title}</a>";
-				else $out .= "<{$iTag} {$itemCSSID} {$class}><a {$newtab} href='{$m->url}'>{$m->title}</a>";
+				if(!$iTag) $out .= "\n\t<a{$itemCSSID}{$class}{$newtab} href='{$m->url}'>{$m->title}</a>";
+				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab} href='{$m->url}'>{$m->title}</a>";
 
 				//build nested/sub-elements
-				$out .= $this->buildMenu($m->id);
+				$out .= str_replace("\n", "\n\t\t", $this->buildMenu($m->id));
 		
-				//if overrding with 'never show'
+				//if overriding with 'never show'
 				if($o->includeChildren === 0 || $m->includeChildren === 0) $pInclude = '';//don't include children					
 				//no need to check for zeros again, only check if can display in menu (1|3)				
 				elseif($m->includeChildren === 1 || $m->includeChildren === 3) $pInclude = $m->pagesID;				
@@ -366,7 +365,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 				if($pInclude) {
 					$p = wire('pages')->get($pInclude);
 
-					if($p->id == 1) continue;//we skip home since all children hers anyway
+					if($p->id == 1) continue;//we skip home since all children are hers anyway
 					if(!$p->numChildren) continue;//no children to add
 
 					#if item-level $m->menuMaxLevel is set, use that, otherwise default to $o->menuMaxLevel;
@@ -375,7 +374,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 					$out .= $this->includedFamilyMenu($p, $depth, $firstChild);
 				}//end if $pInclude	
 				
-				$out .= $iTag ? "</{$iTag}>\n" : '';//if $iTag specified, close it
+				$out .= $iTag ? "\n\t</{$iTag}>" : '';//if $iTag specified, close it
 
 			}//end if $parentID == $parent
 
@@ -383,7 +382,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 		
 		}//end foreach
 
-		if ($has_child === true) $out .= "</{$wTag}>\n";
+		if ($has_child === true) $out .= "\n</{$wTag}>";
+		
+
 
 		return $out;
 
@@ -410,10 +411,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 		if(!is_array($rawMenuItems)) return $this->throwError();
 
 		$menu = $this->processMenu($rawMenuItems);//convert raw menu items to Menu objects
-
-		##########
-
-		//checks to see if to apply 'include_children' etc...
+		
+		### - checks to see if to apply 'include_children' etc... - ###
 
 		//step #1: First we check if the current page is already part of the menu items/navigation
 		$currentItem = $this->currentItem(true);
@@ -440,7 +439,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 			//if we find a $closestParent, it becomes our $currentItem
 			//it will be a Page object with an overloaded property menuID
-			//we pass this $closestParent->menuID to buildMenu()
+			//we pass this $closestParent->menuID to buildBreadcrumbs()
 			if($closestParent) {			
 					
 					//add selected parents if any to our breadcrumbs
@@ -733,25 +732,6 @@ class MarkupMenuBuilder extends WireData implements Module {
 	}
 
 	/**
-	* Check if any menu item in breadcrumbs has include_children = 2 || 3.
-	* 
-	* By 'naturally' is meant from a ProcessWire tree point of view, i.e. 'child - parent - grandparent - great grandparent' etc...
-	* A setting of 2 means apply option to breadcrumbs only and 3 apply to both breadcrumbs and menus
-	*
-	* @access private
-	* @param Object $menu An instance of the class Menu to traverse to check for 'include_children'.
-	* @return boolean.
-	*
-	*/
-	private function includeChildrenCheck($menu) {
-
-		//we only need to get at least one item
-		if($menu->get('includeChildren=2|3')) return true;
-		else return false;
-
-	}
-
-	/**
 	* Return breadcrumb items of included 'relatives'.
 	* 
 	* Triggered if user specifies in $options or on a per/item basis to include natural children of a breadcrumb item(s).
@@ -811,7 +791,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		$wTag = $o->wrapperListType;//item wrapper tag. default = <ul>
 		$iTag = $o->listType;//item tag. default = <li>
-		$cssSubMenuClass = $o->submenucssClass ? 'class ="' . $o->submenucssClass . '"' : '';
+		$cssSubMenuClass = $o->submenucssClass ? ' class="' . $o->submenucssClass . '"' : '';
 
 		//if option to apply current_class to MB ancestor items as well specified
 		$parentIDs = array();
@@ -819,7 +799,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			$parentIDs = $this->currentPageParents(true);//true=return array/false=return PageArray
 		}//end if current_class_level
 
-		$out = "\n<{$wTag} {$cssSubMenuClass}>\n";
+		$out = "\n<{$wTag}{$cssSubMenuClass}>";
 
 		$count = $page->numVisibleChildren-1;
 
@@ -837,20 +817,21 @@ class MarkupMenuBuilder extends WireData implements Module {
 			//build sub-menus
 			if($child->numVisibleChildren && $depth > 0) {//equivalent to above - only visible children returned
 				$itemHasChildren = $o->hasChildrenClass . ' ';
-				$s = $this->includedFamilyMenu($child, $depth);			
+				$s = str_replace("\n", "\n\t\t", $this->includedFamilyMenu($child, $depth));	
 			}//end if has visible children
 	
 			$classes = $itemHasChildren . $itemLast . $itemCurrent . $itemFirst;
 			$classes = trim(preg_replace('/\s+/', ' ', $classes));
-			$class = strlen($classes) ? 'class="' . $classes . '"' : '';
+			$class = strlen($classes) ? ' class="' . $classes . '"' : '';
 
 			//if $iTag is empty, apply css id and classes to <a> instead
-			if(!$iTag) $out .= "<a {$class} href='{$child->url}'>{$child->title}</a>$s";
-			else $out .= "<{$iTag} {$class}><a href='{$child->url}'>{$child->title}</a>$s</{$iTag}>\n";
+			if(!$iTag) $out .= "\n\t<a{$class} href='{$child->url}'>{$child->title}</a>$s";
+			else $out .= "\n\t<{$iTag}{$class}>\n\t\t<a href='{$child->url}'>{$child->title}</a>$s\n\t</{$iTag}>";
+
 		
 		}//end foreach
 
-		$out .= "</{$wTag}>\n";
+		$out .= "\n</{$wTag}>";
 
 		return $out;
 
