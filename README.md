@@ -325,6 +325,9 @@ GPL2
 
 ##Changelog
 
+#Version 0.1.0
+1. 	Cleaned-up HTML output by MarkupMenuBuilder.
+
 #Version 0.0.9
 1. 	Fixed bug in 'current_class_level' when 'include_children' is active.
 
