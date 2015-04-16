@@ -39,12 +39,12 @@ The module has two components:
 ##Note
 
 * The module installs three fields: **'menu_items', 'menu_pages'** and **'menu_settings'** and one template **'menus'**. If any similarly named fields/template are already present on your site, the module will not install but throw an error instead. You would need to rename your fields/template first. 
-* To allow access to the Menu Builder admin, a non-superuser must have the permission **menu-builder**. The persmission is created on install.
-* Some Menu Builder admin options are only available to Supersusers by default. Other users would require specific permissions as described below.
+* To allow access to the Menu Builder admin, a non-superuser must have the permission **menu-builder**. The permission is created on install.
+* Some Menu Builder admin options are only available to Superusers by default. Other users would require specific permissions as described below.
 
 ##API
 
-MarkupBuilder has two methods available to users.
+MarkupMenuBuilder has two methods available to users.
 
 ###render()
 
@@ -73,6 +73,9 @@ $defaultOptions = array(
 		'last_class' => '',
 		'current_class' => '',
 		'default_title' => 0,//0=show saved titles;1=show actual/current titles
+		'include_children' => 4,//show 'natural' MB non-native descendant items as part of navigation
+		'm_max_level' => 1,//how deep to fetch 'include_children'
+		'current_class_level' => 1,//how high up the ancestral tree to apply 'current_class'
 
 );
 ````
@@ -87,7 +90,7 @@ render($menu, $options);
 ````
 
 Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. This means that you only have to retrieve a menu once and pass that to both **render()** and **renderBreadcrumbs()**. **Note that for multilingual environments, you cannot pass the method a title or a name; only the other three choices will work**.
-The second argument is an optional array and will fall back to defaults if no user configurations are passed to the method. The options are very similar to those of **render()**. Hence, as applicable, you can create one array of options and pass it to both **render()** and **renderCrumbs()**. The methods will pick up what's of relevance to them.
+The second argument is an optional array and will fall back to defaults if no user configurations are passed to the method. The options are very similar to those of **render()**. Hence, as applicable, you can create one array of options and pass it to both **render()** and **renderBreadcrumbs()**. The methods will pick up what's of relevance to them.
 
 The available **renderBreadcrumbs()** options are:
 
@@ -103,6 +106,8 @@ $defaultOptions = array(
 		//prepend home page at the as topmost item even if it isn't part of the breadcrumb
 		'prepend_home' => 0,//=> 0=no;1=yes
 		'default_title' => 0,//0=show saved titles;1=show actual/current titles
+		'include_children' => 4,//show 'natural' MB non-native descendant items as part of navigation
+		'b_max_level' => 1,//how deep to fetch 'include_children'
 
 );
 ````
@@ -126,6 +131,10 @@ $defaultOptions = array(
 1. **divider**:  **For breadcrumbs only**, a HTML Character Entity applied after the anchor tag **&lt;a&gt;** of breadcrumb items to indicate ancestry, i.e. items to the left of the divider are ancestral parents, grandparents, great grandparents, etc. to the breadcrumb item on the right of the divider. The default character used is **&raquo;**. Note that if there is only one breadcrumb item in the navigation, the divider is not applied. Also, it is not applied after the last breadcrumb item which is always the current breadcrumb item. You are not limited to using [HTML Character Entities](http://dev.w3.org/html5/html-author/charref) but can use whatever character suits your needs or nothing at all by specifying **'divider' => ''** in your options.
 2. **prepend_home**:  **For breadcrumbs only**, specifying this option prepends your website's 'Homepage' title and URL as a breadcrumb as the topmost item in the navigation even if it isn't ancestrally part of the breadcrumb. This option is not applied by default. To use it specify **'prepend_home' => 1** in your options array.
 3. **default_title**:  Controls whether to display Menu Builder saved menu item titles/labels versus displaying pages' actual/current titles.  This is useful in scenarios where, for example, you need dynamic titles such as in a multilingual environment where you would want navigation labels to change depending on the current language. The default option is to display saved titles. To instead display actual titles, set option to **'default_title' => 1** in your options array.
+4. **include_children**:  Controls whether to display viewable descendant ProcessWire pages (children, grandchildren, etc.) of Menu Builder ProcessWire pages' navigation items at runtime as opposed to editing and saving them in Menu Builder admin. This is useful in a number of cases. For instance, you may wish to limit the number of menu items appearing in a particular menu in the the Menu Builder admin, e.g. in cases where these are many. This option can be applied globally (i.e. at a menu-level/$options level) and locally (at a menu-item-level). Item-level settings mean that only children of the specified item will be included. The 'include_children' option is disabled by default. Please see below for further details on how to use the feature.
+5. **m_max_level**:  This is a menu-only option related to the **include children** feature. It limits the depth from within which viewable descendant pages can be retrieved for display in a menu. The default is 1. This means that only fetch immediate children. A value of 2 means fetch both children and grandchildren, etc. The option can be applied globally and locally as explained previously.
+6. **b_max_level**:  This is breadcrumb-only option related to the **include children** feature. It limits the depth from within which viewable descendant pages can be retrieved for display in a breadcrumb. The default is 1. This means that only fetch immediate children. A value of 2 means fetch both children and grandchildren, etc. The option can only be applied globally.
+7. **current_class_level**: Using this option, you can specify how high up the menu tree you want to apply the **'current_class'** to the current item's ancestors. The default is 1, meaning (if specified) apply the **'current_class'** to only the current item. A setting of 3 implies apply it to the current item, its parent and grandparent, etc. In short, the option can be used to show some or all 'active/current' menu items at various levels in your menu. This option only applies to menus and not breadcrumbs.
 
 ##How to Use
 
@@ -225,19 +234,56 @@ $options = array(
 echo $menu->renderBreadcrumbs(1234, $options);
 ````
 
-Note that you are not limited to using MarkupMenuBuilder. You can also use your own PHP (or even javascript) recursive function to display your menu by decoding the saved JSON string containing menu items and passing the resulting array to your function for traversal.
+####Using the Include Children Feature
+
+This is a flexible and powerful feature that you can leverage to produce all sorts of dynamic navigation for your ProcessWire website. With lots of power comes responsibility. The features should only be enabled (see relevant permission below) for users who know what they are doing. For example, a user could unknowingly use the feature to include descendant pages of a menu item that has hundreds of descendants, leading to undesirable effects. 
+
+#####Menu-Level Values
+
+At the global/menu/API-level, the following values can be passed with 'include_children'. This is useful if you want to override some item-level settings. The priority order of the settings and in comparison to item-level settings are explained further below.
+
+* **0**: Overrides all settings, global and local and suppresses output of 'include_children'.
+* **1**: Include children of all navigation items but only in the menu unless specified otherwise in item-level setting. 
+* **2**: Include children of all navigation items but only in the breadcrumbs unless specified otherwise in item-level setting. 
+* **3**: Include children of all navigation items in both the menu and breadcrumbs unless specified otherwise in item-level setting. This assumes you are passing the same options to both **render()** and **renderBreadcrumbs()**.
+* **4**: Do not include children of any navigation item unless specified otherwise in item-level setting. This is the default setting (automatically applied) and does not need to be specified in your $options.
+
+
+#####Item-Level Values
+
+At the local/admin/item-level, the following values can be saved with each navigation item either when creating or editing the menu item in the Menu Builder admin. This is useful when you want fine-grained control over 'include_children' output. The priority order of the settings and in comparison to menu-level settings are explained later below.
+
+* **No**: This is the default value; It means do not include children of this menu item unless overridden by a menu-level setting.
+* **Menu**: Include children of this navigation item but only in the menu unless overridden by a **0** menu-level setting. 
+* **Breadcrumbs**: Include children of this navigation item but only in the breadcrumbs unless overridden by a **0** menu-level setting. 
+* **Both**: Include children of this navigation item in both the menu and breadcrumbs overridden only by a **0** menu-level setting. 
+* **Never**: Never include children of this navigation item.
+
+
+The combined (menu- and item-level) order of descending priority (i.e. a setting cannot override the setting above it) for these 'include_children' settings is as follows:
+
+* **0** / **Never**
+* **Menu** / **Breadcrumbs** / **Both**
+* **1** / **2** / **3**
+* **4** / **No**
+
+As a sanity check, in the Menu Builder admin, a navigation item made up of your ProcessWire 'homepage' cannot have its children included/excluded since it is the parent of all pages. In addition, you will only see 'include_children' inputs in the Menu Builder admin when both the feature is enabled and you have the permission 'menu-builder-include-children' (or are a superuser; more below under Permissions). Finally, note that if a user without this permission edits a menu that was previously edited by a user with the permission, any 'include_children' item-level settings will be lost.
+
+####Other Usage Notes
+
+Note that you are not limited to using MarkupMenuBuilder. You can also use your own PHP (or even JavaScript) recursive function to display your menu by decoding the saved JSON string containing menu items and passing the resulting array to your function for traversal.
 
 The CSS is up to you, of course.
 
 ##Permissions
 
-You can use the following permissions to control visibility and access to various advanced settings of Menu Builder by non-superusers. In ProcessWire, by default, Supersusers inherit all permissions. **Note that you will have to create and apply the permissions yourself using the normal ProcessWire way**, i.e.
+You can use the following permissions to control visibility and access to various advanced settings of Menu Builder by non-superusers. In ProcessWire, by default, Superusers inherit all permissions. **Note that you will have to create and apply the permissions yourself using the normal ProcessWire way**, i.e.
 
 * Create a role, e.g. **menu-editor**.
 * Create **permissions** and add assign them (when editing your role) to the role you created. 
 * Create a **user** and assign them the role with the Menu Builder permissions.
 
-There are 7 permissions at your disposal for fine-grained access control of your Menu Builder admin.
+There are 8 permissions at your disposal for fine-grained access control of your Menu Builder admin.
 
 1. **menu-builder-lock**
 This permission allows your non-superusers to lock and unlock menus using the 'Actions Panel' in Menu Builder's admin main page. **Note two things**:
@@ -259,10 +305,13 @@ This permission allows non-superusers to specify ProcessWire pages that are sele
 This permission allows your non-superusers to allow/disallow the use of markup/HTML in menu item titles/labels.
 
 6. **menu-builder-settings**
-This permission allows non-supersusers to edit nestedSortable settings, for instance set maxLevels (that controls number of nesting levels in a menu).
+This permission allows non-superusers to edit nestedSortable settings, for instance set maxLevels (that controls number of nesting levels in a menu).
 
 7. **menu-builder-page-field**
 This permission allows non-superusers to change the page field type used to select ProcessWire pages to add as menu items, i.e. toggle between AsmSelect [default] and PageAutocomplete.
+
+8. **menu-builder-include-children**
+This permission allows non-superusers to set and use the include children feature.
 
 ##Uninstall
 
@@ -276,11 +325,22 @@ GPL2
 
 ##Changelog
 
+#Version 0.1.0
+1. 	Cleaned-up HTML output by MarkupMenuBuilder.
+
+#Version 0.0.9
+1. 	Fixed bug in 'current_class_level' when 'include_children' is active.
+
+#Version 0.0.8
+1. 	Added new feature 'include children'. Allows global (menu-level) or item-level inclusion of a ProcessWire page menu item's 'natural' descendants (children, grandchildren, etc) in menus/breadcrumbs at runtime. This means such pages do not have to be added as part of the navigation during editing in Menu Builder.
+2. 	Added a 'current_class_level' to specify how far up menus the 'current_class' should be applied (i.e. current/active parents).
+3. 	Permission 'menu-builder-included-children' added to limit access to the new feature 'include children'.
+
 #Version 0.0.7
 1. 	Added multilingual support for saving and displaying menus/breadcrumbs.
 
 #Version 0.0.6
-1. 	Added method in MarkupBuilder for rendering breadcrumbs - renderBreadcrumbs().
+1. 	Added method in MarkupMenuBuilder for rendering breadcrumbs - renderBreadcrumbs().
 2.  Can now also pass Page object to method render() to render menu items/breadcrumbs
 
 #Version 0.0.5

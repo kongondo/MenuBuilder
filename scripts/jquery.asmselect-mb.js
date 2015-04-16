@@ -77,7 +77,27 @@
 				while($("#" + options.containerClass + index).size() > 0) index++; 
 
 				//@note: mod for MB
-				var $headers = $('<li id="menu_items_headers"><span>Title</span><span>CSS ID</span><span>CSS Class</span></li>');
+				var extraLabels ='<li id="menu_items_headers">';
+				extraLabels +='<span id="asm_title">Title</span>';
+				extraLabels +='<span id="asm_css_id">CSS ID</span>';
+				extraLabels +='<span id="asm_css_class">CSS Class</span>';
+
+				//conditionally add 'include children' markup
+				var moduleConfigIncludeChildren = config.ProcessMenuBuilder2;
+
+				if(!jQuery.isEmptyObject(moduleConfigIncludeChildren)) {
+						var incChildren = moduleConfigIncludeChildren.config.children;
+						if(incChildren == 1) {
+							extraLabels +='<span id="asm_children">Children</span>';
+							extraLabels +='<span id="asm_level">Level</span>';
+						}			
+				}
+
+				extraLabels +='</li>';
+				
+				/*var $headers = $('<li id="menu_items_headers"><span>Title</span><span>CSS ID</span><span>CSS Class</span><span>Children</span><span>Level</span></li>');*/
+
+				var $headers = $(extraLabels);
 
 				$select = $("<select></select>")
 					.addClass(options.selectClass)
@@ -347,14 +367,36 @@
 				}
 
 				//@note: added to store extra data for MB menu items (links) -> css id, css class and link target attribute
-				var $itemExtra = $('<span class="asmMB" ><input name="new_page_css_itemid[]" type="text"><input name="new_page_css_itemclass[]" type="text"></span>').addClass(options.listItemExtraClass);
+				var extraInput ='<span class="asmMB">';
+				extraInput +='<input name="new_page_css_itemid[]" type="text" class="asm_itemid">';
+				extraInput +='<input name="new_page_css_itemclass[]" type="text" class="asm_itemclass">';
 
+				//conditionally add 'include children' input markup
+				var moduleConfigIncludeChildren = config.ProcessMenuBuilder2;
+
+				if(!jQuery.isEmptyObject(moduleConfigIncludeChildren)) {
+						var incChildren = moduleConfigIncludeChildren.config.children;
+						if(incChildren == 1) {
+							extraInput +='<select name="new_page_include_children[]" class="asm_include_children">';
+							extraInput +='<option value="4">No</option>';
+							extraInput +='<option value="1">Menu</option>';
+							extraInput +='<option value="2">Breadcrumbs</option>';
+							extraInput +='<option value="3">Both</option>';
+							extraInput +='<option value="5">Never</option>';
+							extraInput +='</select>';
+							extraInput +='<input type="text" name="new_page_mb_max_level[]" class="asm_mb_max_level">';
+						}			
+				}
+
+				extraInput +='</span>';
+
+				var $mbExtras = $(extraInput).addClass(options.listItemExtraClass);
 				
 				var $item = $("<li></li>")//@note: originally <li>
 					.attr('rel', optionId)
 					.addClass(options.listItemClass)
 					.append($itemLabel)
-					.append($itemExtra)
+					.append($mbExtras)
 					/*.append($itemDesc)
 					.append($itemStatus)*/
 					.append($removeLink)
