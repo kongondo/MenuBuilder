@@ -875,9 +875,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		if(count($matches)){
 			foreach($matches as $match) {
-				$v = $page->get($match[1]);
-				$v_unformatted = $page->getUnformatted($match[1]);
-				$field = $this->fields->get($match[1]);
+				$field = explode("->", $match[1]);
+				$v = $page->get($field[0]);
+				$v_unformatted = $page->getUnformatted($field[0]);
 
 				// check if it's an image file field and output url
 				if($v instanceof Pageimage) {
@@ -893,11 +893,11 @@ class MarkupMenuBuilder extends WireData implements Module {
 				} else if($match[1] == 'created' || $match[1] == 'modified') {
 					$field_value = date($this->options['date_format'], $v);
 
-				// } else if(isset($field->type) && $field->type == "FieldtypeDatetime") {
-				// 	$field_value = date($this->options['date_format'], $v_unformatted);
-
 				} else if($match[1] == "createdUsersID" || $match[1] == "modifiedUsersID") {
 					$field_value = $this->users->get($v)->name;
+
+				} else if($v instanceof SelectableOptionArray){
+					$field_value = ($field[1]) ? $v->{$field[1]} : $v;
 
 				} else {
 					$field_value = $v;
