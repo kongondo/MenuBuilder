@@ -811,7 +811,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			$itemLast = $count - $n == 0 ? $o->lastClass . ' ' : '';			
 		
 			//check for current items (family tree)
-			$itemCurrent = in_array($child->id, $parentIDs) || $child->id == wire('page')->id ? $o->currentClass . ' ' : '';
+			$itemCurrent = in_array($child->id, $parentIDs) || $child->id == wire('page')->id ? $this->parsePlaceholders($o->currentClass, $child) . ' ' : '';
 		
 			$s = '';
 			//build sub-menus
