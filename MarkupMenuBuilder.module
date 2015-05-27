@@ -340,7 +340,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$itemLast = $m->isLast || $total - $cnt == 1 ? $o->lastClass . ' ' : '';
 
 				//apply current item class to current page + ancestors if specified for both native and included menu items
-				$itemCurrent = 	$m->isCurrent == 1 ? $o->currentClass . ' ' : '';
+				$itemCurrent = 	$m->isCurrent == 1 ? $this->parsePlaceholders($o->currentClass, wire('pages')->get($m->pagesID)) . ' ' : '';
 
 				$classes = $itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst;
 				$classes = trim(preg_replace('/\s+/', ' ', $classes));
@@ -858,6 +858,58 @@ class MarkupMenuBuilder extends WireData implements Module {
 		return $this->options;
 
 	}
+	
+	/**
+	* Parse Placeholders
+	* 
+	*
+	* @access private
+	* @param String $tpl String with placeholders to parse
+	* @param Page $page page object
+	* @return String $tpl.
+	*
+	*/
+	protected function parsePlaceholders($tpl, Page $page){
+		// template field tags matching
+		preg_match_all('#\{(.+?)\}#i', $tpl, $matches, PREG_SET_ORDER);
+
+		if(count($matches)){
+			foreach($matches as $match) {
+				$v = $page->get($match[1]);
+				$v_unformatted = $page->getUnformatted($match[1]);
+				$field = $this->fields->get($match[1]);
+
+				// check if it's an image file field and output url
+				if($v instanceof Pageimage) {
+					$field_value = $v->url;
+				} else if($v instanceof Pageimages) {
+					if(count($v)) $field_value = $v->first()->url;
+						else $field_value = '';
+				}
+				// if page object from a page field get its url
+				else if($v instanceof Page){
+					$field_value = $v->url;
+
+				} else if($match[1] == 'created' || $match[1] == 'modified') {
+					$field_value = date($this->options['date_format'], $v);
+
+				// } else if(isset($field->type) && $field->type == "FieldtypeDatetime") {
+				// 	$field_value = date($this->options['date_format'], $v_unformatted);
+
+				} else if($match[1] == "createdUsersID" || $match[1] == "modifiedUsersID") {
+					$field_value = $this->users->get($v)->name;
+
+				} else {
+					$field_value = $v;
+				}
+				$tpl = str_replace($match[0], $field_value, $tpl);
+
+			}
+		}
+		return $tpl;
+
+	}
+
 
 	/**
 	* Throw error or return false.
