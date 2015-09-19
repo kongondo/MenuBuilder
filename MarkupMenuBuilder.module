@@ -371,7 +371,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 					#if item-level $m->menuMaxLevel is set, use that, otherwise default to $o->menuMaxLevel;
 					$depth = $m->menuMaxLevel ? $m->menuMaxLevel : $o->menuMaxLevel;
 					$firstChild = $m->isParent ? $p->child->id : null;//for skipping 'first_class' when native MB children already exist for this item
-					$out .= $this->includedFamilyMenu($p, $depth, $firstChild);
+					#$out .= $this->includedFamilyMenu($p, $depth, $firstChild);
+					#$out .= "\t" . $this->includedFamilyMenu($p, $depth, $firstChild);
+					$out .= str_replace("\n", "\n\t\t", $this->includedFamilyMenu($p, $depth, $firstChild));
 				}//end if $pInclude	
 				
 				$out .= $iTag ? "\n\t</{$iTag}>" : '';//if $iTag specified, close it
