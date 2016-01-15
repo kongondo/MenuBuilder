@@ -1359,6 +1359,7 @@ class ProcessMenuBuilder extends Process implements Module {
 								
 				if ($addMenus) {
 						
+						$failed = array();
 						$menus = explode("\n", $addMenus);//convert to an array			
 						
 						//Sanitize and save new menus
