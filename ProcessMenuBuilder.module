@@ -1747,7 +1747,7 @@ class ProcessMenuBuilder extends Process implements Module {
 					$itemID = (int) $addPages[$i];//sanitize: we need this to be an integer
 
 					//multilingual environments
-					if($language != null) $itemTitle = wire('pages')->get($itemID)->title->getLanguageValue($language);//title of each PW page in this array
+					if($language != null && method_exists(wire('pages')->get($itemID)->title, 'getLanguageValue')) $itemTitle = wire('pages')->get($itemID)->title->getLanguageValue($language);//title of each PW page in this array
 					else $itemTitle = wire('pages')->get($itemID)->title;//title of each PW page in this array
 					if(!$itemTitle) continue;//if no new pages posted, move one...[otherwise one iteration with empty strings is added to array!]
 
