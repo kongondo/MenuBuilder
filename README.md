@@ -329,7 +329,7 @@ GPL2
 
 #Version 0.1.1
 1. Fixed bug relating to getLanguageValue() (issues #22 and #25).
-2. Fixed bug where 'has_children' would not be applied to a menut item whose children were included 'natively'.
+2. Fixed bug where 'has_children' would not be applied to a menu item whose children were included 'natively'.
 3. Switched to $this->wire('pages') from wire('pages') (and similar).
 4. As per request at issue #18, added option 'default_class' to enable application of a default CSS class to every menu item at API level.
 
