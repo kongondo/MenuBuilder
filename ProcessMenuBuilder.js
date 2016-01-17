@@ -2,7 +2,7 @@
 *
 * Javascript file for PW Module ProcessMenuBuilder
 *
-* @author Kongondo <kongondo@gmail.com>
+* @author Francis Otieno (Kongondo) <kongondo@gmail.com>
 *
 * https://github.com/kongondo/ProcessMenuBuilder
 * Created March 2015

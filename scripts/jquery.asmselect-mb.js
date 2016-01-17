@@ -76,7 +76,7 @@
 				// this loop ensures uniqueness, in case of existing asmSelects placed by ajax (1.0.3)
 				while($("#" + options.containerClass + index).size() > 0) index++; 
 
-				//@note: mod for MB
+				// @note: mod for MB
 				var extraLabels ='<li id="menu_items_headers">';
 				extraLabels +='<span id="asm_title">Title</span>';
 				extraLabels +='<span id="asm_css_id">CSS ID</span>';
@@ -334,7 +334,7 @@
 				var $itemLabel = $('<span></span>').addClass(options.listItemLabelClass);//@note: originally <span></span>
 
 				
-				//@note: not using these optional stuff
+				// @note: not using these optional stuff
 				// optional container where an <option>'s data-status attribute will be displayed
 				/*var $itemStatus = $("<span></span>").addClass(options.listItemStatusClass);
 				if($O.attr('data-status')) $itemStatus.html($O.attr('data-status'));*/
