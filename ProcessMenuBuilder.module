@@ -1016,7 +1016,7 @@ class ProcessMenuBuilder extends Process implements Module {
 										"</label>";
 
 						$type = $this->_('Custom');
-						$readonly = '';				
+						$readonly = '';		
 
 				}
 
