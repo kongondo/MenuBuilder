@@ -4,9 +4,9 @@
 * Markup Menu Builder Module for ProcessWire
 * This module enables you to display on your website custom menus built using ProcessMenuBuilder
 *
-* @author Kongondo
+* @author Francis Otieno (Kongondo)
 *
-* https://github.com/kongondo/ProcessMenuBuilder
+* https:// github.com/kongondo/ProcessMenuBuilder
 * Created 1 September 2013
 * Major update in March 2015
 * 
@@ -31,8 +31,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 		return array(
 			'title' => 'Markup Menu Builder',
 			'summary' => 'Render menus created by Menu Builder',
-			'author' => 'Kongondo',
-			'version' => 10,
+			'author' => 'Francis Otieno (Kongondo)',
+			'version' => 11,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -62,7 +62,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*
 	*/	
 	public function init() {
-		//required
+		// required
 	
 	}
 
@@ -80,16 +80,16 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*/		
 	public function render($menuItems, Array $options = null) {
 
-		//processed menu options
-		$options = $this->processOptions($options);//run options first so that some properties can be set early on
+		// processed menu options
+		$options = $this->processOptions($options);// run options first so that some properties can be set early on
 	
-		//process menu items
+		// process menu items
 		$rawMenuItems = $this->processRawMenu($menuItems);
 		if(!is_array($rawMenuItems)) return $this->throwError();
 
-		$this->menuItems = $this->processMenu($rawMenuItems);//convert raw menu items to Menu objects		
+		$this->menuItems = $this->processMenu($rawMenuItems);// convert raw menu items to Menu objects		
 
-		//render the menu
+		// render the menu
 		return $this->buildMenu();
 
 	}
@@ -111,35 +111,35 @@ class MarkupMenuBuilder extends WireData implements Module {
 		
 		#### - work on the menu items - ###
 
-		//if we got a Page object
+		// if we got a Page object
 		if($menu instanceof Page) {
 
 				$menuitemsJSON = $menu->menu_items;
 				$menuItems = json_decode($menuitemsJSON, true);
 		}
 
-		//if we got a populated array of menu items
+		// if we got a populated array of menu items
 		elseif(is_array($menu)) {
 
-			 	$menuItems = $menu;//for consistency
+			 	$menuItems = $menu;// for consistency
 		}
 
-		//if we got a menu title|name
+		// if we got a menu title|name
 		elseif (is_string($menu)) {
 
-				//grab the menu
+				// grab the menu
 				$menuName = $this->sanitizer->pageName($menu);
-				$menuParent = wire('pages')->get($this->config->adminRootPageID)->child('name=setup, check_access=0')->child('name=menu-builder, check_access=0');
+				$menuParent = $this->wire('pages')->get($this->config->adminRootPageID)->child('name=setup, check_access=0')->child('name=menu-builder, check_access=0');
 				$menu = $menuParent->child("name=$menuName, check_access=0");
 				if($menu) $menuItems = json_decode($menu->menu_items, true);
 		}
 
-		//if we got an id
+		// if we got an id
 		elseif(is_integer($menu)) {
 
-				//grab the menu
+				// grab the menu
 				$menuID = (int) $menu;
-				$menu = wire('pages')->get($menu);
+				$menu = $this->wire('pages')->get($menu);
 				if($menu) $menuItems = json_decode($menu->menu_items, true);
 		}
 
@@ -163,77 +163,86 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		$menu = new WireArray();
 
-		//create new menu objects from each item in the array
+		// create new menu objects from each item in the array
 		foreach ($menuItems as $id => $item) {
 			
 			$m = new Menu();
 
 			$m->id = $id;			
-			$m->parentID = isset($item['parent_id']) ? $item['parent_id'] : 0;//if parent_id not set, it means they are top tier items
-			$m->pagesID = isset($item['pages_id']) ? $item['pages_id'] : 0;//for PW pages, use their native IDs
+			$m->parentID = isset($item['parent_id']) ? $item['parent_id'] : 0;// if parent_id not set, it means they are top tier items
+			$m->pagesID = isset($item['pages_id']) ? $item['pages_id'] : 0;// for PW pages, use their native IDs
 
-			//display saved vs actual/multilingual menu title/label
+			// display saved vs actual/multilingual menu title/label
 			if($o->defaultTitle == 0 || $m->pagesID == 0) $m->title = $item['title'];
-			elseif($o->defaultTitle == 1) $m->title = wire('pages')->get($m->pagesID)->title;	
+			elseif($o->defaultTitle == 1) $m->title = $this->wire('pages')->get($m->pagesID)->title;	
 
-			$m->url = $m->pagesID ? wire('pages')->get($m->pagesID)->url : $item['url'];//for PW pages, use their native URLs
+			$m->url = $m->pagesID ? $this->wire('pages')->get($m->pagesID)->url : $item['url'];// for PW pages, use their native URLs
 			$m->newtab = isset($item['newtab']) ? 1 : '';
 			$m->cssID = isset($item['css_itemid']) ? $item['css_itemid'] : '';
-			$m->cssClass = isset($item['css_itemclass']) ? $item['css_itemclass'] : '';
+			
+			$cssItemClass = isset($item['css_itemclass']) ? $item['css_itemclass'] : '';
+			$cssItemClass .= ' ' . $o->defaultClass;
+
+			//echo $cssItemClass . '<br>';
+
+			//$m->cssClass = isset($item['css_itemclass']) ? $item['css_itemclass'] : '';
+			$m->cssClass = $cssItemClass ? $cssItemClass : '';
+			
+
 			$m->includeChildren = isset($item['include_children']) ? $item['include_children'] : '';
-			if($m->includeChildren == 5) $m->includeChildren = 0;//for consistency with $o->includeChildren
+			if($m->includeChildren == 5) $m->includeChildren = 0;// for consistency with $o->includeChildren
 			$m->menuMaxLevel  = isset($item['m_max_level']) ? $item['m_max_level'] : '';
 			
 			$menu->add($m);
 		
-		}//end foreach $menuItems
+		}// end foreach $menuItems
 	
-		//add some other menu properties directly to the menu objects in this WireArray
+		// add some other menu properties directly to the menu objects in this WireArray
 		foreach ($menu as $m) {
 				 $children = $menu->find("parentID=$m->id");
 				 if($children->count()) {
 
-						//set this item as a parent if it has children - for 'has_children'
+						// set this item as a parent if it has children - for 'has_children'
 						$m->isParent = 1;
 
-						//add a first-child property to the menu item that is a first child - for use with 'first_class'
+						// add a first-child property to the menu item that is a first child - for use with 'first_class'
 						$first = $menu->get('id='. $children->first()->id);
 						$first->isFirst = 1;
 
-						//add a last-child property to the menu item that is a last child - for use with 'last_class'
+						// add a last-child property to the menu item that is a last child - for use with 'last_class'
 						$last = $menu->get('id=' . $children->last()->id);
 						$last->isLast = 1;
 
 				 }
 
 
-		}//end 2nd foreach
+		}// end 2nd foreach
 
 		#### -  APPLY 'current_class_level' to both mb and non-mb (included) menu items - ####
 
-		//if current page being viewed is NOT already part of this menu
-		//we we will check if it is perhaps an included item
+		// if current page being viewed is NOT already part of this menu
+		// we we will check if it is perhaps an included item
 		if(!$menu->get('pagesID=' . wire('page')->id)) {
 				$cnp = '';
-				$pids = $this->currentPageParents(true);//returns a normal array with reversed parent IDs, closest first
+				$pids = $this->currentPageParents(true);// returns a normal array with reversed parent IDs, closest first
 
-				//find the closest parent. We'll use it to determine if 'include_children' was used...
-				//and if we have 'net' mb parents needing a 'current_class'
-				//we assume that any included children were added via a closest parent
+				// find the closest parent. We'll use it to determine if 'include_children' was used...
+				// and if we have 'net' mb parents needing a 'current_class'
+				// we assume that any included children were added via a closest parent
 				foreach ($pids as $pid) {
 					$cnp = $menu->get('pagesID=' . $pid);
-					if($cnp) break;//stop if we found a natural parent					
+					if($cnp) break;// stop if we found a natural parent					
 				}
 
-				//In the mb menu, if the closest natural parent of the current page OR options has not forbidden 'include_children' in menu
+				// In the mb menu, if the closest natural parent of the current page OR options has not forbidden 'include_children' in menu
 				if($cnp && ($cnp->includeChildren !==0 && $cnp->includeChildren !=2 && $o->includeChildren !=0)) {
-						//if 'include_children' in menu declared locally (item-level) or globally (options-level)
+						// if 'include_children' in menu declared locally (item-level) or globally (options-level)
 						if (($cnp->includeChildren == 1 || $cnp->includeChildren == 3) || ($o->includeChildren == 1 || $o->includeChildren == 3)) {
-							$net = $o->currentClassLevel - count($pids);//determine if we have 'remaining' parents
-							//if we have 'remaining' parents to apply 'current_class' to
+							$net = $o->currentClassLevel - count($pids);// determine if we have 'remaining' parents
+							// if we have 'remaining' parents to apply 'current_class' to
 							if ($net > 0) {									
-									$cnp->isCurrent = 1;//we first apply isCurrent to closest parent
-									//we then apply isCurrent property to limited number of mb parents of our natural parent
+									$cnp->isCurrent = 1;// we first apply isCurrent to closest parent
+									// we then apply isCurrent property to limited number of mb parents of our natural parent
 									$netParents = $this->currentItemParents($cnp->parentID, $menu);
 
 									$i = 1;
@@ -245,23 +254,23 @@ class MarkupMenuBuilder extends WireData implements Module {
 									}		
 							}			
 
-						}//end if valid includeChildren declared
+						}// end if valid includeChildren declared
 
-				}//end if $cnp->includeChildren allowed
+				}// end if $cnp->includeChildren allowed
 
-		}//end if item not part of this menu
+		}// end if item not part of this menu
 
-		//else the current page is part of this mb menu but we check if we need to apply 'current_class' to parents, etc...
+		// else the current page is part of this mb menu but we check if we need to apply 'current_class' to parents, etc...
 		else {
-				//first apply isCurrent to the current item
+				// first apply isCurrent to the current item
 				$c = $menu->get('pagesID=' . wire('page')->id);
 				if($c) $c->isCurrent = 1;
 
-				//if 'current_class' needs to be applied to $c's ancestors
+				// if 'current_class' needs to be applied to $c's ancestors
 				if($o->currentClassLevel && $o->currentClassLevel > 1) {
-					//we've already applied isCurrent to the current menu item so we subtract it
+					// we've already applied isCurrent to the current menu item so we subtract it
 					$net = $o->currentClassLevel - 1;
-					//we apply isCurrent property to limited ($net) number of the current item's mb parents
+					// we apply isCurrent property to limited ($net) number of the current item's mb parents
 					$cParents = $this->currentItemParents($c->parentID, $menu);
 
 					$i = 0;
@@ -272,10 +281,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 						if($i == $net) break;
 					}
 
-				}//end if currentClassLevel > 1
+				}// end if currentClassLevel > 1
 
-		}//end else the current page is part of this menu
-
+		}// end else the current page is part of this menu
 
 		$this->menuItems = $menu;
 
@@ -295,29 +303,29 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*/
 	private function buildMenu($parent = 0) {
 
-		$menu = $this->menuItems;//WireArray with Menu objects
+		$menu = $this->menuItems;// WireArray with Menu objects
 		$total = count($menu);
 		$cnt = 0;
 		$o = $this->options;
 
 		$out = '';
 		$has_child = false;
-		$wTag = $o->wrapperListType;//item wrapper tag. default = <ul>
-		$iTag = $o->listType;//item tag. default = <li>		
+		$wTag = $o->wrapperListType;// item wrapper tag. default = <ul>
+		$iTag = $o->listType;// item tag. default = <li>		
 
 		foreach ($menu as $m) {
 
-			//set properties
+			// set properties
 			$newtab = $m->newtab ? " target='_blank'" : '';
 			
-			//if this menu item is a parent; create the sub-items/child-menu-items
+			// if this menu item is a parent; create the sub-items/child-menu-items
 			if ($m->parentID == $parent) {
 
-				//if this is the first child output '<ul>'/specified $wTag       
+				// if this is the first child output '<ul>'/specified $wTag       
 				if ($has_child === false) {
-					$has_child = true;//This is a parent
+					$has_child = true;// This is a parent
 					if ($cnt == 0) {							
-							//assign menu css id and class if provided
+							// assign menu css id and class if provided
 							$cssMenuID =  $o->menucssID ? ' id="' . $o->menucssID . '"' : '';
 							$cssMenuClass = $o->menucssClass ? ' class="' . $o->menucssClass . '"' : '';
 							$out .= "\n<{$wTag}{$cssMenuID}{$cssMenuClass}>";						
@@ -325,64 +333,61 @@ class MarkupMenuBuilder extends WireData implements Module {
 					}
 
 					elseif($cnt > 0 && $m->isFirst) {
-							//assign sub-menu classes if provided
+							// assign sub-menu classes if provided
 							$cssSubMenuClass = $o->submenucssClass ? ' class="' . $o->submenucssClass . '"' : '';
 							$out .= "\n<{$wTag}{$cssSubMenuClass}>";
 					}
 
-				}//end if has child
+				}// end if has child
 
-				//item CSS
+				// check if this menu item will be including native children using includeChildren option
+				// we need this here to be able to apply 'has_children' css class to parent
+				// items with native children added via includeChildren
+				$pInclude = $this->includeChildrenCheck($o->includeChildren, $m);
+				$home = 0;
+				$hasNativeChildren = 0;
+
+				if($pInclude) {
+					$p = $this->wire('pages')->get($pInclude);
+					if($p->id == 1) $home = 1;// we skip home since all children are hers anyway
+					if($p->numChildren) $hasNativeChildren = 1;// has children to add
+				}// end if $pInclude	
+
+				// item CSS
 				$itemCSSID = $m->cssID ? ' id="' . $m->cssID . '"' : '';				
 				$itemCSSClass = $m->cssClass ? $m->cssClass . ' ' : '';
-				$itemFirst = $m->isFirst || $cnt == 0 ? $o->firstClass : '';	
-				$itemHasChildren = $m->isParent ? $o->hasChildrenClass . ' ' : '';	
+				$itemFirst = $m->isFirst || $cnt == 0 ? $o->firstClass : '';				
+				$itemHasChildren = $m->isParent || $hasNativeChildren ? $o->hasChildrenClass . ' ' : '';				
 				$itemLast = $m->isLast || $total - $cnt == 1 ? $o->lastClass . ' ' : '';
-
-				//apply current item class to current page + ancestors if specified for both native and included menu items
+				// apply current item class to current page + ancestors if specified for both native and included menu items
 				$itemCurrent = 	$m->isCurrent == 1 ? $o->currentClass . ' ' : '';
 
 				$classes = $itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst;
 				$classes = trim(preg_replace('/\s+/', ' ', $classes));
 				$class = strlen($classes) ? ' class="' . $classes . '"' : '';
 		
-				//if $iTag is empty, apply css id and classes to <a> instead
+				// if $iTag is empty, apply css id and classes to <a> instead
 				if(!$iTag) $out .= "\n\t<a{$itemCSSID}{$class}{$newtab} href='{$m->url}'>{$m->title}</a>";
 				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab} href='{$m->url}'>{$m->title}</a>";
 
-				//build nested/sub-elements
-				$out .= str_replace("\n", "\n\t\t", $this->buildMenu($m->id));
-		
-				//if overriding with 'never show'
-				if($o->includeChildren === 0 || $m->includeChildren === 0) $pInclude = '';//don't include children					
-				//no need to check for zeros again, only check if can display in menu (1|3)				
-				elseif($m->includeChildren === 1 || $m->includeChildren === 3) $pInclude = $m->pagesID;				
-				//$option overriding item-level only when blank. Other conditions covered above and below 
-				elseif(($o->includeChildren === 1 || $o->includeChildren === 3) && (!strlen($m->includeChildren))) $pInclude = $m->pagesID;					
-				//either $options is 2 OR not set OR $m is 2 (i.e., only applicable to breadcrumbs)
-				else $pInclude = '';
-
-				if($pInclude) {
-					$p = wire('pages')->get($pInclude);
-
-					if($p->id == 1) continue;//we skip home since all children are hers anyway
-					if(!$p->numChildren) continue;//no children to add
-
+				// build nested/sub-elements
+				$out .= str_replace("\n", "\n\t\t", $this->buildMenu($m->id));		
+				
+				// children menu items included via 'includeChildren option'
+				if($home == 0 && $hasNativeChildren == 1) {
 					#if item-level $m->menuMaxLevel is set, use that, otherwise default to $o->menuMaxLevel;
 					$depth = $m->menuMaxLevel ? $m->menuMaxLevel : $o->menuMaxLevel;
-					$firstChild = $m->isParent ? $p->child->id : null;//for skipping 'first_class' when native MB children already exist for this item
-					#$out .= $this->includedFamilyMenu($p, $depth, $firstChild);
-					#$out .= "\t" . $this->includedFamilyMenu($p, $depth, $firstChild);
+					$firstChild = $m->isParent ? $p->child->id : null;// for skipping 'first_class' when native MB children already exist for this item
 					$out .= str_replace("\n", "\n\t\t", $this->includedFamilyMenu($p, $depth, $firstChild));
-				}//end if $pInclude	
+				}	
 				
-				$out .= $iTag ? "\n\t</{$iTag}>" : '';//if $iTag specified, close it
+				$out .= $iTag ? "\n\t</{$iTag}>" : '';// if $iTag specified, close it
 
-			}//end if $parentID == $parent
+			}// end if $parentID == $parent
 
 			$cnt++;
 		
-		}//end foreach
+		}// end foreach
 
 		if ($has_child === true) $out .= "\n</{$wTag}>";
 		
@@ -407,19 +412,19 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		$o = $this->processOptions($options);
 
-		//process menu items
+		// process menu items
 		$rawMenuItems = $this->processRawMenu($menuItems);
-		//exit with error if no menu items found
+		// exit with error if no menu items found
 		if(!is_array($rawMenuItems)) return $this->throwError();
 
-		$menu = $this->processMenu($rawMenuItems);//convert raw menu items to Menu objects
+		$menu = $this->processMenu($rawMenuItems);// convert raw menu items to Menu objects
 		
 		### - checks to see if to apply 'include_children' etc... - ###
 
-		//step #1: First we check if the current page is already part of the menu items/navigation
+		// step #1: First we check if the current page is already part of the menu items/navigation
 		$currentItem = $this->currentItem(true);
 
-		//if we found a menu item, just return the breadcrumb
+		// if we found a menu item, just return the breadcrumb
 		if ($currentItem) {
 			return $this->buildBreadcrumbs($currentItem);
 		}
@@ -431,52 +436,52 @@ class MarkupMenuBuilder extends WireData implements Module {
 		*/
 		elseif(!$currentItem) {
 
-			//check for API/template file breadcrumb 'include_children' setting
+			// check for API/template file breadcrumb 'include_children' setting
 
-			$selectedParents = $this->currentPageParents(false);//will return a PageArray of this item's parents
+			$selectedParents = $this->currentPageParents(false);// will return a PageArray of this item's parents
 
-			//find closest parent of the current page that is already in the menu
-			//we'll start building breadcrumbs off of that (i.e. it is our $currentItem)
-			$closestParent = $this->currentItem(false, $selectedParents);//returns a Page Object
+			// find closest parent of the current page that is already in the menu
+			// we'll start building breadcrumbs off of that (i.e. it is our $currentItem)
+			$closestParent = $this->currentItem(false, $selectedParents);// returns a Page Object
 
-			//if we find a $closestParent, it becomes our $currentItem
-			//it will be a Page object with an overloaded property menuID
-			//we pass this $closestParent->menuID to buildBreadcrumbs()
+			// if we find a $closestParent, it becomes our $currentItem
+			// it will be a Page object with an overloaded property menuID
+			// we pass this $closestParent->menuID to buildBreadcrumbs()
 			if($closestParent) {			
 					
-					//add selected parents if any to our breadcrumbs
+					// add selected parents if any to our breadcrumbs
 					$cp = $closestParent;
 
-					//if overrding with 'never show'
+					// if overrding with 'never show'
 					if($o->includeChildren === 0 || $cp->includeChildren === 0) {				
-							//return early without including children
+							// return early without including children
 							return $this->buildBreadcrumbs($cp->menuID);					
 					}					
-					//no need to check for zeros again, only check if can display in breadcrumbs (2|3)				
+					// no need to check for zeros again, only check if can display in breadcrumbs (2|3)				
 					elseif($cp->includeChildren === 2 || $cp->includeChildren === 3) {								
 							$includeFamily = $this->includedFamilyBreadcrumbs($selectedParents, $cp);
 							return $this->buildBreadcrumbs($cp->menuID, $includeFamily);				
 					}
-					//$option overriding item-level only when blank. Other conditions covered above and below 
+					// $option overriding item-level only when blank. Other conditions covered above and below 
 					elseif(($o->includeChildren === 2 || $o->includeChildren === 3) && (!strlen($cp->includeChildren))) {
 							$includeFamily = $this->includedFamilyBreadcrumbs($selectedParents, $cp);
 							return $this->buildBreadcrumbs($cp->menuID, $includeFamily);
 					}					
-					//either $options is 1 OR not set OR $cp is 1 (i.e., only applicable to menus)
+					// either $options is 1 OR not set OR $cp is 1 (i.e., only applicable to menus)
 					else {
-							//return early without including children
+							// return early without including children
 							return $this->buildBreadcrumbs($cp->menuID);			
 					}				
 
-			}//end if $closestparent
+			}// end if $closestparent
 			
 			else {
-				//@@TODO - should we not just show breadcrumb up to valid parents? Problem is in that case there is no closest parent
+				// @todo - should we not just show breadcrumb up to valid parents? Problem is in that case there is no closest parent
 				return $this->throwError();
 			}
 
 
-		}//end elseif no $currentItem matching this page in menu items
+		}// end elseif no $currentItem matching this page in menu items
 
 
 	}
@@ -500,43 +505,43 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		$o = $this->options;
 
-		//append the current item's ID
+		// append the current item's ID
 		$itemIDs .= $currentItem . ',';
 
-		//the 'parent_id' of the current menu item
+		// the 'parent_id' of the current menu item
 		$parentID = $menu->get('id=' . $currentItem)->parentID ? $menu->get('id=' . $currentItem)->parentID : '';
 
-		//recursively build the breadcrumbs
-		$itemIDs .= $this->currentItemParents($parentID, $menu);//returns comma separated string of parent IDs of this menu item
+		// recursively build the breadcrumbs
+		$itemIDs .= $this->currentItemParents($parentID, $menu);// returns comma separated string of parent IDs of this menu item
 		$itemIDs = rtrim($itemIDs, ',');
 
 		if($itemIDs) {
-				//array of menu item IDs
+				// array of menu item IDs
 				$menuItemsIDs = explode(',', $itemIDs);
-				//we reverse the items array, starting with grandparents first....
+				// we reverse the items array, starting with grandparents first....
 				$menuItemsIDs = array_reverse($menuItemsIDs, true);			
 		}
 
 
 		if (is_array($menuItemsIDs)) {
 
-				$wTag = $o->wrapperListType;//item wrapper tag. default = <ul>
-				$iTag = $o->listType;//item tag. default = <li>
+				$wTag = $o->wrapperListType;// item wrapper tag. default = <ul>
+				$iTag = $o->listType;// item tag. default = <li>
 
-				//assign menu css id and class if provided
+				// assign menu css id and class if provided
 				$cssMenuID =  $o->menucssID ? ' id ="' . $o->menucssID . '" ' : '';
 				$cssMenuClass = $o->menucssClass ? 'class ="' . $o->menucssClass . '"' : '';
 
-				//css ID for current menu item {there is only one}
+				// css ID for current menu item {there is only one}
 				$itemCurrent = $o->currentCSSID;
 				$cssID = strlen($itemCurrent) ? 'id="' . $itemCurrent . '"' : '';
 
-				//build the breadcrumb
+				// build the breadcrumb
 				$out = '';
 
 				$out .= "<{$wTag} {$cssMenuID} {$cssMenuClass}>" . "\n";
 
-				//if option to prepend homepage specified, we prepend to menuItemsIDs
+				// if option to prepend homepage specified, we prepend to menuItemsIDs
 				if ($o->prependHome) $menuItemsIDs = array_merge(array('Home' => 'Home'), $menuItemsIDs);
 
 
@@ -545,14 +550,14 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 				foreach ($menuItemsIDs as $item) {
 
-						//if prepended homepage
+						// if prepended homepage
 						if ($item === 'Home') {
 									
-									$item = wire('pages')->get('/');									
+									$item = $this->wire('pages')->get('/');									
 									$title = $item->title;
 									
-									//if we prepended homepage AND homepage is also part of this breadcrumb navigation AND we are on the homepage...
-									//we exit early to avoid duplicate Home >> Home
+									// if we prepended homepage AND homepage is also part of this breadcrumb navigation AND we are on the homepage...
+									// we exit early to avoid duplicate Home >> Home
 									if ($item->id === wire('page')->id)  {
 										$out .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} >{$title}</{$iTag}></{$wTag}>";
 										
@@ -566,7 +571,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 						else {
 									
-									//grab the menu item in the WireArray with the id=$item
+									// grab the menu item in the WireArray with the id=$item
 									$m = $menu->get('id=' . $item);
 									$title = $m->title;
 									$url = $m->url;
@@ -574,31 +579,31 @@ class MarkupMenuBuilder extends WireData implements Module {
 									
 						}
 
-						//ancestor items
+						// ancestor items
 						if ($total - $i != 1) {
-								$divider = " {$o->divider} ";//note the spaces before and after!
-								//if $iTag is empty, default to <a> instead
+								$divider = " {$o->divider} ";// note the spaces before and after!
+								// if $iTag is empty, default to <a> instead
 								if(!$iTag) $out .= "<a {$newtab} href='{$url}'>{$title}</a>{$divider}";
 								else $out.= "<$iTag><a {$newtab} href='{$url}'>{$title}</a>{$divider}</$iTag>";
 						}
 
-						//the last breadcrumb item, i.e., the current page
+						// the last breadcrumb item, i.e., the current page
 						else {
 
-								//if option set, include non-MB menu item pages if applicable
+								// if option set, include non-MB menu item pages if applicable
 								if($includeFamily) $out .= $includeFamily;
 								else $out .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} >{$title}</{$iTag}>";
 						}
 
 						$i++;
 				
-				}//end foreach
+				}// end foreach
 
 				$out .= "</{$wTag}>";
 
 				return $out;
 
-		}//end if is_array menuItemsIDs
+		}// end if is_array menuItemsIDs
 
 	}
 
@@ -617,14 +622,14 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		$out = '';
 		if($id && $menu->get('id=' . $id)->parentID) {
-				$out .= $id . ',';//add the first's parent id
+				$out .= $id . ',';// add the first's parent id
 				$parentID = $menu->get('id=' . $id)->parentID;					
-				//recursively get the next parent item (ancestry: grandparent, great...etc)
+				// recursively get the next parent item (ancestry: grandparent, great...etc)
 				$out .= $this->currentItemParents($parentID, $menu);
 		}
 
 		else {
-				//if the current item is a top most item (i.e. has no parent)
+				// if the current item is a top most item (i.e. has no parent)
 				$out .= $id;
 		}
 
@@ -647,32 +652,32 @@ class MarkupMenuBuilder extends WireData implements Module {
 	private function currentPageParents($format = null) {
 
 		$o = $this->options;
-		//get current page's parents
+		// get current page's parents
 		$parents = wire('page')->parents->reverse();
 		
-		$i = 1;//using this for current_class_level
-		$j = 0;//using this for breadcrumb 'include_children' setting
+		$i = 1;// using this for current_class_level
+		$j = 0;// using this for breadcrumb 'include_children' setting
 		
-		//if true, return an array 
+		// if true, return an array 
 		if($format) {
 				$parentIDs = array();				
 				foreach($parents as $parent) {		 
-					//filter for viewable parents and homepage
+					// filter for viewable parents and homepage
 					if($parent->viewable() && $parent->id !=1) $parentIDs[] = $parent->id;
-					$i++;//this means even non-viewable parents are counted
+					$i++;// this means even non-viewable parents are counted
 		 			if($i == $o->currentClassLevel) break;
 	
 				}
 		}
 		
-		//return a PageArray
+		// return a PageArray
 		else {
 				$parentIDs = new PageArray();	
 				foreach($parents as $parent) {		 
-					//filter for viewable parents and homepage
+					// filter for viewable parents and homepage
 					if($parent->viewable() && $parent->id !=1) $parentIDs->add($parent);
-					$j++;//this means even non-viewable parents are counted		 			
-		 			if($j == $o->breadcrumbMaxLevel) break;//@@todo. note: for now, no $m->breadcrumbMaxLevel
+					$j++;// this means even non-viewable parents are counted		 			
+		 			if($j == $o->breadcrumbMaxLevel) break;// @todo. note: for now, no $m->breadcrumbMaxLevel
 				}
 
 		}
@@ -697,7 +702,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		$currentItem = '';
 		$menu = $this->menuItems;
 
-		//grab menu item that matches the current page (i.e. where we currently are in the breadcrumb trail)
+		// grab menu item that matches the current page (i.e. where we currently are in the breadcrumb trail)
 		if($single) {
 
 			foreach ($menu as $m) {					
@@ -707,18 +712,18 @@ class MarkupMenuBuilder extends WireData implements Module {
 					}
 			}
 
-		}//end if single == true
+		}// end if single == true
 
 		else {
 
 			$found = false;
 			foreach ($parents as $parent) {
 					foreach ($menu as $m) {
-						if(!$m->pagesID) continue;//skip non-pw items
+						if(!$m->pagesID) continue;// skip non-pw items
 						if ($parent->id == $m->pagesID) {
-								$parent->menuID = $m->id;//temporarily save this item's menu id to the page object
-								$parent->includeChildren = $m->includeChildren;//temporarily save this item's menu include children status to the page object
-								$currentItem = $parent;//this is a page object						
+								$parent->menuID = $m->id;// temporarily save this item's menu id to the page object
+								$parent->includeChildren = $m->includeChildren;// temporarily save this item's menu include children status to the page object
+								$currentItem = $parent;// this is a page object						
 								$found = true;
 								break;					
 						}
@@ -727,7 +732,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 					if($found) break;
 			}
 
-		}//end else single == false
+		}// end else single == false
 
 		return $currentItem;
 
@@ -750,19 +755,19 @@ class MarkupMenuBuilder extends WireData implements Module {
 		$o = $this->options;
 		$miniBreadcrumbs = '';
 		
-		$iTag = $o->listType;//item tag. default = <li>
-		$divider = ' ' . $o->divider . ' ';//note the spaces before and after!
-		//css ID for current menu item {there is only one}
+		$iTag = $o->listType;// item tag. default = <li>
+		$divider = ' ' . $o->divider . ' ';// note the spaces before and after!
+		// css ID for current menu item {there is only one}
 		$itemCurrent = $o->currentCSSID;
 		$cssID = strlen($itemCurrent) ? 'id="' . $itemCurrent . '"' : '';
 
 		foreach ($selectedParents->reverse() as $p) {
-				if($closestParent->parents->has($p)) continue;//remove any parents that are already part of the navigation (to avoid duplicates)			
+				if($closestParent->parents->has($p)) continue;// remove any parents that are already part of the navigation (to avoid duplicates)			
 				if(!$iTag) $miniBreadcrumbs .= "<a href='{$p->url}'>{$p->title}</a>{$divider}";
 				else $miniBreadcrumbs.= "<$iTag><a href='{$p->url}'>{$p->title}</a>{$divider}</$iTag>";
 		}
 
-		//append current page (our last item in this case)
+		// append current page (our last item in this case)
 		$title = wire('page')->title;
 		$miniBreadcrumbs .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} >{$title}</{$iTag}>";
 
@@ -784,22 +789,23 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*/
 	private function includedFamilyMenu(Page $page = null, $depth = 1, $firstChild = null) {
 
-		//@@credits to @slkwrm for some code
+		// @credits @slkwrm for some code
 
 		$o = $this->options;
 		$depth -= 1;
 
 		if(is_null($page)) $page = wire('page');
 
-		$wTag = $o->wrapperListType;//item wrapper tag. default = <ul>
-		$iTag = $o->listType;//item tag. default = <li>
+		$wTag = $o->wrapperListType;// item wrapper tag. default = <ul>
+		$iTag = $o->listType;// item tag. default = <li>
 		$cssSubMenuClass = $o->submenucssClass ? ' class="' . $o->submenucssClass . '"' : '';
+		$defaultClass = $o->defaultClass . ' ';// default CSS class set via $options at runtime
 
-		//if option to apply current_class to MB ancestor items as well specified
+		// if option to apply current_class to MB ancestor items as well specified
 		$parentIDs = array();
 		if($o->currentClassLevel && $o->currentClassLevel > 1) {
-			$parentIDs = $this->currentPageParents(true);//true=return array/false=return PageArray
-		}//end if current_class_level
+			$parentIDs = $this->currentPageParents(true);// true=return array/false=return PageArray
+		}// end if current_class_level
 
 		$out = "\n<{$wTag}{$cssSubMenuClass}>";
 
@@ -807,35 +813,62 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		foreach($page->children as $n => $child) {
 			
-			//note: we skip 'first_class' for this menu page/item when native sibling MB children already exist for Page
+			// note: we skip 'first_class' for this menu page/item when native sibling MB children already exist for Page
 			$itemFirst = $n == 0 && $child->id != $firstChild ? $o->firstClass : '';
 			$itemHasChildren = '';
-			$itemLast = $count - $n == 0 ? $o->lastClass . ' ' : '';			
+			$itemLast = $count - $n == 0 ? $o->lastClass . ' ' : '';
 		
-			//check for current items (family tree)
+			// check for current items (family tree)
 			$itemCurrent = in_array($child->id, $parentIDs) || $child->id == wire('page')->id ? $o->currentClass . ' ' : '';
 		
 			$s = '';
-			//build sub-menus
-			if($child->numVisibleChildren && $depth > 0) {//equivalent to above - only visible children returned
+			// build sub-menus
+			if($child->numVisibleChildren && $depth > 0) {// equivalent to above - only visible children returned
 				$itemHasChildren = $o->hasChildrenClass . ' ';
 				$s = str_replace("\n", "\n\t\t", $this->includedFamilyMenu($child, $depth));	
-			}//end if has visible children
+			}// end if has visible children
 	
-			$classes = $itemHasChildren . $itemLast . $itemCurrent . $itemFirst;
+			$classes = $itemHasChildren . $itemLast . $defaultClass . $itemCurrent . $itemFirst;
 			$classes = trim(preg_replace('/\s+/', ' ', $classes));
 			$class = strlen($classes) ? ' class="' . $classes . '"' : '';
 
-			//if $iTag is empty, apply css id and classes to <a> instead
+			// if $iTag is empty, apply css id and classes to <a> instead
 			if(!$iTag) $out .= "\n\t<a{$class} href='{$child->url}'>{$child->title}</a>$s";
 			else $out .= "\n\t<{$iTag}{$class}>\n\t\t<a href='{$child->url}'>{$child->title}</a>$s\n\t</{$iTag}>";
 
 		
-		}//end foreach
+		}// end foreach
 
 		$out .= "\n</{$wTag}>";
 
 		return $out;
+
+	}
+
+	/**
+	* Check if a menu item will be including native/natural children.
+	* 
+	* Can be specified via menu $options or in menu item settings (includeChildren).
+	* By 'native/natural' is considered from a ProcessWire tree point of view, i.e. 'child - parent - grandparent - great grandparent' etc...
+	*
+	* @access private
+	* @param Int $o 'Include Children' option set via menu $options.
+	* @param Menu Object $m Menu item to check for includeChildren option.
+	* @return int|empty string $pInclude.
+	*
+	*/
+	private function includeChildrenCheck($o, $m) {
+
+		// if overriding with 'never show'
+		if($o === 0 || $m->includeChildren === 0) $pInclude = '';// don't include children					
+		// no need to check for zeros again, only check if can display in menu (1|3)				
+		elseif($m->includeChildren === 1 || $m->includeChildren === 3) $pInclude = $m->pagesID;				
+		// $option overriding item-level only when blank. Other conditions covered above and below 
+		elseif(($o === 1 || $o === 3) && (!strlen($m->includeChildren))) $pInclude = $m->pagesID;					
+		// either $options is 2 OR not set OR $m is 2 (i.e., only applicable to breadcrumbs)
+		else $pInclude = '';
+
+		return $pInclude;
 
 	}
 
@@ -851,10 +884,10 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*/
 	private function processOptions(Array $options = null) {
 
-		//default (mainly css) menu options. For css, we make no assumptions & don't output default values
-		//shared with renderBreadcrumbs() where applicable
+		// default (mainly css) menu options. For css, we make no assumptions & don't output default values
+		// shared with renderBreadcrumbs() where applicable
 		
-		//merge menu options set by user to default ones
+		// merge menu options set by user to default ones
 		$this->options = new MenuOptions($options);
 
 		return $this->options;
@@ -886,7 +919,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*/	
 	public function ___install() {
 
-		//Don't need to add anything here...
+		// Don't need to add anything here...
 		
 	}
 
@@ -900,7 +933,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*/
 	 public function ___uninstall() {
 		
-		//Don't need to add anything here...
+		// Don't need to add anything here...
 			
 	}	
 
@@ -925,29 +958,30 @@ class MenuOptions extends WireData {
 	public function __construct($options) {
 
 		/* Available Options
-			wrapper_list_type//ul, ol, nav, div, etc.
-			list_type//li, a, span, etc.
-			menu_css_id//
-			menu_css_class//
-			submenu_css_class//NOT for breadcrumbs
-			has_children_class//any menu item that has children - NOT for breadcrumbs
-			first_classNOT for breadcrumbs
-			last_class//NOT for breadcrumbs
-			current_class//NOT for breadcrumbs
-			//Number of ancestors to apply 'current_class' to besides current item
-			current_class_level//NOT for breadcrumbs - 1=current item only;2=current+parent;3=current+parent+grandparent
-			current_css_id//only for breadcrumbs
-			divider//only for breadcrumbs
-			//prepend home page at the as topmost item even if it isn't part of the breadcrumb
-			prepend_home//only for breadcrumbs => 0=no;1=yes
-			//for PW pages, whether to show saved menu item titles/labels vs actual ones, e.g. useful for multilingual sites
-			default_title//0=show saved titles;1=show actual/current titles
-			include_children//whether to include natural/pw children of menu items;0=never;1=in menu only;2=in breadcrumbs only;3=in both;4=do not show
-			m_max_level//menus only - in conjunction with 'include_children', how many (depth) ancestral children, grandchildren, etc to show
-			b_max_level//breadcrumbs only - in conjunction with 'include_children', how many (depth) ancestral parents, grandparents, etc to show
+			wrapper_list_type// ul, ol, nav, div, etc.
+			list_type// li, a, span, etc.
+			menu_css_id
+			menu_css_class
+			submenu_css_class// NOT for breadcrumbs
+			has_children_class// any menu item that has children - NOT for breadcrumbs
+			first_class// NOT for breadcrumbs
+			last_class// NOT for breadcrumbs
+			current_class// NOT for breadcrumbs
+			Number of ancestors to apply 'current_class' to besides current item
+			current_class_level// NOT for breadcrumbs - 1=current item only;2=current+parent;3=current+parent+grandparent
+			current_css_id// only for breadcrumbs
+			css_defaultclass// a default css class to be applied to all menu items
+			divider// only for breadcrumbs
+			prepend home page at the as topmost item even if it isn't part of the breadcrumb
+			prepend_home// only for breadcrumbs => 0=no;1=yes
+			for PW pages, whether to show saved menu item titles/labels vs actual ones, e.g. useful for multilingual sites
+			default_title// 0=show saved titles;1=show actual/current titles
+			include_children// whether to include natural/pw children of menu items;0=never;1=in menu only;2=in breadcrumbs only;3=in both;4=do not show
+			m_max_level// menus only - in conjunction with 'include_children', how many (depth) ancestral children, grandchildren, etc to show
+			b_max_level// breadcrumbs only - in conjunction with 'include_children', how many (depth) ancestral parents, grandparents, etc to show
 		*/
 
-		//define menu properties
+		// define menu properties
 		$this->set('wrapperListType', isset($options['wrapper_list_type']) ? $options['wrapper_list_type'] : 'ul');
 		$this->set('listType', isset($options['list_type']) ? $options['list_type'] : 'li');
 		$this->set('menucssID', isset($options['menu_css_id']) ? $options['menu_css_id'] : '');
@@ -958,7 +992,8 @@ class MenuOptions extends WireData {
 		$this->set('lastClass', isset($options['last_class']) ? $options['last_class'] : '');
 		$this->set('currentClass', isset($options['current_class']) ? $options['current_class'] : '');
 		$this->set('currentClassLevel', isset($options['current_class_level']) ? $options['current_class_level'] : 1);
-		$this->set('currentCSSID', isset($options['current_css_id']) ? $options['current_css_id'] : '');
+		$this->set('currentCSSID', isset($options['current_css_id']) ? $options['current_css_id'] : '');		
+		$this->set('defaultClass', isset($options['css_defaultclass']) ? $options['css_defaultclass'] : '');
 		$this->set('divider', isset($options['divider']) ? $options['divider'] : '&raquo;');
 		$this->set('prependHome', isset($options['prepend_home']) ? $options['prepend_home'] : 0);
 		$this->set('defaultTitle', isset($options['default_title']) ? $options['default_title'] : 0);
@@ -989,8 +1024,8 @@ class Menu extends WireData {
 		$this->set('title', '');
 		$this->set('url', '');
 		$this->set('newtab', '');
-		$this->set('parentID', '');//mb menu item parent [not pw!]
-		$this->set('pagesID', '');//for pw pages
+		$this->set('parentID', '');// mb menu item parent [not pw!]
+		$this->set('pagesID', '');// for pw pages
 		$this->set('cssID', '');
 		$this->set('cssClass', '');
 
