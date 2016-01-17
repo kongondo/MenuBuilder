@@ -970,7 +970,7 @@ class MenuOptions extends WireData {
 			Number of ancestors to apply 'current_class' to besides current item
 			current_class_level// NOT for breadcrumbs - 1=current item only;2=current+parent;3=current+parent+grandparent
 			current_css_id// only for breadcrumbs
-			css_defaultclass// a default css class to be applied to all menu items
+			default_class// a default css class to be applied to all menu items
 			divider// only for breadcrumbs
 			prepend home page at the as topmost item even if it isn't part of the breadcrumb
 			prepend_home// only for breadcrumbs => 0=no;1=yes
@@ -993,7 +993,7 @@ class MenuOptions extends WireData {
 		$this->set('currentClass', isset($options['current_class']) ? $options['current_class'] : '');
 		$this->set('currentClassLevel', isset($options['current_class_level']) ? $options['current_class_level'] : 1);
 		$this->set('currentCSSID', isset($options['current_css_id']) ? $options['current_css_id'] : '');		
-		$this->set('defaultClass', isset($options['css_defaultclass']) ? $options['css_defaultclass'] : '');
+		$this->set('defaultClass', isset($options['default_class']) ? $options['default_class'] : '');
 		$this->set('divider', isset($options['divider']) ? $options['divider'] : '&raquo;');
 		$this->set('prependHome', isset($options['prepend_home']) ? $options['prepend_home'] : 0);
 		$this->set('defaultTitle', isset($options['default_title']) ? $options['default_title'] : 0);
