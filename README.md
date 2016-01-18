@@ -301,7 +301,7 @@ This permission allows your non-superusers to trash and delete menus using eithe
 This permission allows your non-superusers to add ProcessWire pages as menu items using a ProcessWire selector. This permission (**and all the rest below**) takes a blacklist approach. The permission does not need to exist in your system to kick in and by default all non-superusers are not able to add pages as menu items using selectors. This means that if you intend that only superusers will be allowed to use selectors in this manner, *there is no need to create the permission*. Only create and apply it if you wish to grant a particular non-superuser this feature. **The same applies to all the following permissions**.
 
 4. **menu-builder-selectable**
-This permission allows non-superusers to specify ProcessWire pages that are selectable as menu items in either of the two configurable page fields in Menu Builder, i.e. AsmSelect and PageAutocomplete.
+This permission allows non-superusers to specify ProcessWire pages that are selectable as menu items in either of two configurable page fields in Menu Builder, i.e. AsmSelect or PageAutocomplete (BUT not PageListSelectMultiple).
 
 5. **menu-builder-markup**
 This permission allows your non-superusers to allow/disallow the use of markup/HTML in menu item titles/labels.
