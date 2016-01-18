@@ -327,6 +327,9 @@ GPL2
 
 ##Changelog
 
+#Version 0.1.3
+1. Fixed bug where on uninstalling the module, menu pages in the trash would not get deleted, throwing an error when attempting to delete their template.
+
 #Version 0.1.2
 1. As per a request, added ability to use 'Page List Select Multiple' page field to select pages to add to menu items. This is in addition to the existing AsmSelect and PageAutocomplete.
 2. Fixed bug where 'new_tab' setting would not be reliably applied to new custom links menu items.
