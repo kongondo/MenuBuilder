@@ -32,10 +32,10 @@ class ProcessMenuBuilder extends Process implements Module {
 		// @Installs MarkupMenuBuilder
 
 		return array(
-			'title' => 'Menu Builder',
+			'title' => 'Menu Builder: Process',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 12,
+			'version' => 13,
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -89,7 +89,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$this->config->scripts->add($this->config->urls->ProcessMenuBuilder . 'scripts/jquery.mjs.nestedSortable.js');
 		$this->config->scripts->add($this->config->urls->ProcessMenuBuilder . 'scripts/jquery.asmselect-mb.js');
 
-		$this->menusParent = wire('page');
+		$this->menusParent = $this->wire('page');
 
 		// cookie per user to save state of number of menus to display per pagination screen in execute()
 		$this->cookieName = $this->user->id . '-menubuilder';
@@ -250,7 +250,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		// add a description to menus tab {menusCount, limitSelect and instruction OR no menus found status}
 		$m->description = $total == 0 ? $this->_('No menus found.') : $menusCount . $this->_('Click on a title to edit the menu.') . $limitSelect;
 
-		$currentUrl = wire('page')->url . wire('input')->urlSegmentsStr."/";// get the url segment string.
+		$currentUrl = $this->wire('page')->url . $this->wire('input')->urlSegmentsStr."/";// get the url segment string.
 		$pagination = $menus->renderPager(array('baseUrl' => $currentUrl));// just foolproofing
 
 		$m->attr('value', $pagination . $t->render() . $pagination);// wrap our table with pagination
@@ -445,7 +445,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		// else invalid menu ID or no ID provided (e.g. /edit/)
 		else {
 
-			$this->session->redirect(wire('page')->url);// redirect to landing page
+			$this->session->redirect($this->wire('page')->url);// redirect to landing page
 		}		
 
 	}
@@ -678,7 +678,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		if (isset($menuPages['input']) && $menuPages['input'] == 2) {
 
 				// modify PageAutoComplete output
-				wire('page')->addHookBefore("InputfieldPageAutocomplete::renderListItem", $this, "customAc");
+				$this->wire('page')->addHookBefore("InputfieldPageAutocomplete::renderListItem", $this, "customAc");
 
 				// if we are using page autocomplete inputfield to find pages for menu items selection
 				$menuAddPageItems = $this->modules->get('InputfieldPageAutocomplete');
@@ -694,7 +694,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		elseif (isset($menuPages['input']) && $menuPages['input'] == 3) {
 
 				// modify PageListSelectMultiple output
-				wire('page')->addHookAfter("InputfieldPageListSelectMultiple::render", $this, "customPls");
+				$this->wire('page')->addHookAfter("InputfieldPageListSelectMultiple::render", $this, "customPls");
 
 				$menuAddPageItems = $this->modules->get('InputfieldPageListSelectMultiple');
 				$menuAddPageItems->label = $this->_('Pages');
@@ -714,7 +714,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				}				
 
 				// modify AsmSelect output
-				wire('page')->addHookAfter("InputfieldAsmSelect::render", $this, "customAsm");
+				$this->wire('page')->addHookAfter("InputfieldAsmSelect::render", $this, "customAsm");
 				
 				$menuAddPageItems = $this->modules->get('InputfieldAsmSelect');
 				$menuAddPageItems->notes = $extraNotes;
@@ -1467,7 +1467,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 						if($i > 0) $this->message(sprintf(_n("Added %d new menu.", "Added %d new menus.", $i), $i));// tell user how many menus were added
 						if($failedTitles) $this->error($this->_("Some menus not added because names already in use. These are: {$failedTitles}."));
-						$this->session->redirect(wire('page')->url);// redirect to landing page
+						$this->session->redirect($this->wire('page')->url);// redirect to landing page
 
 				}// end if $addMenus
 
@@ -1567,7 +1567,7 @@ class ProcessMenuBuilder extends Process implements Module {
 						}// end delete menus
 
 						$this->message($msg);// tell user how many menus were 'actioned'
-						$this->session->redirect(wire('page')->url);// redirect to page where we were
+						$this->session->redirect($this->wire('page')->url);// redirect to page where we were
 
 				}
 
@@ -1588,7 +1588,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				$menu = $this->wire('pages')->get($menuID);
 				
 				// for multilingual environments
-				$language = wire('user')->language; // save the current user's language
+				$language = $this->wire('user')->language; // save the current user's language
 
 				// if we didn't get a menu, exit with an error
 				if(!$menu->id) {
@@ -1599,7 +1599,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				// if menu is locked for editing, exit with an error
 				if($menu->is(Page::statusLocked)) {
 						$this->error($this->_('This menu is locked for edits.')); 
-						$this->session->redirect(wire('page')->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+						$this->session->redirect($this->wire('page')->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
 				}
 			
 		
@@ -1921,8 +1921,8 @@ class ProcessMenuBuilder extends Process implements Module {
 				$menu->save();
 				
 				$this->message($this->_('Saved Menu: '. $menu->title)); 
-				if($saveAndExitBtn) $this->session->redirect(wire('page')->url); 
-				else $this->session->redirect(wire('page')->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+				if($saveAndExitBtn) $this->session->redirect($this->wire('page')->url); 
+				else $this->session->redirect($this->wire('page')->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
 
 		}// end elseif save menu
 		
@@ -1934,7 +1934,7 @@ class ProcessMenuBuilder extends Process implements Module {
 							// if user does not have permission to trash/delete a menu, exit with an error
 							if ($this->permissions->get('menu-builder-delete')->id && !$this->user->hasPermission('menu-builder-delete')) {
 									$this->error($this->_('You have no permission to delete menus.')); 
-									$this->session->redirect(wire('page')->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+									$this->session->redirect($this->wire('page')->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
 							}
 
 							$menu = $this->wire('pages')->get("id=$menuDeleteConfirm, parent=$this->menusParent, include=all");
@@ -1942,12 +1942,12 @@ class ProcessMenuBuilder extends Process implements Module {
 							// if menu is locked for editing, exit with an error
 							if($menu->is(Page::statusLocked)) {
 									$this->error($this->_('This menu is locked for edits.')); 
-									$this->session->redirect(wire('page')->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+									$this->session->redirect($this->wire('page')->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
 							}
 
 							if($this->wire('pages')->trash($menu)) {
 									$this->message(sprintf($this->_('Moved menu %1$s to trash: %2$s'), $menu->title, $menu->url));// tell user menu trashed
-									$this->session->redirect(wire('page'))->url;							
+									$this->session->redirect($this->wire('page'))->url;							
 							}
 
 							else { 
@@ -1986,18 +1986,15 @@ class ProcessMenuBuilder extends Process implements Module {
 		foreach ($fields as $field) {
 
 			// if we do, we abort before installing the module
-			if(wire('fields')->get($field['name'])) {
-				throw new WireException($this->_("Aborted installation. Confirm that you do not have fields called 'menu_pages', 'menu_settings' and 'menu_items' before installing this module."));
-				
+			if($this->wire('fields')->get($field['name'])) {
+				throw new WireException($this->_("Aborted installation. Confirm that you do not have fields called 'menu_pages', 'menu_settings' and 'menu_items' before installing this module."));				
 			}
 		}
 
-
 		// check that we already don't have a template named same as menu builder's
 		// if we do, we abort before installing the module
-		if(wire('templates')->get('menus')) {
+		if($this->wire('templates')->get('menus')) {
 				throw new WireException($this->_("Aborted installation. Confirm that you do not have a template called 'menus' before installing this module."));
-				
 		}
 
 		// if no errors, we are good to go
@@ -2014,8 +2011,8 @@ class ProcessMenuBuilder extends Process implements Module {
 			if ($field['name'] == 'menu_pages') $f->maxlength = $field['maxlength'];
 			if ($field['name'] != 'menu_pages') $f->rows = 10;
 
-			$f->tags = 'menu';
-			$f->save(); // 
+			$f->tags = '-menu';
+			$f->save();
 
 		}// end foreach fields
 
@@ -2026,12 +2023,11 @@ class ProcessMenuBuilder extends Process implements Module {
 		$fg->name = 'menus';
 
 		// add title field
-		$title = wire('fields')->get('title');
+		$title = $this->wire('fields')->get('title');
 		$fg->add($title);
 
-		foreach ($fields as $key => $value) {
-			
-				$f = wire('fields')->get($key);
+		foreach ($fields as $key => $value) {			
+				$f = $this->wire('fields')->get($key);
 				$fg->add($f);
 		}
 
@@ -2042,13 +2038,13 @@ class ProcessMenuBuilder extends Process implements Module {
 		// create a new template to use with this fieldgroup
 		$t = new Template();
 		$t->name = 'menus';
-		$t->fieldgroup = $fg; // add the fieldgroup
+		$t->fieldgroup = $fg;// add the fieldgroup
 
 		// add template settings we need
 		$t->label = 'Menus';
 		$t->noChildren = 1;// the pages using this template should not have children
-		$t->parentTemplates = array(wire('templates')->get('admin')->id);// needs to be added as array of template IDs. Allowed template for parents = 'admin'
-		$t->tags = 'menu';
+		$t->parentTemplates = array($this->wire('templates')->get('admin')->id);// needs to be added as array of template IDs. Allowed template for parents = 'admin'
+		$t->tags = '-menu';
 
 		// save new template with fields and settings now added
 		$t->save();
@@ -2105,6 +2101,9 @@ class ProcessMenuBuilder extends Process implements Module {
 			$this->message($this->_('Deleted Page: ') . $page->path); 
 			// recursively delete the menu builder page (i.e. including all its children (the menus))
 			$this->wire('pages')->delete($page, true);
+
+			// also delete any menu pages that may have been left in the trash
+			foreach ($this->wire('pages')->find('template=menus, status>=' . Page::statusTrash) as $p) $p->delete();
 		}
 
 		// find and delete the menu builder permission and let the user know
@@ -2116,12 +2115,12 @@ class ProcessMenuBuilder extends Process implements Module {
 		}
 
 		// find and delete our menus template
-		$t = wire('templates')->get('menus');
+		$t = $this->wire('templates')->get('menus');
 
 		if ($t->id) {
 
-			wire('templates')->delete($t);
-			wire('fieldgroups')->delete($t->fieldgroup);// delete the associated fieldgroups
+			$this->wire('templates')->delete($t);
+			$this->wire('fieldgroups')->delete($t->fieldgroup);// delete the associated fieldgroups
 			$this->message('Deleted Template: menus');
 
 		}
@@ -2130,8 +2129,8 @@ class ProcessMenuBuilder extends Process implements Module {
 		$fields = array('menu_pages', 'menu_items', 'menu_settings');
 		foreach ($fields as $field) {
 
-					$f = wire('fields')->get($field);
-					if($f->id) wire('fields')->delete($f);	
+					$f = $this->wire('fields')->get($field);
+					if($f->id) $this->wire('fields')->delete($f);	
 					$this->message('Deleted Fields: menu_pages, menu_items, menu_settings');
 		
 		}
