@@ -35,7 +35,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 11,
+			'version' => 12,
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -499,7 +499,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$tx->attr('name', 'menu_pages');
 			$tx->label = $this->_('Pages selectable in menu');
 			$tx->attr('value', $selectorValue); 
-			$tx->description = $this->_('Optionally, you can specify a valid ProcessWire selector to limit the Pages that can be added to this menu (see Build Menu Tab). Otherwise, all valid pages will be available to add to the menu. By default, returned pages are limited to 50. You can override this by setting your own limit here.');
+			$tx->description = $this->_('Optionally, you can specify a valid ProcessWire selector to limit the Pages that can be added to this menu (see Build Menu Tab). Otherwise, all valid pages will be available to add to the menu. By default, returned pages are limited to 50. You can override this by setting your own limit here. NOTE: This feature only works with Asm Select and Page Auto Complete.');
 			$tx->notes =  $this->_('Example: parent=/products/, template=product, sort=title');
 
 			$tab->add($tx);
@@ -509,8 +509,9 @@ class ProcessMenuBuilder extends Process implements Module {
 		// if user has permission to allow changing of page field type used to select pages to add as menu items [AsmSelect vs PageAutocomplete]
 		if($this->user->hasPermission('menu-builder-page-field')) {
 
-			// only 'PageAutocomplete' option is saved in the field menu_pages (JSON): 'input'=> 2. Else we assume default 'input' => 1 (AsmSelect)
-			$pageSel = isset($menuPages['input']) ? 2 : 1;
+			// only 'PageAutocomplete' and PageListSelectMultiple options are saved in the field menu_pages (JSON): 'input'=> 2 || 3
+			// else we assume default 'input' => 1 (AsmSelect)
+			$pageSel = isset($menuPages['input']) && (($menuPages['input'] == 2) || ($menuPages['input'] == 3)) ? $menuPages['input'] : 1;
 			
 			// radios: page inputfield selection
 			$r = new InputfieldRadios();
@@ -521,7 +522,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$radioOptions = array (
 							 1 => $this->_('Asm Select'),
 							 2 => $this->_('Page Auto Complete'),
-
+							 3 => $this->_('Page List Select Multiple'),
 		 	);
 
 			$r->addOptions($radioOptions);
@@ -689,6 +690,19 @@ class ProcessMenuBuilder extends Process implements Module {
 				// especially important for non-superusers since the radio input 'menu_pages_select' will not be output for them
 				$menuPagesInput = 2;
 		}
+		
+		elseif (isset($menuPages['input']) && $menuPages['input'] == 3) {
+
+				// modify PageListSelectMultiple output
+				wire('page')->addHookAfter("InputfieldPageListSelectMultiple::render", $this, "customPls");
+
+				$menuAddPageItems = $this->modules->get('InputfieldPageListSelectMultiple');
+				$menuAddPageItems->label = $this->_('Pages');
+				//$menuAddPageItems->set('parent_id', 1300);// @todo: configurable?
+
+				// see notes above about his variable
+				$menuPagesInput = 3;
+		}
 
 		// else we default to AsmSelect inputfield
 		else {
@@ -754,14 +768,15 @@ class ProcessMenuBuilder extends Process implements Module {
 		$n3->attr('name', 'new_css_itemclass[]');
 		$n3->attr('class', 'new_custom');					
 		
-		$itemCustomNewTab = "<input type='checkbox' name='new_newtab[]' class='newtab'>";
+		$itemCustomNewTab = "<input type='checkbox' name='new_newtab[]' value='0' class='newtab'>";
+		$itemCustomNewTabHidden = "<input type='hidden' name='new_newtab_hidden[]' value='0' class='newtabhidden'>";// force send a value for new tabs
 	
 		$t->row(array(
 			$n->render(),
 			$u->render(),
 			$n2->render(),
 			$n3->render(),
-			$itemCustomNewTab,
+			$itemCustomNewTab . $itemCustomNewTabHidden,			
 			'<a href="#" class="remove_row"><i class="fa fa-trash"></i></a>',
 		));
 
@@ -1123,7 +1138,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	* Hooks into InputfieldAsmSelect::render().
 	*
 	* Hook modifies AsmSelect output to allow for the use of a custom jquery.asmselect.js
-	* The custom js allows to inject two HTML input tags for a selected page menu item.
+	* The custom js allows to inject extra HTML input tags for a selected page menu item.
 	* Inputs are for CSS ID and CSS Class of the page selected in the AsmSelect page field and optionally an include children feature.
 	*
 	* @access protected
@@ -1145,7 +1160,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	/**
 	* Hooks into InputfieldPageAutocomplete::renderListItem().
 	*
-	* Hook modifies PageAutocomplete output to append two extra HTML inputs.
+	* Hook modifies PageAutocomplete output to append extra HTML inputs.
 	* The hook complete replaces the method.
 	* Inputs are for CSS ID and CSS Class of the page selected in the Autocomplete page field  and optionally an include children feature.
 	*
@@ -1184,7 +1199,7 @@ class ProcessMenuBuilder extends Process implements Module {
 									<option value="5">' . $this->_('Never') . '</option>
 								</select>
 								<input type="text" name="new_page_mb_max_level[]" class="ac_mb_max_level">';
-			}
+		}
 						
 		$extraInput .= '</span>';
 		
@@ -1198,11 +1213,68 @@ class ProcessMenuBuilder extends Process implements Module {
 				"<i class='fa fa-sort fa-fw'></i> " . 
 				"<span class='itemValue'>" . $value . "</span>" . 
 				"<span class='itemLabel'>" . $label . "</span>
-				<a class='itemRemove' href='#'><i class='fa fa-trash'></i></a>" . 
+				<a class='itemRemove' title='Remove' href='#'><i class='fa fa-trash'></i></a>" . 
 				$extraInput .	"</li>";
 
 		// set the modified value back to the return value 
 		$event->return = $out;
+
+	}
+
+	/**
+	* Hooks into InputfieldPageListSelectMultiple::render().
+	*
+	* Hook modifies PageListSelectMultiple output to append extra HTML inputs.
+	* Inputs are for CSS ID and CSS Class of the page selected in the Autocomplete page field  and optionally an include children feature.
+	*
+	* @access protected
+	* @param $event The object returned by the hook
+	* @return string $out.
+	*
+	*/
+	protected function customPls(HookEvent $event) {
+
+		// $value contains the full rendered markup returned by InputfieldPageListSelectMultiple ___render()
+		$value = $event->return;
+
+		// this is the string we want to replace (the itemTemplate)
+		$searchStr = "<li class='ui-state-default itemTemplate'><i class='itemSort fa fa-sort'></i> <span class='itemValue'>1</span><span class='itemLabel'>Label</span> <a class='itemRemove' title='Remove' href='#'><i class='fa fa-trash'></i></a></li>";
+
+		// part of replacement string
+		$extraInput = 
+			"<span class='plsMB'><input name='new_page_css_itemid[]' type='text' class='pls_itemid'>" .
+			"<input name='new_page_css_itemclass[]' type='text' class='pls_itemclass'>";
+
+		// output 'include children' extras only if specified and for users with right credentials
+		if($this->includeChildren == 1) {
+
+			$extraInput .= 
+								'<select name="new_page_include_children[]" class="pls_include_children">	
+									<option value="4">' . $this->_('No') . '</option>
+									<option value="1">' . $this->_('Menu') . '</option>
+									<option value="2">' . $this->_('Breadcrumbs') . '</option>
+									<option value="3">' . $this->_('Both') . '</option>
+									<option value="5">' . $this->_('Never') . '</option>
+								</select>
+								<input type="text" name="new_page_mb_max_level[]" class="pls_mb_max_level">';
+		}
+
+		$extraInput .= '</span>';
+
+		$replacementStr =	
+			"\n<li class='ui-state-default itemTemplate'>" . 
+			// "<span class='ui-icon ui-icon-arrowthick-2-n-s'></span>" . 
+			"<i class='itemSort fa fa-sort'></i> " . 
+			"<span class='itemValue'>1</span>" .
+			"<span class='itemLabel'>Label</span> " . 
+			"<a class='itemRemove' title='Remove' href='#'><i class='fa fa-trash'></i></a>" . 
+			$extraInput .
+			"</li>";
+
+		$value = str_replace($searchStr, $replacementStr, $value);
+
+		// set the modified value back to the return value 
+		$event->return = $value;
 
 	}
 
@@ -1556,8 +1628,13 @@ class ProcessMenuBuilder extends Process implements Module {
 				// if user has permission to allow changing of page field type used to select pages to add as menu items [AsmSelect vs PageAutocomplete]
 				if($this->user->hasPermission('menu-builder-page-field')) {
 					// page inputfield type for finding pages that can be added to the menu (AsmSelect vs. Autocomplete)
-					// we only save this if user selects Autcomplete; otherwise defaults to AsmSelect			
-					$menuPagesNew['input'] = (int) $this->input->post->menu_pages_select == 2 ? 2 : '';					
+					// we only save this if user selects Autocomplete; otherwise defaults to AsmSelect			
+					//$menuPagesNew['input'] = (int) $this->input->post->menu_pages_select == 2 ? 2 : '';					
+					$menuPagesNew['input'] = '';
+					$selPageField = (int) $this->input->post->menu_pages_select;					
+					if($selPageField == 2) $menuPagesNew['input'] = 2;
+					elseif($selPageField == 3) $menuPagesNew['input'] = 3;
+					
 				}
 
 				// if user can change and use allow markup/HTML setting
@@ -1697,7 +1774,8 @@ class ProcessMenuBuilder extends Process implements Module {
 					
 					$itemCSSID = $this->sanitizer->name($this->input->post->new_css_itemid[$i]);
 					$itemCSSClass = $this->sanitizer->name($this->input->post->new_css_itemclass[$i]);
-					$itemNewTab = (!isset($this->input->post->new_newtab[$i])) ? '' : 1;
+					//$itemNewTab = (!isset($this->input->post->new_newtab[$i])) ? '' : 1;// using checkbox unreliable; use hidden input instead (below)
+					$itemNewTab = (int) $this->input->post->new_newtab_hidden[$i] ? 1 : '';// hidden input to resolve above
 					
 					// add custom (external) menu items to our menu
 					$menuItems[$menuItemID] = array(
@@ -1723,18 +1801,19 @@ class ProcessMenuBuilder extends Process implements Module {
 				$pagesCSSID = $this->input->post->new_page_css_itemid;
 				$pagesIncludeChildren = $this->input->post->new_page_include_children;
 				$pagesMBMaxLevel = $this->input->post->new_page_mb_max_level;
-				$menuPagesInput = $this->input->post->menu_pages_input;
+				$menuPagesInput = (int) $this->input->post->menu_pages_input;
 
-				// if using PageAutocomplete in the 'add pages to menu select'
-				if($menuPagesInput == 2) {
+				// if using PageAutocomplete OR PageListSelectMultiple in the 'add pages to menu select'
+				if($menuPagesInput == 2 || $menuPagesInput == 3) {
 
-					// In the autocomplete select array, there is only one index with a string of numbers, e.g. ,1087,1364,7895 as a value
+					// In the PageAutocomplete select array, there is only one index with a string of numbers, e.g. ,1087,1364,7895 as a value
+					// It is similar in PageListSelectMultiple except it has no first empty string, e.g. 1087,1364,7895 as a value
 					$addPages = explode(",", $addPages[0]);
 
-					// we remove the first item in the array since it will be an empty string.
-					array_splice($addPages, 0, 1);
-
-					// we also remove the other corresponding first item values in the array since it will be an empty string.
+					// if PageAutocomplete, we remove the first item in the array since it will be an empty string.
+					if($menuPagesInput == 2) array_splice($addPages, 0, 1);
+						
+					// we also remove the other corresponding first item values in the array since they will be empty strings.
 					array_splice($pagesCSSID, 0, 1);
 					array_splice($pagesCSSClass, 0, 1);
 					array_splice($pagesIncludeChildren, 0, 1);
@@ -1752,7 +1831,7 @@ class ProcessMenuBuilder extends Process implements Module {
 					// multilingual environments
 					if($language != null && method_exists($this->wire('pages')->get($itemID)->title, 'getLanguageValue')) $itemTitle = $this->wire('pages')->get($itemID)->title->getLanguageValue($language);// title of each PW page in this array
 					else $itemTitle = $this->wire('pages')->get($itemID)->title;// title of each PW page in this array
-					if(!$itemTitle) continue;// if no new pages posted, move one...[otherwise one iteration with empty strings is added to array!]
+					if(!$itemTitle) continue;// if no new pages posted, move on...[otherwise one iteration with empty strings is added to array!]
 
 					$itemCSSID = $this->sanitizer->name($pagesCSSID[$i]);
 					$itemCSSClass = $this->sanitizer->text($pagesCSSClass[$i]);

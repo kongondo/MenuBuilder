@@ -98,7 +98,7 @@ $(document).ready(function(){
 	/** Add row - clone the last tr of the table to add custom menu items **/
 	var clonePageRow = function() {
 		$tr = $('table.menu_add_custom_items_table tr:last');
-		$clone = $tr.clone();
+		$clone = $tr.clone(true);
 		$clone.find('input[type=text]').attr('value','');
 
 		$('table.menu_add_custom_items_table').append($clone);
@@ -185,7 +185,25 @@ $(document).ready(function(){
 		$("#MenuBuilderEdit").submit();
 	});
 
-	/* 07. #### nestedSortable #### */
+
+	/* 07. #### FORCE SEND CUSTOM ITEMS 'new_tab' VALUE #### */
+
+	// we use a hidden input to send value based on 'checked' propert of new_tab checkbox
+
+	// Toggle value of new tab + closest corresponding hidden input
+	$('input.newtab').change(function(){
+		if ($(this).prop('checked')) {			
+			$(this).val(1);
+			$(this).parent().find('input.newtabhidden').val(1);
+		}
+		else {
+			$(this).val(0);
+			$(this).parent().find('input.newtabhidden').val(0);
+		}
+	});
+
+
+	/* 08. #### nestedSortable #### */
 
 	//###############################################################################################################
 		

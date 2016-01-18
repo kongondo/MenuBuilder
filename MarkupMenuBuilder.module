@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Markup Menu Builder',
 			'summary' => 'Render menus created by Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 11,
+			'version' => 12,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 

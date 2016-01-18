@@ -86,19 +86,17 @@ span.asmListItemLabel, ol#item_addpages_items span.itemLabel {
 	display: inline-block;
 }
 
-span.asmMB input, ol#item_addpages_items span.acMB input  {
+span.asmMB input, ol#item_addpages_items span.acMB input, ol#item_addpages_items span.plsMB input  {
 
 	margin: 0 !important;
 	text-align: bottom;
 	padding: 0 0.2em !important;
 }
 
-ol#item_addpages_items span.acMB input.ac_itemid, span.asmMB input.asm_itemid {width: 20% !important;}
-ol#item_addpages_items span.acMB input.ac_itemclass, span.asmMB input.asm_itemclass {width: 20% !important;}
-ol#item_addpages_items span.acMB select.ac_include_children, span.asmMB select.asm_include_children {width: 15% !important;}
-ol#item_addpages_items span.acMB input.ac_mb_max_level, span.asmMB input.asm_mb_max_level {width: 8% !important;}
-
-/**** TESTING UP TO HERE DELETE WHEN DONE ****/
+ol#item_addpages_items span.acMB input.ac_itemid, span.asmMB input.asm_itemid, ol#item_addpages_items span.plsMB input.pls_itemid {width: 20% !important;}
+ol#item_addpages_items span.acMB input.ac_itemclass, span.asmMB input.asm_itemclass, ol#item_addpages_items span.plsMB input.pls_itemclass {width: 20% !important;}
+ol#item_addpages_items span.acMB select.ac_include_children, span.asmMB select.asm_include_children, ol#item_addpages_items span.plsMB select.pls_include_children {width: 15% !important;}
+ol#item_addpages_items span.acMB input.ac_mb_max_level, span.asmMB input.asm_mb_max_level, ol#item_addpages_items span.plsMB input.pls_mb_max_level {width: 8% !important;}
 
 span.asmMB input {margin: 1px !important;}/*override above*/
 

@@ -11,12 +11,12 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 * Easily apply CSS IDs and Classes to each and every menu item if you wish
 * Optionally set custom links to open in a new tab
 * Readily view the structure and settings for each menu and menu item
-* For each menu, multiple configurable ways to add menu items from ProcessWire pages - PageAutocomplete OR AsmSelect[default] AND ProcessWire Selector 
-* Using a Selector, you can do for example, template=basic-page, limit=20, sort=title.
+* For each menu, multiple configurable ways to add menu items from ProcessWire pages - PageAutocomplete, PageListSelectMultiple OR AsmSelect[default] AND ProcessWire Selector 
+* Using a Selector, you can search for pages to add, for example, template=basic-page, limit=20, sort=title.
 * Batch edit menus
 * Menus stored as pages (note: just the menu, not the items!)
 * Menu items stored as JSON in a field in the menu pages (empty values not stored)
-* For page fields, you can specify a selector to return only those specified pages for selection in the page field (i.e. Asm and Autocomplete)
+* For page fields, you can specify a selector to return only those specified pages for selection in the page field (only applicable to Asm and Autocomplete)
 * For page fields, you can also add CSS classes and IDs as you add the items (similar to custom menu items)
 * Menu settings for nestedSortable - e.g. maxLevels (limit nesting levels)
 * Advanced features (e.g. add pages via selector, menu settings) permissible to superadmins only
@@ -310,7 +310,7 @@ This permission allows your non-superusers to allow/disallow the use of markup/H
 This permission allows non-superusers to edit nestedSortable settings, for instance set maxLevels (that controls number of nesting levels in a menu).
 
 7. **menu-builder-page-field**
-This permission allows non-superusers to change the page field type used to select ProcessWire pages to add as menu items, i.e. toggle between AsmSelect [default] and PageAutocomplete.
+This permission allows non-superusers to change the page field type used to select ProcessWire pages to add as menu items, i.e. toggle between AsmSelect [default], PageAutocomplete or PageListSelectMultiple.
 
 8. **menu-builder-include-children**
 This permission allows non-superusers to set and use the include children feature.
@@ -326,6 +326,10 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ##Changelog
+
+#Version 0.1.2
+1. As per a request, added ability to use 'Page List Select Multiple' page field to select pages to add to menu items. This is in addition to the existing AsmSelect and PageAutocomplete.
+2. Fixed bug where 'new_tab' setting would not be reliably applied to new custom links menu items.
 
 #Version 0.1.1
 1. Fixed bug relating to getLanguageValue() (issues #22 and #25).
