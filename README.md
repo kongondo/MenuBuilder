@@ -1,8 +1,8 @@
-#Menu Builder
+# Menu Builder
 This Module allows you to easily create custom menus/navigation lists in the ProcessWire Admin Panel using drag and drop. In the backend, it uses the [nestedSortable](https://github.com/mjsarfatti/nestedSortable) jQueryUI plugin by Manuele J Sarfatti.
 
 
-##Features
+## Features
 * Visual menu builder
 * Ability to create menus that do not mirror your ProcessWire Page Tree hierarchy/structure
 * Menus can contain both ProcessWire pages and custom links
@@ -24,7 +24,7 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 * Easily render menus and breadcrumbs in the frontend using MarkupMenuBuilder
 * Fully multilingual
 
-##How to Install
+## How to Install
 
 The module has two components:
 
@@ -36,17 +36,17 @@ The module has two components:
 3. 	Click install ProcessMenuBuilder. The module will automatically install MarkupMenuBuilder
 4. 	Go to Setup > Menu Builder and start creating your menus
 
-##Note
+## Note
 
 * The module installs three fields: **'menu_items', 'menu_pages'** and **'menu_settings'** and one template **'menus'**. If any similarly named fields/template are already present on your site, the module will not install but throw an error instead. You would need to rename your fields/template first. 
 * To allow access to the Menu Builder admin, a non-superuser must have the permission **menu-builder**. The permission is created on install.
 * Some Menu Builder admin options are only available to Superusers by default. Other users would require specific permissions as described below.
 
-##API
+## API
 
 MarkupMenuBuilder has two methods available to users.
 
-###render()
+### render()
 
 This method renders a menu/navigation list of a specified menu. The method accepts two arguments/parameters.
 
@@ -81,7 +81,7 @@ $defaultOptions = array(
 );
 ````
 
-###renderBreadcrumbs()
+### renderBreadcrumbs()
 
 This method renders a breadcrumb navigation of a specified menu. The method also accepts two arguments/parameters.
 
@@ -112,7 +112,7 @@ $defaultOptions = array(
 
 );
 ````
-###Options
+### Options
 
 * Unless indicated otherwise, all the following options apply to both **menus (render())** and **breadcrumbs (renderBreadcrumbs())**.
 * The term navigation is used in the context of both menus and breadcrumbs. 
@@ -138,13 +138,13 @@ $defaultOptions = array(
 7. **b_max_level**:  This is breadcrumb-only option related to the **include children** feature. It limits the depth from within which viewable descendant pages can be retrieved for display in a breadcrumb. The default is 1. This means that only fetch immediate children. A value of 2 means fetch both children and grandchildren, etc. The option can only be applied globally.
 8. **current_class_level**: Using this option, you can specify how high up the menu tree you want to apply the **'current_class'** to the current item's ancestors. The default is 1, meaning (if specified) apply the **'current_class'** to only the current item. A setting of 3 implies apply it to the current item, its parent and grandparent, etc. In short, the option can be used to show some or all 'active/current' menu items at various levels in your menu. This option only applies to menus and not breadcrumbs.
 
-##How to Use
+## How to Use
 
 * Access Menu Builder in your ProcessWire admin and create a menu(s).
 * Edit the menu and add items to it, dragging and dropping them in different positions as you wish.
 * Once you've created a menu, you can view it in the frontend by loading it using MarkupMenuBuilder in a template file as follows.
 
-####Rendering a Menu
+#### Rendering a Menu
 
 ````php
 
@@ -190,7 +190,7 @@ $options = array(
 
 echo $menu->render('sidenav', $options);
 ````
-####Rendering Breadcrumbs
+#### Rendering Breadcrumbs
 
 Rendering breadcrumbs is quite similar to the above, the only difference being the method you use and some of the options that can be used to configure the output.
 
@@ -236,11 +236,11 @@ $options = array(
 echo $menu->renderBreadcrumbs(1234, $options);
 ````
 
-####Using the Include Children Feature
+#### Using the Include Children Feature
 
 This is a flexible and powerful feature that you can leverage to produce all sorts of dynamic navigation for your ProcessWire website. With lots of power comes responsibility. The features should only be enabled (see relevant permission below) for users who know what they are doing. For example, a user could unknowingly use the feature to include descendant pages of a menu item that has hundreds of descendants, leading to undesirable effects. 
 
-#####Menu-Level Values
+#####  Menu-Level Values
 
 At the global/menu/API-level, the following values can be passed with 'include_children'. This is useful if you want to override some item-level settings. The priority order of the settings and in comparison to item-level settings are explained further below.
 
@@ -251,7 +251,7 @@ At the global/menu/API-level, the following values can be passed with 'include_c
 * **4**: Do not include children of any navigation item unless specified otherwise in item-level setting. This is the default setting (automatically applied) and does not need to be specified in your $options.
 
 
-#####Item-Level Values
+##### Item-Level Values
 
 At the local/admin/item-level, the following values can be saved with each navigation item either when creating or editing the menu item in the Menu Builder admin. This is useful when you want fine-grained control over 'include_children' output. The priority order of the settings and in comparison to menu-level settings are explained later below.
 
@@ -269,15 +269,16 @@ The combined (menu- and item-level) order of descending priority (i.e. a setting
 * **1** / **2** / **3**
 * **4** / **No**
 
-As a sanity check, in the Menu Builder admin, a navigation item made up of your ProcessWire 'homepage' cannot have its children included/excluded since it is the parent of all pages. In addition, you will only see 'include_children' inputs in the Menu Builder admin when both the feature is enabled and you have the permission 'menu-builder-include-children' (or are a superuser; more below under Permissions). Finally, note that if a user without this permission edits a menu that was previously edited by a user with the permission, any 'include_children' item-level settings will be lost.
+As a sanity check, in the Menu Builder admin, a navigation item made up of your ProcessWire 'homepage' cannot have its children included/excluded since it is the parent of all pages. In addition, you will only see 'include_children' inputs in the Menu Builder admin when both the feature is enabled and you have the permission **menu-builder-include-children** (or are a superuser; more below under Permissions). Finally, note that if a user without this permission edits a menu that was previously edited by a user with the permission, any 'include_children' item-level settings will be lost.
 
-####Other Usage Notes
+#### Other Usage Notes
 
-Note that you are not limited to using MarkupMenuBuilder. You can also use your own PHP (or even JavaScript) recursive function to display your menu by decoding the saved JSON string containing menu items and passing the resulting array to your function for traversal.
+Note that you are not limited to using MarkupMenuBuilder. You can also use your own PHP (or even JavaScript) recursive function to display your menu by decoding the saved JSON string containing menu items and passing the resulting array to your function for traversal. The CSS is up to you, of course. Here's a nice [example](https://processwire.com/talk/topic/4451-menu-builder/?p=99003) from a forum member.
 
-The CSS is up to you, of course.
 
-##Permissions
+By default, if using AsmSelect or PageAutocomplete to select pages to add to your menu, the module will return a maximum of 50 pages. In that case, you might run into the 'not all my selectable pages are displayed [issue](https://github.com/kongondo/MenuBuilder/issues/21)'. You have two choices to resolve this. One, use PageListSelectMultiple instead. Alternatively, add a custom selector in the text field 'Pages selectable in menu' (main tab). For instance, *limit=50*. Or *limit=50, sort=title* or any other valid ProcessWire selector. You will either need to be logged in as a superuser or have the permission **menu-builder-selectable** in order to do this.
+
+## Permissions
 
 You can use the following permissions to control visibility and access to various advanced settings of Menu Builder by non-superusers. In ProcessWire, by default, Superusers inherit all permissions. **Note that you will have to create and apply the permissions yourself using the normal ProcessWire way**, i.e.
 
@@ -315,17 +316,17 @@ This permission allows non-superusers to change the page field type used to sele
 8. **menu-builder-include-children**
 This permission allows non-superusers to set and use the include children feature.
 
-##Uninstall
+## Uninstall
 
 Uninstall like any other ProcessWire module. Note that **All your menus will be deleted on uninstall!**. The associated fields and template above will also be deleted.
 
-##Resources
+## Resources
 * [Support Forum](http://processwire.com/talk/topic/4451-module-menu-builder/)
 
-##License
+## License
 GPL2
 
-##Changelog
+## Changelog
 
 #Version 0.1.3
 1. Fixed bug where on uninstalling the module, menu pages in the trash would not get deleted, throwing an error when attempting to delete their template.
