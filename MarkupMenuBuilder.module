@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 13,
+			'version' => 14,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -222,7 +222,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		// if current page being viewed is NOT already part of this menu
 		// we we will check if it is perhaps an included item
-		if(!$menu->get('pagesID=' . wire('page')->id)) {
+		if(!$menu->get('pagesID=' . $this->wire('page')->id)) {
 				$cnp = '';
 				$pids = $this->currentPageParents(true);// returns a normal array with reversed parent IDs, closest first
 
@@ -263,7 +263,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		// else the current page is part of this mb menu but we check if we need to apply 'current_class' to parents, etc...
 		else {
 				// first apply isCurrent to the current item
-				$c = $menu->get('pagesID=' . wire('page')->id);
+				$c = $menu->get('pagesID=' . $this->wire('page')->id);
 				if($c) $c->isCurrent = 1;
 
 				// if 'current_class' needs to be applied to $c's ancestors
@@ -558,7 +558,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 									
 									// if we prepended homepage AND homepage is also part of this breadcrumb navigation AND we are on the homepage...
 									// we exit early to avoid duplicate Home >> Home
-									if ($item->id === wire('page')->id)  {
+									if ($item->id === $this->wire('page')->id)  {
 										$out .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} >{$title}</{$iTag}></{$wTag}>";
 										
 										return $out;
@@ -653,7 +653,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		$o = $this->options;
 		// get current page's parents
-		$parents = wire('page')->parents->reverse();
+		$parents = $this->wire('page')->parents->reverse();
 		
 		$i = 1;// using this for current_class_level
 		$j = 0;// using this for breadcrumb 'include_children' setting
@@ -706,7 +706,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		if($single) {
 
 			foreach ($menu as $m) {					
-					if ($m->pagesID == wire('page')->id) {						
+					if ($m->pagesID == $this->wire('page')->id) {						
 						$currentItem = $m->id;
 						break;
 					}
@@ -768,7 +768,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		}
 
 		// append current page (our last item in this case)
-		$title = wire('page')->title;
+		$title = $this->wire('page')->title;
 		$miniBreadcrumbs .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} >{$title}</{$iTag}>";
 
 		return $miniBreadcrumbs;
@@ -794,7 +794,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		$o = $this->options;
 		$depth -= 1;
 
-		if(is_null($page)) $page = wire('page');
+		if(is_null($page)) $page = $this->wire('page');
 
 		$wTag = $o->wrapperListType;// item wrapper tag. default = <ul>
 		$iTag = $o->listType;// item tag. default = <li>
@@ -819,7 +819,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			$itemLast = $count - $n == 0 ? $o->lastClass . ' ' : '';
 		
 			// check for current items (family tree)
-			$itemCurrent = in_array($child->id, $parentIDs) || $child->id == wire('page')->id ? $o->currentClass . ' ' : '';
+			$itemCurrent = in_array($child->id, $parentIDs) || $child->id == $this->wire('page')->id ? $o->currentClass . ' ' : '';
 		
 			$s = '';
 			// build sub-menus

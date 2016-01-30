@@ -21,7 +21,6 @@ html {overflow-y:scroll;}
 
 span.limit-select {float: right;}
 
-
 /* 03. #### MENU EDIT PAGE #### */
 
 
@@ -30,38 +29,23 @@ span.limit-select {float: right;}
 #menu_save, #menu_save_exit {float: left;}
 
 
-/******** First Tab (Main) ************/
-
-
-/*hide the add menu items wrappers on load*/
-li#wrap_item_addpages, li#item_addcustom, li#wrap_item_addselector {display: none;}
-
-span.unpublished, span.locked {color: red;}/* for highlighting some text */
-
-
-/******** Second Tab (Build Menu) ************/
+/******** First Tab (Build Menu) ************/
 
 
 /** Add page menu items (AsmSelect/Autocomplete) custom inputs + header labels **/
 li#menu_items_headers {
-
-		list-style: none;
-		text-transform: uppercase;
-		background: none;
-		color: inherit;
-		border: none;
-		margin: 0;
+	list-style: none;
+	text-transform: uppercase;
+	background: none;
+	color: inherit;
+	border: none;
+	margin: 0;
 }
 
-li#menu_items_headers:hover {
-
-	cursor: auto;
-	background: none !important;
-}
+li#menu_items_headers:hover {cursor: auto; background: none !important;}
 
 /* only for the Auocomplete field */
-li#menu_items_headers span {
-	
+li#menu_items_headers span {	
 	margin: 1.5em 0 0.5em 0.1em !important;
 	display: inline-block;
 	width: 20%!important;
@@ -72,90 +56,38 @@ li#menu_items_headers span#asm_title, li#menu_items_headers span#ac_title {width
 li#menu_items_headers span#asm_children, li#menu_items_headers span#ac_children {width: 15.5%!important;}
 li#menu_items_headers span#asm_level, li#menu_items_headers span#ac_level {width: 15%!important;}
 
-span#add_menu_items {
-
-	display: block;
-	padding: 0.3em 0 1.375em;
-}
-
+span#add_menu_items {display: block; padding: 0.3em 0 1.375em;}
 li.asmListItem, span.asmMB {cursor: move;}/* defined in jquery.asmselect-mb.js */
-
-span.asmListItemLabel, ol#item_addpages_items span.itemLabel {
-
-	width: 20%;
-	display: inline-block;
-}
-
-span.asmMB input, ol#item_addpages_items span.acMB input, ol#item_addpages_items span.plsMB input  {
-
-	margin: 0 !important;
-	text-align: bottom;
-	padding: 0 0.2em !important;
-}
-
+span.asmListItemLabel, ol#item_addpages_items span.itemLabel {width: 20%; display: inline-block;}
+span.asmMB input, ol#item_addpages_items span.acMB input, ol#item_addpages_items span.plsMB input {margin: 0 !important; text-align: bottom; padding: 0 0.2em !important;}
 ol#item_addpages_items span.acMB input.ac_itemid, span.asmMB input.asm_itemid, ol#item_addpages_items span.plsMB input.pls_itemid {width: 20% !important;}
 ol#item_addpages_items span.acMB input.ac_itemclass, span.asmMB input.asm_itemclass, ol#item_addpages_items span.plsMB input.pls_itemclass {width: 20% !important;}
 ol#item_addpages_items span.acMB select.ac_include_children, span.asmMB select.asm_include_children, ol#item_addpages_items span.plsMB select.pls_include_children {width: 15% !important;}
 ol#item_addpages_items span.acMB input.ac_mb_max_level, span.asmMB input.asm_mb_max_level, ol#item_addpages_items span.plsMB input.pls_mb_max_level {width: 8% !important;}
-
 span.asmMB input {margin: 1px !important;}/*override above*/
 
 
 /** Add custom menu items table **/
-span#add_menu_items a#add_custom_menu_items, span#add_menu_items a#add_selector_menu_items  {margin-left: 30px;}
-
+span#add_menu_items a#add_custom_menu_items, span#add_menu_items a#add_selector_menu_items {margin-left: 30px;}
 table.menu_add_custom_items_table input.new_custom {padding: 0 0.3em !important;}
-
-table.menu_add_custom_items_table i.fa-trash{
-
-	position: relative;
-	top: -5px;
-	right: 3px;
-}
+table.menu_add_custom_items_table i.fa-trash{position: relative; top: -5px; right: 3px;}
 
 /** Drag n Drop menu items **/
 div#menu_sortable_wrapper {margin-bottom: 3em !important;}
 
 /* Anchor on click remove all menus */
-div#menu_sortable_wrapper a#remove_menus {
-
-	display: block;
-	margin: 0 0 0.5em;
-}
+div#menu_sortable_wrapper a#remove_menus {display: block; margin: 0 0 0.5em;}
 
 /* nestedSortable styles */
 .placeholder {outline: 1px dashed #4183C4;}
-
 .notice {color: #C33;}
-
-.mjs-nestedSortable-error {
-
-	background: #FBE3E4;
-	border-color: transparent;
-}
-
-ol#sortable_main, ol#sortable_main ol {
-
-	margin: 5px !important;
-	list-style-type: none;
-}
-
-ol#sortable_main li {
-
-	list-style: none;
-	width:27em;
-}
-
-li.mjs-nestedSortable-collapsed.mjs-nestedSortable-hovering div {
-
-	border-color: #999;
-	background: #FAFAFA;
-}
-
+.mjs-nestedSortable-error {background: #FBE3E4; border-color: transparent;}
+ol#sortable_main, ol#sortable_main ol {margin: 5px !important; list-style-type: none;}
+ol#sortable_main li {list-style: none; width:27em;}
+li.mjs-nestedSortable-collapsed.mjs-nestedSortable-hovering div {border-color: #999; background: #FAFAFA;}
 .sortable li.mjs-nestedSortable-collapsed > ol {display: none;}
 
 ol#sortable_main li.menu_item {
-
 	display: block;
 	position: relative;
 	margin: 0 0 0 2em;
@@ -167,50 +99,26 @@ ol#sortable_main li.menu_item {
 
 /* Menu item drag n drop handle (div) as used by nestedSortable */
 div.handle {
-
-		background: #F0F0F0 !important;
-		width: 100%;
-		border: 1px solid #DFDFDF;/*ligh grey*/
-		margin-bottom: 3px;
-		cursor: move !important;
-		padding: 5px;
+	background: #F0F0F0 !important;
+	width: 100%;
+	border: 1px solid #DFDFDF;/*ligh grey*/
+	margin-bottom: 3px;
+	cursor: move !important;
+	padding: 5px;
 }
 
 /* Menu item settings' reveal/hide icon in drag n drop div handle */
-div.handle i.fa-caret-down, div.handle i.fa-caret-up {
-
-	position: relative;
-	float: left;
-}
-
-div.handle span.item_title_main {
-
-	margin-left: 0.5em;
-	cursor: pointer;
-	font-size: 0.85em;
-}
-
-
-div.handle span.item_type_wrapper {
-
-	position: absolute;
-	right: 0;
-	top: -1px;
-}
+div.handle i.fa-caret-down, div.handle i.fa-caret-up {position: relative; float: left;}
+div.handle span.item_title_main {margin-left: 0.5em; cursor: pointer; font-size: 0.85em;}
+div.handle span.item_type_wrapper {position: absolute; right: 0; top: -1px;}
 
 /* label on draggable div handle showing menu type (Page or Custom */
-div.handle span.item_type {
-
-	font-size: 0.785em;
-	color: #9A9A9A;
-	margin-right: 0.5em;
-}
+div.handle span.item_type {font-size: 0.785em; color: #9A9A9A; margin-right: 0.5em;}
 
 /* Anchor for onclick remove the associated menu item */
 div.handle a.remove_menu {}
 
 div.handle i.fa-trash {
-
 	position: relative;
 	border: none;
 	padding: 0.6em;
@@ -219,8 +127,7 @@ div.handle i.fa-trash {
 }
 
 /* Menu settings div */
-div.settings {
-	
+div.settings {	
 	display: inline-block;
 	margin-bottom: 10px;
 	width:100%;
@@ -231,7 +138,6 @@ div.settings {
 }
 
 div#menu_sortable_wrapper label {
-
 	margin-left: 1em !important;
 	padding-top: 0.75em !important;
 	font-style:italic;
@@ -240,57 +146,23 @@ div#menu_sortable_wrapper label {
 	font-size: 0.8em;
 }
 
-div.settings input[type=text].menu_settings {
+div.settings input[type=text].menu_settings {width:90%; margin-left: 1em !important; padding: 0.45em 0 0.45em 0.35em!important;}
 
-	width:90%;
-	margin-left: 1em !important;
-	padding: 0.45em 0 0.45em 0.35em!important;
-}
-
-div.settings input[type=text].readonly {
-
-	color: #646464 !important;
-	background:#EBEBEB !important;
-}
-
-div.settings input[type=checkbox].menu_settings {
-
-	margin-right: 0.3em;
-	vertical-align: middle;
-}
-
-div.settings span.include_children {
-
-	display: block;
-	margin: 0.5em 0 0 1em;
-	font-style: italic;
-}
-
-div.settings label.include_children {
-
-	font-style: normal !important;
-	padding-top: 0 !important;
-	margin-top: -0.3em;
-}
-
-div.settings select.include_children, div.settings label.include_children input[type='text']{
-
-	vertical-align: middle;
-	float: left;
-}
-
+div.settings input[type=text].readonly {color: #646464 !important; background:#EBEBEB !important;}
+div.settings input[type=checkbox].menu_settings {margin-right: 0.3em; vertical-align: middle;}
+div.settings span.include_children {display: block; margin: 0.5em 0 0 1em; font-style: italic;}
+div.settings label.include_children {font-style: normal !important;	padding-top: 0 !important; margin-top: -0.3em;}
+div.settings select.include_children, div.settings label.include_children input[type='text']{vertical-align: middle; float: left;}
 div.settings select.include_children {margin: 0.3em 1em;}
-
-div.settings label.include_children input[type='text']{
-
-	width:12%;
-	margin-right: 0.5em;
-	height: 1.7em;
-}
+div.settings label.include_children input[type='text'] {width:12%; margin-right: 0.5em;	height: 1.7em;}
 
 
-/******** Third Tab (Items Overview) ************/
+/******** Third Tab (Settings) ************/
 
+
+/*hide the add menu items wrappers on load*/
+li#wrap_item_addpages, li#item_addcustom, li#wrap_item_addselector {display: none;}
+span.unpublished, span.locked {color: red;}/* for highlighting some text */
 
 
 /******** Fourth Tab (Delete) ************/

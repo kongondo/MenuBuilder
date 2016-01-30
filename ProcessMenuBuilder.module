@@ -35,7 +35,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder: Process',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 13,
+			'version' => 14,
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -361,7 +361,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$form->method = 'post';
 
 
-			############################################ - First Tab - ############################################
+			############################################ - prep for tabs - ############################################
 			
 			// fetch this menu's JSON string with menu pages properties (pages find selector and inputfield to use)
 			$menuPagesJSON = $menu->menu_pages;
@@ -369,10 +369,6 @@ class ProcessMenuBuilder extends Process implements Module {
 			
 			if($menuPagesJSON) $menuPages = json_decode($menu->menu_pages, true);
 
-			$form->add($this->editTabMenu($menu->title, $pubStatus, $editStatus, $menuPages, $menu->menu_settings));
-
-
-			############################################ - Second Tab - ############################################
 			
 			// set include children status for users with right permission
 			if(count($menuPages)) {
@@ -384,19 +380,26 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 			}
 
-			// fetch this menus JSON string with menu items properties
+			// fetch this menu's JSON string with menu items properties
 			$menuItemsJSON = $menu->menu_items;
 			$menuItems = array();
 
 			if($menuItemsJSON) $menuItems = json_decode($menu->menu_items, true);
+
+			############################################ - First Tab (build menu) - ############################################
 			
 			$form->add($this->editTabBuild($menuItems, $menuPages));
 
+			############################################ - Second Tab (menu items overview) - ############################################
+
 			
-			############################################ - Third Tab - ############################################
-
-
 			$form->add($this->editTabOverview($menuItems));
+
+
+			############################################ - Third Tab (menu settings) - ############################################
+
+
+			$form->add($this->editTabMenuSettings($menu->title, $pubStatus, $editStatus, $menuPages, $menu->menu_settings));
 
 
 			############################################ - Fourth Tab - ############################################
@@ -451,188 +454,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	}
 
 	/**
-	* First tab contents for executeEdit().
-	* 
-	* @access protected
-	* @param String $title Title of the menu being edited.
-	* @param String $unpublished Whether the menu being edited is unpublished.
-	* @param String $locked Whether the menu being edited is locked.
-	* @param Array $menuPages Array of selector and page inputfield type values.
-	* @param String $menuSettings JSON string of menu settings (for nestedSortable) of the menu being edited.
-	* @return mixed $inputfield markup.
-	*
-	*/
-	protected function editTabMenu($title, $unpublished = null, $locked = null, $menuPages, $menuSettings) {
-
-		// First Tab - Main
-		$tab = new InputfieldWrapper();
-		$tab->attr('title', $this->_('Main')); 
-		$id = $this->className() . 'Main';
-		$tab->attr('id', $id); 
-		$tab->class .= ' WireTab';
-
-		$tx = $this->modules->get('InputfieldText');
-		$tx->label = $this->_('Menu title');
-		$tx->required = true;
-		$tx->attr('name', 'menu_title');
-		$tx->attr('value', $title); 
-		$tx->description = $this->_('A menu title is required.');
-
-		$notes = ($unpublished || $locked) ? $this->_('Menu status: ') : '';
-		if ($unpublished) $notes .= $this->_('Unpublished, ');
-		if ($locked) $notes .= $this->_('Locked');		
-
-		$tx->notes = rtrim($notes, ', ');
-		
-		$tab->add($tx);
-
-		// display configurable backend menu settings for users with right permissions
-		// options for nestedSortable + ProcessWire selector for pages selectable in $menuAddPageItems AsmSelect
-
-		// if this user has permission to SPECIFY pages selectable as menu items in AsmSelect and PageAutocomplete
-		if($this->user->hasPermission('menu-builder-selectable')) {
-
-			// if selector to find pages to add to menu specified
-			$selectorValue = isset($menuPages['sel']) ? $menuPages['sel'] : '';
-
-			$tx = $this->modules->get('InputfieldText');
-			$tx->attr('name', 'menu_pages');
-			$tx->label = $this->_('Pages selectable in menu');
-			$tx->attr('value', $selectorValue); 
-			$tx->description = $this->_('Optionally, you can specify a valid ProcessWire selector to limit the Pages that can be added to this menu (see Build Menu Tab). Otherwise, all valid pages will be available to add to the menu. By default, returned pages are limited to 50. You can override this by setting your own limit here. NOTE: This feature only works with Asm Select and Page Auto Complete.');
-			$tx->notes =  $this->_('Example: parent=/products/, template=product, sort=title');
-
-			$tab->add($tx);
-		
-		}// end if user has permission menu-builder-selectable
-
-		// if user has permission to allow changing of page field type used to select pages to add as menu items [AsmSelect vs PageAutocomplete]
-		if($this->user->hasPermission('menu-builder-page-field')) {
-
-			// only 'PageAutocomplete' and PageListSelectMultiple options are saved in the field menu_pages (JSON): 'input'=> 2 || 3
-			// else we assume default 'input' => 1 (AsmSelect)
-			$pageSel = isset($menuPages['input']) && (($menuPages['input'] == 2) || ($menuPages['input'] == 3)) ? $menuPages['input'] : 1;
-			
-			// radios: page inputfield selection
-			$r = new InputfieldRadios();
-			$r->attr('id+name', 'menu_pages_select');
-			$r->label =  $this->_('Choose a method for selecting pages to add to your menu');
-			$r->notes = $this->_('If you will have a large selection of pages to choose from, you may want to use Page Auto Complete.');
-
-			$radioOptions = array (
-							 1 => $this->_('Asm Select'),
-							 2 => $this->_('Page Auto Complete'),
-							 3 => $this->_('Page List Select Multiple'),
-		 	);
-
-			$r->addOptions($radioOptions);
-			$r->value = $pageSel;
-
-			$tab->add($r);
-
-		}// end if user has permision menu-builder-page-field
-
-		// if user can change and use allow markup/HTML setting
-		if($this->user->hasPermission('menu-builder-markup')) {
-
-			// only 'Allow Markup' (Yes) option is saved in the field menu_pages (JSON): 'markup'=> 2. Else we assume default 'markup' => 1 (No)
-			$allowMarkup = isset($menuPages['markup']) ? 1 : 2;
-
-			// radios: allow markup in menu item title/label
-			$r = new InputfieldRadios();
-			$r->attr('id+name', 'menu_item_title_markup');
-			$r->label =  $this->_('Allow HTML in menu items title');
-			$r->notes = $this->_('Example: <span>Home</span>. If you allow this, the HTML will be run through HTML purifier before saving. Take care not to input malformed HTML.');
-
-			$radioOptions = array (
-							 1 => $this->_('Yes'),
-							 2 => $this->_('No'),
-		 	);
-
-			$r->addOptions($radioOptions);
-			$r->value = $allowMarkup;
-
-			$tab->add($r);
-
-		}// end if user can change and use allow markup/HTML setting
-
-		// if user can edit and use 'include children' feature
-		if($this->user->hasPermission('menu-builder-include-children')) {
-
-			// only 'Allow Include Children' (Yes) option is saved in the field menu_pages (JSON): 'markup'=> 2. Else we assume default 'markup' => 1 (No)
-			$includeChildren = isset($menuPages['children']) ? 1 : 2;
-
-			// radios: enable include children feature
-			$r = new InputfieldRadios();
-			$r->attr('id+name', 'menu_item_include_children');
-			$r->label =  $this->_('Use include children feature');
-			$r->notes = $this->_('This feature allows you to designate menu items that can have their natural ProcessWire pages descendants included in the menu/breadcrumbs output in the frontend without actually including those pages here in Menu Builder. Be careful when using the feature as you could potentially output a very large amount of menu items than intended.');
-
-			$radioOptions = array (
-							 1 => $this->_('Yes'),
-							 2 => $this->_('No'),
-		 	);
-
-			$r->addOptions($radioOptions);
-			$r->value = $includeChildren;
-
-			$tab->add($r);
-
-		}// end if user can change and use allow markup/HTML setting
-			
-		// if user has permission to allow editing of nestedSortable settings
-		if($this->user->hasPermission('menu-builder-settings')) {
-
-			$t = $this->modules->get('MarkupAdminDataTable');
-			$t->setEncodeEntities(false);
-			$t->setSortable(false);
-			$t->setClass('menu_items_table');
-
-			$t->headerRow(array(
-				$this->_('Name'),
-				$this->_('Default'),// for PW pages, actual title saved. The title can also be edited in the add menu item settings
-				$this->_('Setting'),// path to PW pages + normal url for custom menu items
-				$this->_('Notes'),// parent in this menu! NOT PW PAGE PARENT!
-			));
-
-			// advanced/optional settings for nestedSortable
-			$mergedMenuSettings = $this->nestedSortableMenuSettings($menuSettings);
-
-			foreach ($mergedMenuSettings as $key => $value) {		
-
-					if($key == 'includeChildren') continue;// setting not for nestedSortable
-
-					$t->row(array(
-								$key,// name
-								$value['default'],// default value
-								"<input type='text' name='menu_settings[" . $key . "]' value='" . $value['setting'] . "'>",// setting - saved in menu_settings as JSON
-								$value['notes'],
-
-					));
-
-
-			}// end foreach $menuSettings
-
-			$m = $this->modules->get('InputfieldMarkup');
-			$m->attr('id', 'menu_settings');
-			$m->label = $this->_('Menu settings');
-			$m->description = $this->_('These are optional settings for') .  ' <a href="https:// github.com/ilikenwf/nestedSortable" target="_blank">nestedSortable</a> ' . 
-			$this->_('(the Drag and Drop menu functionality in Build Menu Tab).');
-			$m->notes = $this->_('Note: These settings do not affect how your menu is displayed in the frontend.');
-			$m->collapsed = Inputfield::collapsedYes;
-			$m->attr('value', $t->render());		
-
-			$tab->add($m);
-
-		}// end if user has permission to edit nestedSortable settings
-
-		return $tab;
-
-	}
-
-
-	/**
-	* Second tab contents for executeEdit()
+	* First tab contents for executeEdit()
 	*
 	* @access protected
 	* @param Array $menuItems Array of menu items for the menu being edited.
@@ -642,7 +464,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	*/
 	protected function editTabBuild($menuItems, $menuPages) {
 
-		// Second Tab - Drag & Drop + add menu items. Only show if a menu exists
+		// First Tab - Drag & Drop + add menu items. Only show if a menu exists
 
 		$tab = new InputfieldWrapper();
 		$tab->attr('title', $this->_('Build Menu'));
@@ -827,7 +649,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	}
 
 	/**
-	* Third tab contents for executeEdit()
+	* Second tab contents for executeEdit()
 	*
 	* @access protected
 	* @param Array $menuItems Array of menu items for a requested menu
@@ -917,6 +739,186 @@ class ProcessMenuBuilder extends Process implements Module {
 		}
 		
 		$tab->add($m);
+
+		return $tab;
+
+	}
+
+	/**
+	* Third tab contents for executeEdit().
+	* 
+	* @access protected
+	* @param String $title Title of the menu being edited.
+	* @param String $unpublished Whether the menu being edited is unpublished.
+	* @param String $locked Whether the menu being edited is locked.
+	* @param Array $menuPages Array of selector and page inputfield type values.
+	* @param String $menuSettings JSON string of menu settings (for nestedSortable) of the menu being edited.
+	* @return mixed $inputfield markup.
+	*
+	*/
+	protected function editTabMenuSettings($title, $unpublished = null, $locked = null, $menuPages, $menuSettings) {
+
+		// Third Tab - Settings
+		$tab = new InputfieldWrapper();
+		$tab->attr('title', $this->_('Settings')); 
+		$id = $this->className() . 'Settings';
+		$tab->attr('id', $id); 
+		$tab->class .= ' WireTab';
+
+		$tx = $this->modules->get('InputfieldText');
+		$tx->label = $this->_('Menu title');
+		$tx->required = true;
+		$tx->attr('name', 'menu_title');
+		$tx->attr('value', $title); 
+		$tx->description = $this->_('A menu title is required.');
+
+		$notes = ($unpublished || $locked) ? $this->_('Menu status: ') : '';
+		if ($unpublished) $notes .= $this->_('Unpublished, ');
+		if ($locked) $notes .= $this->_('Locked');		
+
+		$tx->notes = rtrim($notes, ', ');
+		
+		$tab->add($tx);
+
+		// display configurable backend menu settings for users with right permissions
+		// options for nestedSortable + ProcessWire selector for pages selectable in $menuAddPageItems AsmSelect
+
+		// if this user has permission to SPECIFY pages selectable as menu items in AsmSelect and PageAutocomplete
+		if($this->user->hasPermission('menu-builder-selectable')) {
+
+			// if selector to find pages to add to menu specified
+			$selectorValue = isset($menuPages['sel']) ? $menuPages['sel'] : '';
+
+			$tx = $this->modules->get('InputfieldText');
+			$tx->attr('name', 'menu_pages');
+			$tx->label = $this->_('Pages selectable in menu');
+			$tx->attr('value', $selectorValue); 
+			$tx->description = $this->_('Optionally, you can specify a valid ProcessWire selector to limit the Pages that can be added to this menu (see Build Menu Tab). Otherwise, all valid pages will be available to add to the menu. By default, returned pages are limited to 50. You can override this by setting your own limit here. NOTE: This feature only works with Asm Select and Page Auto Complete.');
+			$tx->notes =  $this->_('Example: parent=/products/, template=product, sort=title');
+
+			$tab->add($tx);
+		
+		}// end if user has permission menu-builder-selectable
+
+		// if user has permission to allow changing of page field type used to select pages to add as menu items [AsmSelect vs PageAutocomplete]
+		if($this->user->hasPermission('menu-builder-page-field')) {
+
+			// only 'PageAutocomplete' and PageListSelectMultiple options are saved in the field menu_pages (JSON): 'input'=> 2 || 3
+			// else we assume default 'input' => 1 (AsmSelect)
+			$pageSel = isset($menuPages['input']) && (($menuPages['input'] == 2) || ($menuPages['input'] == 3)) ? $menuPages['input'] : 1;
+			
+			// radios: page inputfield selection
+			$r = new InputfieldRadios();
+			$r->attr('id+name', 'menu_pages_select');
+			$r->label =  $this->_('Choose a method for selecting pages to add to your menu');
+			$r->notes = $this->_('If you will have a large selection of pages to choose from, you may want to use Page Auto Complete.');
+
+			$radioOptions = array (
+							 1 => $this->_('Asm Select'),
+							 2 => $this->_('Page Auto Complete'),
+							 3 => $this->_('Page List Select Multiple'),
+		 	);
+
+			$r->addOptions($radioOptions);
+			$r->value = $pageSel;
+
+			$tab->add($r);
+
+		}// end if user has permision menu-builder-page-field
+
+		// if user can change and use allow markup/HTML setting
+		if($this->user->hasPermission('menu-builder-markup')) {
+
+			// only 'Allow Markup' (Yes) option is saved in the field menu_pages (JSON): 'markup'=> 2. Else we assume default 'markup' => 1 (No)
+			$allowMarkup = isset($menuPages['markup']) ? 1 : 2;
+
+			// radios: allow markup in menu item title/label
+			$r = new InputfieldRadios();
+			$r->attr('id+name', 'menu_item_title_markup');
+			$r->label =  $this->_('Allow HTML in menu items title');
+			$r->notes = $this->_('Example: <span>Home</span>. If you allow this, the HTML will be run through HTML purifier before saving. Take care not to input malformed HTML.');
+
+			$radioOptions = array (
+							 1 => $this->_('Yes'),
+							 2 => $this->_('No'),
+		 	);
+
+			$r->addOptions($radioOptions);
+			$r->value = $allowMarkup;
+
+			$tab->add($r);
+
+		}// end if user can change and use allow markup/HTML setting
+
+		// if user can edit and use 'include children' feature
+		if($this->user->hasPermission('menu-builder-include-children')) {
+
+			// only 'Allow Include Children' (Yes) option is saved in the field menu_pages (JSON): 'markup'=> 2. Else we assume default 'markup' => 1 (No)
+			$includeChildren = isset($menuPages['children']) ? 1 : 2;
+
+			// radios: enable include children feature
+			$r = new InputfieldRadios();
+			$r->attr('id+name', 'menu_item_include_children');
+			$r->label =  $this->_('Use include children feature');
+			$r->notes = $this->_('This feature allows you to designate menu items that can have their natural ProcessWire pages descendants included in the menu/breadcrumbs output in the frontend without actually including those pages here in Menu Builder. Be careful when using the feature as you could potentially output a very large amount of menu items than intended.');
+
+			$radioOptions = array (
+							 1 => $this->_('Yes'),
+							 2 => $this->_('No'),
+		 	);
+
+			$r->addOptions($radioOptions);
+			$r->value = $includeChildren;
+
+			$tab->add($r);
+
+		}// end if user can change and use allow markup/HTML setting
+			
+		// if user has permission to allow editing of nestedSortable settings
+		if($this->user->hasPermission('menu-builder-settings')) {
+
+			$t = $this->modules->get('MarkupAdminDataTable');
+			$t->setEncodeEntities(false);
+			$t->setSortable(false);
+			$t->setClass('menu_items_table');
+
+			$t->headerRow(array(
+				$this->_('Name'),
+				$this->_('Default'),// for PW pages, actual title saved. The title can also be edited in the add menu item settings
+				$this->_('Setting'),// path to PW pages + normal url for custom menu items
+				$this->_('Notes'),// parent in this menu! NOT PW PAGE PARENT!
+			));
+
+			// advanced/optional settings for nestedSortable
+			$mergedMenuSettings = $this->nestedSortableMenuSettings($menuSettings);
+
+			foreach ($mergedMenuSettings as $key => $value) {		
+
+					if($key == 'includeChildren') continue;// setting not for nestedSortable
+
+					$t->row(array(
+								$key,// name
+								$value['default'],// default value
+								"<input type='text' name='menu_settings[" . $key . "]' value='" . $value['setting'] . "'>",// setting - saved in menu_settings as JSON
+								$value['notes'],
+
+					));
+
+
+			}// end foreach $menuSettings
+
+			$m = $this->modules->get('InputfieldMarkup');
+			$m->attr('id', 'menu_settings');
+			$m->label = $this->_('Menu settings');
+			$m->description = $this->_('These are optional settings for') .  ' <a href="https:// github.com/ilikenwf/nestedSortable" target="_blank">nestedSortable</a> ' . 
+			$this->_('(the Drag and Drop menu functionality in Build Menu Tab).');
+			$m->notes = $this->_('Note: These settings do not affect how your menu is displayed in the frontend.');
+			$m->collapsed = Inputfield::collapsedYes;
+			$m->attr('value', $t->render());		
+
+			$tab->add($m);
+
+		}// end if user has permission to edit nestedSortable settings
 
 		return $tab;
 
@@ -1375,7 +1377,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$dncNote .= $this->_('if you do not want empty lists to be removed.');
 		$treeNote = $this->_('Nested list to behave as a tree with expand/collapse functionality.');
 
-		// default menu settings array to be merged and displayed in menu settings table	in 'Main' Tab
+		// default menu settings array to be merged and displayed in menu settings table in 'Settings' Tab
 		$defaultMenuSettings = array(
 					'maxLevels' => array('default'=>0, 'setting'=>'', 'notes'=> $mlNote),
 					'disableParentChange' => array('default'=>'false', 'setting'=>'', 'notes'=> $dpcNote),
@@ -1442,7 +1444,7 @@ class ProcessMenuBuilder extends Process implements Module {
 						foreach ($menus as $m) {
 							$p = new Page();
 							$p->parent = $this->menusParent;
-							$p->template = wire('templates')->get("menus");
+							$p->template = $this->wire('templates')->get("menus");
 							$p->title = $this->sanitizer->text($m);
 							if (!$p->title) continue;// skip to next if no title provided
 							if ($p->title) $p->name = $this->sanitizer->pageName($p->title);// sanitize and convert to a URL friendly page name
@@ -1603,7 +1605,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 			
 		
-				#################	01. Process menu settings: First TAB - 'Main' 	#################
+				#################	01. Process menu settings: Third TAB - 'Settings' 	#################
 
 				$menuTitle = $this->sanitizer->text($this->input->post->menu_title);
 
