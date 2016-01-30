@@ -328,6 +328,9 @@ GPL2
 
 ## Changelog
 
+#Version 0.1.4
+1. Moved first tab 'Main' to become the third tab and renamed it to 'Settings' for better UX.
+
 #Version 0.1.3
 1. Fixed bug where on uninstalling the module, menu pages in the trash would not get deleted, throwing an error when attempting to delete their template.
 
