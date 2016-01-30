@@ -66,7 +66,6 @@ ol#item_addpages_items span.acMB select.ac_include_children, span.asmMB select.a
 ol#item_addpages_items span.acMB input.ac_mb_max_level, span.asmMB input.asm_mb_max_level, ol#item_addpages_items span.plsMB input.pls_mb_max_level {width: 8% !important;}
 span.asmMB input {margin: 1px !important;}/*override above*/
 
-
 /** Add custom menu items table **/
 span#add_menu_items a#add_custom_menu_items, span#add_menu_items a#add_selector_menu_items {margin-left: 30px;}
 table.menu_add_custom_items_table input.new_custom {padding: 0 0.3em !important;}
@@ -147,7 +146,6 @@ div#menu_sortable_wrapper label {
 }
 
 div.settings input[type=text].menu_settings {width:90%; margin-left: 1em !important; padding: 0.45em 0 0.45em 0.35em!important;}
-
 div.settings input[type=text].readonly {color: #646464 !important; background:#EBEBEB !important;}
 div.settings input[type=checkbox].menu_settings {margin-right: 0.3em; vertical-align: middle;}
 div.settings span.include_children {display: block; margin: 0.5em 0 0 1em; font-style: italic;}
@@ -173,6 +171,3 @@ span.unpublished, span.locked {color: red;}/* for highlighting some text */
  *
  */
 .ProcessMenuBuilderDelete #menu_save, .ProcessMenuBuilderDelete #menu_save_exit {display: none;}
-
-
-
