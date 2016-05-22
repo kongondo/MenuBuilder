@@ -44,7 +44,7 @@ The module has two components:
 
 ## API
 
-MarkupMenuBuilder has two methods available to users.
+MarkupMenuBuilder has three methods available to users.
 
 ### render()
 
@@ -112,6 +112,20 @@ $defaultOptions = array(
 
 );
 ````
+
+### getMenuItems()
+
+This is a new method since version 0.1.5. The method greatly simplifies the creation of custom complex menus. Examples of how to use this method coming soon. For now see the examples in the support forum. The method accepts three arguments.
+
+
+````php
+getMenuItems($menu, $type, $options);
+
+````
+
+Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. The second argument determines the type of items that the method will return. A value of 1 will return an array and one of 2 (the default) will return a WireArray Menu Object. The third argument is similar to the $options passed to **render()**.
+
+
 ### Options
 
 * Unless indicated otherwise, all the following options apply to both **menus (render())** and **breadcrumbs (renderBreadcrumbs())**.
@@ -145,6 +159,8 @@ $defaultOptions = array(
 * Once you've created a menu, you can view it in the frontend by loading it using MarkupMenuBuilder in a template file as follows.
 
 #### Rendering a Menu
+
+The simplest way to render a menu is to use the method **render()**. It is straightforward and can be passed various options to customise your menu. However, for the ultimate flexibility and total freedom, especially for complex menu structures, we recommend that you use the method **getMenuItems()**. Please note that the method **getMenuItems()** will not return a menu out of the box. Instead, it returns menu items that you can optionally manipulate, traverse using any recursive function (or for simpler menus, nested foreachs) and output within a HTML structure of your choosing. It means that you can apply logic within your chosen recursive function (or loop) to output extra details with your menu, for instance grab some data from a field within the pages that your menu items represent. Another example would be to show some parts of the menu only when a user is logged in, etc. If working with the Menu object, it means you can easily add properties to some or all of the menu items at runtime. It also means you have all the powerful WireArray [methods](http://processwire.com/api/arrays/) at your disposal (don't touch sort though!).
 
 ````php
 
@@ -190,6 +206,9 @@ $options = array(
 
 echo $menu->render('sidenav', $options);
 ````
+
+Examples of more complex menus utilising the method getMenuItems() coming soon.
+
 #### Rendering Breadcrumbs
 
 Rendering breadcrumbs is quite similar to the above, the only difference being the method you use and some of the options that can be used to configure the output.
@@ -327,6 +346,9 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ## Changelog
+
+#Version 0.1.5
+1. Added method getMenuItems that greatly simplifies the creation of complex custom menus.
 
 #Version 0.1.4
 1. Moved first tab 'Main' to become the third tab and renamed it to 'Settings' for better UX.

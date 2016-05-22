@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 14,
+			'version' => 15,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -73,7 +73,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	* The processing work is done by other methods.
 	*
 	* @access public
-	* @param Mixed $menu Page, ID, Title, Name of a menu or Array of menu items.
+	* @param Mixed $menuItems Page, ID, Title, Name of a menu or Array of menu items.
 	* @param Array $options Array of menu options.
 	* @return Method buildMenu().
 	*
@@ -183,11 +183,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 			$cssItemClass = isset($item['css_itemclass']) ? $item['css_itemclass'] : '';
 			$cssItemClass .= ' ' . $o->defaultClass;
 
-			//echo $cssItemClass . '<br>';
-
 			//$m->cssClass = isset($item['css_itemclass']) ? $item['css_itemclass'] : '';
-			$m->cssClass = $cssItemClass ? $cssItemClass : '';
-			
+			#$m->cssClass = trim($cssItemClass) != '' ? $cssItemClass : '';
+			$m->cssClass = !ctype_space($cssItemClass) ? $cssItemClass : '';			
 
 			$m->includeChildren = isset($item['include_children']) ? $item['include_children'] : '';
 			if($m->includeChildren == 5) $m->includeChildren = 0;// for consistency with $o->includeChildren
@@ -789,7 +787,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	*/
 	private function includedFamilyMenu(Page $page = null, $depth = 1, $firstChild = null) {
 
-		// @credits @slkwrm for some code
+		// @credits @slkwrm for some code (https://processwire.com/talk/topic/563-page-level-and-sub-navigation/?p=4490)
 
 		$o = $this->options;
 		$depth -= 1;
@@ -891,6 +889,60 @@ class MarkupMenuBuilder extends WireData implements Module {
 		$this->options = new MenuOptions($options);
 
 		return $this->options;
+
+	}
+
+	/**
+	* Process menu options, overwriting defaults.
+	* 
+	* The options are mainly css and markup related.
+	*
+	* @access public
+	* @param Mixed $menu Page, ID, Title, Name of a menu or Array of menu items.
+	* @param Integer $type Whether to return array of menu items or a Menu object with menu items.
+	* @param Array $options Array of menu options.
+	* @return Array|Object $menuItems.
+	*
+	*/
+	public function getMenuItems($menu, $type = 2, Array $options = null) {
+
+		// process menu items
+		$rawMenuItems = $this->processRawMenu($menu);
+		if(!is_array($rawMenuItems)) return $this->throwError();
+
+		// process menu options. Will be needed by $this->processMenu()
+		$options = $this->processOptions($options);// run options first so that some properties can be set early on		
+		$menuItemsObject = $this->processMenu($rawMenuItems);
+
+		$menuItems = '';
+		
+		// if $type == 2 we return a Menu Object		
+		if($type == 2) $menuItems = $menuItemsObject;
+		// return Menu Array
+		elseif($type == 1) {
+			foreach ($menuItemsObject as $m) {
+				$menuItems[$m->id] = array(
+					'parent_id' => $m->parentID,// parent within this menu item; if 0 means top tier menu item
+					'pages_id' => $m->pagesID,// if 0 means external URl
+					'title' => $m->title,// default_title: 0=show saved titles;1=show actual/current titles
+					'url' => $m->url,// menu items URL
+					'newtab' => $m->newtab,// open link in new tab?
+					'css_itemid' => $m->cssID,// the items own CSS ID
+					'css_itemclass' => $m->cssClass,// the items own CSS class(es)
+					'include_children' => $m->includeChildren,// include this menu items natural children
+					'm_max_level' => $m->menuMaxLevel,// menu depth
+					'is_parent' => $m->isParent,// does this menu item have children (bool)
+					'is_first' => $m->isFirst,// first menu item at its tier? (bool)
+					'is_last' => $m->isLast,// last menu item at its tier? (bool)
+					'is_current' => $m->isCurrent,// menu item matches current page? (bool)
+				);
+			}
+			// filter out empty values
+			$menuItems = array_map('array_filter', $menuItems);
+
+		}// end if $type == 2
+
+		return $menuItems;
 
 	}
 
