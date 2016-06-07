@@ -5,7 +5,7 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 ## Features
 * Visual menu builder
 * Ability to create menus that do not mirror your ProcessWire Page Tree hierarchy/structure
-* Menus can contain both ProcessWire pages and custom links
+* Menus can contain both ProcessWire pages and custom (external) links
 * Create menu hierarchies and nesting via drag and drop
 * Lock down menus for editing
 * Easily apply CSS IDs and Classes to each and every menu item if you wish
@@ -22,6 +22,7 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 * Advanced features (e.g. add pages via selector, menu settings) permissible to superadmins only
 * Delete single or all menu items without deleting the menu itself
 * Easily render menus and breadcrumbs in the frontend using MarkupMenuBuilder
+* Optionally create complex menu structures by returning only menu items using MarkupMenuBuilder and passing these to your custom recursive menu function
 * Fully multilingual
 
 ## How to Install
@@ -48,7 +49,7 @@ MarkupMenuBuilder has three methods available to users.
 
 ### render()
 
-This method renders a menu/navigation list of a specified menu. The method accepts two arguments/parameters.
+This method renders a menu/navigation list of a specified menu. The method accepts two arguments/parameters:
 
 ````php
 render($menu, $options);
@@ -83,7 +84,7 @@ $defaultOptions = array(
 
 ### renderBreadcrumbs()
 
-This method renders a breadcrumb navigation of a specified menu. The method also accepts two arguments/parameters.
+This method renders a breadcrumb navigation of a specified menu. The method also accepts two arguments/parameters:
 
 ````php
 render($menu, $options);
@@ -115,7 +116,7 @@ $defaultOptions = array(
 
 ### getMenuItems()
 
-This is a new method since version 0.1.5. The method greatly simplifies the creation of custom complex menus. Examples of how to use this method coming soon. For now see the examples in the support forum. The method accepts three arguments.
+This is a new method since version 0.1.5. The method greatly simplifies the creation of custom complex menus. Use this method instead of **render()** if you wish to have total control over your menu logic and markup. Examples of how to use this method can be found in [these gists](https://gist.github.com/kongondo/a478e2a9274fc29f5d7cdb93a8166989) as well as in this [post](https://processwire.com/talk/topic/4451-menu-builder/?p=120639) in the support forum. The method accepts three arguments:
 
 
 ````php
@@ -123,12 +124,13 @@ getMenuItems($menu, $type, $options);
 
 ````
 
-Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. The second argument determines the type of items that the method will return. A value of 1 will return an array and one of 2 (the default) will return a WireArray Menu Object. The third argument is similar to the $options passed to **render()**.
+Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. The second argument determines the type of items that the method will return. A value of 1 will return an array and one of 2 (the default) will return a WireArray Menu Object. The third argument is similar to the $options passed to **render()**. **Please note that only three options are applicable to getMenuItems(), i.e.** *default_title, default_class and current_class_level*. You can, of course, create a function that will accept passing additional options (similar to **render()**) as an argument.
 
 
 ### Options
 
 * Unless indicated otherwise, all the following options apply to both **menus (render())** and **breadcrumbs (renderBreadcrumbs())**.
+* Only three options apply to **getMenuItems()**: *default_title, default_class and current_class_level*.
 * The term navigation is used in the context of both menus and breadcrumbs. 
 * The term 'Class(es)' indicates that multiple CSS Classes can be applied, separated by space.
 
@@ -207,7 +209,7 @@ $options = array(
 echo $menu->render('sidenav', $options);
 ````
 
-Examples of more complex menus utilising the method getMenuItems() coming soon.
+Examples of more complex menus utilising the method **getMenuItems()** using various recursive menu functions can be seen at [these gists](https://gist.github.com/kongondo/a478e2a9274fc29f5d7cdb93a8166989).
 
 #### Rendering Breadcrumbs
 
