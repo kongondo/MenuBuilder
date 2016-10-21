@@ -349,6 +349,9 @@ GPL2
 
 ## Changelog
 
+#Version 0.1.6
+1. Fixed bug that made the module’s backend unusable under ProcessWire 3.0.32+
+
 #Version 0.1.5
 1. Added method getMenuItems that greatly simplifies the creation of complex custom menus.
 
