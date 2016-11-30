@@ -349,6 +349,10 @@ GPL2
 
 ## Changelog
 
+#Version 0.1.6
+1. Fixed JS Bug where select all checkbox was not working in Menu Builder dashboard.
+2. Fixed issue where InputfieldMarkup would not properly render HTML in descriptions.
+
 #Version 0.1.5
 1. Added method getMenuItems that greatly simplifies the creation of complex custom menus.
 

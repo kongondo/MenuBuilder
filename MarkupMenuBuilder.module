@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 15,
+			'version' => 16,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -138,7 +138,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		elseif(is_integer($menu)) {
 
 				// grab the menu
-				$menuID = (int) $menu;
+				#$menuID = (int) $menu;//@note: not needed actually, we've alreayd determined this is an integer
 				$menu = $this->wire('pages')->get($menu);
 				if($menu) $menuItems = json_decode($menu->menu_items, true);
 		}

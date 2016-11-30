@@ -35,7 +35,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder: Process',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 15,
+			'version' => 16,
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -254,6 +254,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$pagination = $menus->renderPager(array('baseUrl' => $currentUrl));// just foolproofing
 
 		$m->attr('value', $pagination . $t->render() . $pagination);// wrap our table with pagination
+		$m->textFormat = Inputfield::textFormatNone;// make sure ProcessWire renders the HTML
 
 		$w->add($m);
 
@@ -330,7 +331,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	public function ___executeEdit() {
 
 		// get the menu (page) we are editing
-		$menuID = $this->input->get->id;
+		$menuID = (int) $this->input->get->id;
 
 		$menu = $this->wire('pages')->get("id=$menuID, parent=$this->menusParent, include=all");// only get menu pages!
 
@@ -478,6 +479,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$m->description .= '<a href="#" id="add_custom_menu_items">' . $this->_('Custom') . '</a>';
 		if($this->user->hasPermission('menu-builder-selector')) $m->description .= '<a href="#" id="add_selector_menu_items">' . $this->_('Selector') . '</a>';
 		$m->description .= '</span>';
+		$m->textFormat = Inputfield::textFormatNone;// make sure ProcessWire renders the HTML
 		
 		$tab->add($m);
 
@@ -735,6 +737,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		
 			// give user feedback that no menu items have been added to this menu
 			$m->description = '<h4>' . $this->_('No items have been added to this menu yet.') . '</h4>';
+			$m->textFormat = Inputfield::textFormatNone;// make sure ProcessWire renders the HTML
 		
 		}
 		

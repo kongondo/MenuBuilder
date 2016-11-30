@@ -48,13 +48,13 @@ $(document).ready(function(){
 	/* 04. #### MarkupAdminDataTable #### */
 
 	/** Toggle all checkboxes in the list of menus tables **/
-	$('input.toggle_all').click(function(){
+	/*$('input.toggle_all').click(function(){
 		if ($(this).prop('checked')) {
 			$('input.toggle').prop('checked', true);
 		} else {
 			$('input.toggle').prop('checked', false);
 		}
-	});
+	});*/
 
 	/** Fix for MarkupAdminDataTable: Don't enable sorting on first column with input checkbox **/
 	//if ($.tablesorter != undefined) $.tablesorter.defaults.headers = {0:{sorter:false}};
@@ -286,3 +286,9 @@ $(document).ready(function(){
 	//###############################################################################################################
 		
 });//end jQuery
+
+/** Toggle all checkboxes in the list of menus tables **/
+$(document).on('change', 'input.toggle_all', function() {
+	if ($(this).prop('checked')) $('input.toggle').prop('checked', true);
+	else $('input.toggle').prop('checked', false);
+});
