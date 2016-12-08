@@ -32,7 +32,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 16,
+			'version' => 17,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true, 
 			'autoload' => false, 
@@ -184,8 +184,10 @@ class MarkupMenuBuilder extends WireData implements Module {
 			$cssItemClass .= ' ' . $o->defaultClass;
 
 			//$m->cssClass = isset($item['css_itemclass']) ? $item['css_itemclass'] : '';
-			#$m->cssClass = trim($cssItemClass) != '' ? $cssItemClass : '';
-			$m->cssClass = !ctype_space($cssItemClass) ? $cssItemClass : '';			
+			//$m->cssClass = trim($cssItemClass) != '' ? $cssItemClass : '';
+			$m->cssClass = !ctype_space($cssItemClass) ? $cssItemClass : '';
+
+			$m->cssLinkClass = isset($o->defaultLinkClass) ? $o->defaultLinkClass : '';		
 
 			$m->includeChildren = isset($item['include_children']) ? $item['include_children'] : '';
 			if($m->includeChildren == 5) $m->includeChildren = 0;// for consistency with $o->includeChildren
@@ -363,10 +365,13 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$classes = $itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst;
 				$classes = trim(preg_replace('/\s+/', ' ', $classes));
 				$class = strlen($classes) ? ' class="' . $classes . '"' : '';
+
+				$itemLinkCSSClass = $m->cssLinkClass;
+				$link_class = strlen($itemLinkCSSClass) ? ' class="' . $itemLinkCSSClass . '"' : '';
 		
 				// if $iTag is empty, apply css id and classes to <a> instead
 				if(!$iTag) $out .= "\n\t<a{$itemCSSID}{$class}{$newtab} href='{$m->url}'>{$m->title}</a>";
-				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab} href='{$m->url}'>{$m->title}</a>";
+				else $out .= "\n\t<{$iTag}{$itemCSSID}{$class}>\n\t\t<a{$newtab} {$link_class} href='{$m->url}'>{$m->title}</a>";
 
 				// build nested/sub-elements
 				$out .= str_replace("\n", "\n\t\t", $this->buildMenu($m->id));		
@@ -1034,24 +1039,25 @@ class MenuOptions extends WireData {
 		*/
 
 		// define menu properties
-		$this->set('wrapperListType', isset($options['wrapper_list_type']) ? $options['wrapper_list_type'] : 'ul');
-		$this->set('listType', isset($options['list_type']) ? $options['list_type'] : 'li');
-		$this->set('menucssID', isset($options['menu_css_id']) ? $options['menu_css_id'] : '');
-		$this->set('menucssClass', isset($options['menu_css_class']) ? $options['menu_css_class'] : '');
-		$this->set('submenucssClass', isset($options['submenu_css_class']) ? $options['submenu_css_class'] : '');
-		$this->set('hasChildrenClass', isset($options['has_children_class']) ? $options['has_children_class'] : '');
-		$this->set('firstClass', isset($options['first_class']) ? $options['first_class'] : '');
-		$this->set('lastClass', isset($options['last_class']) ? $options['last_class'] : '');
-		$this->set('currentClass', isset($options['current_class']) ? $options['current_class'] : '');
-		$this->set('currentClassLevel', isset($options['current_class_level']) ? $options['current_class_level'] : 1);
-		$this->set('currentCSSID', isset($options['current_css_id']) ? $options['current_css_id'] : '');		
-		$this->set('defaultClass', isset($options['default_class']) ? $options['default_class'] : '');
-		$this->set('divider', isset($options['divider']) ? $options['divider'] : '&raquo;');
-		$this->set('prependHome', isset($options['prepend_home']) ? $options['prepend_home'] : 0);
-		$this->set('defaultTitle', isset($options['default_title']) ? $options['default_title'] : 0);
-		$this->set('includeChildren', isset($options['include_children']) && strlen($options['include_children']) ? $options['include_children'] : 4);
-		$this->set('menuMaxLevel', isset($options['m_max_level']) ? $options['m_max_level'] : 1);
-		$this->set('breadcrumbMaxLevel', isset($options['b_max_level']) ? $options['b_max_level'] : 1);
+		$this->set('wrapperListType', 		isset($options['wrapper_list_type']) 			? $options['wrapper_list_type'] 	: 'ul');
+		$this->set('listType', 				isset($options['list_type']) 					? $options['list_type'] 			: 'li');
+		$this->set('menucssID', 			isset($options['menu_css_id']) 					? $options['menu_css_id'] 			: '');
+		$this->set('menucssClass', 			isset($options['menu_css_class']) 				? $options['menu_css_class'] 		: '');
+		$this->set('submenucssClass', 		isset($options['submenu_css_class']) 			? $options['submenu_css_class'] 	: '');
+		$this->set('hasChildrenClass', 		isset($options['has_children_class']) 			? $options['has_children_class'] 	: '');
+		$this->set('firstClass', 			isset($options['first_class']) 					? $options['first_class'] 			: '');
+		$this->set('lastClass', 			isset($options['last_class']) 					? $options['last_class'] 			: '');
+		$this->set('currentClass', 			isset($options['current_class']) 				? $options['current_class'] 		: '');
+		$this->set('currentClassLevel', 	isset($options['current_class_level']) 			? $options['current_class_level'] 	: 1);
+		$this->set('currentCSSID', 			isset($options['current_css_id']) 				? $options['current_css_id'] 		: '');		
+		$this->set('defaultClass', 			isset($options['default_class']) 				? $options['default_class'] 		: '');
+		$this->set('defaultLinkClass', 		isset($options['default_link_class']) 			? $options['default_link_class'] 	: '');
+		$this->set('divider', 				isset($options['divider']) 						? $options['divider'] 				: '&raquo;');
+		$this->set('prependHome', 			isset($options['prepend_home']) 				? $options['prepend_home'] 			: 0);
+		$this->set('defaultTitle', 			isset($options['default_title']) 				? $options['default_title'] 		: 0);
+		$this->set('menuMaxLevel', 			isset($options['m_max_level']) 					? $options['m_max_level'] 			: 1);
+		$this->set('breadcrumbMaxLevel', 	isset($options['b_max_level']) 					? $options['b_max_level'] 			: 1);
+		$this->set('includeChildren', 		isset($options['include_children']) && strlen($options['include_children']) ? $options['include_children'] : 4);
 
 	}
 
