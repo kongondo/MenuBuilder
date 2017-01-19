@@ -349,6 +349,10 @@ GPL2
 
 ## Changelog
 
+#Version 0.1.7
+1. Fixed minor bug that affected display of titles of menu items with apostrophes in menu settings.
+2. Code cleanup.
+
 #Version 0.1.6
 1. Fixed JS Bug where select all checkbox was not working in Menu Builder dashboard.
 2. Fixed issue where InputfieldMarkup would not properly render HTML in descriptions.
