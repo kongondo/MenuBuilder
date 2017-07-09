@@ -2141,7 +2141,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		// it would probably be sufficient just to locate by name, but this is just to be extra sure.
 		$moduleID = $this->wire('modules')->getModuleID($this);
 		$mbPage = $pages->get("template=admin, process=$moduleID, name=" . self::PAGE_NAME);
-		// $page = $this->pages->get('template=admin, name='.self::PAGE_NAME);
+		// $page = $pages->get('template=admin, name='.self::PAGE_NAME);
 
 		if($mbPage->id) {
 			// if we found the page, let the user know and delete it
