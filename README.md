@@ -308,7 +308,7 @@ You can use the following permissions to control visibility and access to variou
 * Create **permissions** and add assign them (when editing your role) to the role you created. 
 * Create a **user** and assign them the role with the Menu Builder permissions.
 
-There are 8 permissions at your disposal for fine-grained access control of your Menu Builder admin.
+There are 9 permissions at your disposal for fine-grained access control of your Menu Builder admin.
 
 1. **menu-builder-lock**
 This permission allows your non-superusers to lock and unlock menus using the 'Actions Panel' in Menu Builder's admin main page. **Note two things**:
@@ -338,6 +338,9 @@ This permission allows non-superusers to change the page field type used to sele
 8. **menu-builder-include-children**
 This permission allows non-superusers to set and use the include children feature.
 
+9. **menu-builder-disable-items**
+This permission allows non-superusers to set and use the disable menu items feature.
+
 ## Uninstall
 
 Uninstall like any other ProcessWire module. Note that **All your menus will be deleted on uninstall!**. The associated fields and template above will also be deleted.
@@ -352,9 +355,10 @@ GPL2
 
 #Version 0.1.8
 1. Added enable/disable menu items settings.
-2. Added 'check_listable' option not to display menu items not listable to current user.
-3. 'current_class' now also applies to breadcrumbs.
-4. Code cleanup.
+2. Added setting to use permission 'menu-builder-disable-items'.
+3. Added 'check_listable' option not to display menu items not listable to current user.
+4. 'current_class' now also applies to breadcrumbs.
+5. Code cleanup.
 
 #Version 0.1.7
 1. Fixed minor bug that affected display of titles of menu items with apostrophes in menu settings.
