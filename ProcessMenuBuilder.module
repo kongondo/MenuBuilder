@@ -1018,6 +1018,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	private function listMenu($parent = 0, $menuItems = Array(), $first = 0) {
 
 		$menuID = (int) $this->wire('input')->get->id;
+		$disableItemMarkup = '';
 
 		if($menuID) {
 
