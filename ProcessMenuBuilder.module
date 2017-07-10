@@ -34,7 +34,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder: Process',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 17,
+			'version' => 18,
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -58,6 +58,12 @@ class ProcessMenuBuilder extends Process implements Module {
 	 *
 	 */
 	private $includeChildren;
+
+	/**
+	 * Property to store disable items setting (boolean).
+	 *
+	 */
+	private $disableItems;
 
 	/**
 	 * string name of the cookie used to save limit of posts to show per page in posts dashboard.
@@ -377,15 +383,16 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			if($menuPagesJSON) $menuPages = json_decode($menu->menu_pages, true);
 
-
-			// set include children status for users with right permission
-			if(count($menuPages)) {
-				foreach ($menuPages as $key => $value) {
-					if($key == 'children' && $this->wire('user')->hasPermission('menu-builder-include-children')) {
-						$this->includeChildren = $value;
-						break;
-					}
+			// set include children + disable items status + for users with right permission
+			if(count($menuPages)) {				
+				// enable include children feature
+				if(isset($menuPages['children']) && $this->wire('user')->hasPermission('menu-builder-include-children')) {
+					$this->includeChildren = $menuPages['children'];
 				}
+				// enable 'enable/disable' items feature
+				if(isset($menuPages['disable_items']) && $this->wire('user')->hasPermission('menu-builder-disable-items')) {
+					$this->disableItems = $menuPages['disable_items'];
+				}	
 			}
 
 			// fetch this menu's JSON string with menu items properties
@@ -882,6 +889,30 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		}// end if user can change and use allow markup/HTML setting
 
+		// if user can edit and use 'disable menu items' feature
+		if($user->hasPermission('menu-builder-disable-items')) {
+
+			// only 'Enable Disable Item' options
+			$disableItems = isset($menuPages['disable_items']) ? 1 : 2;
+
+			// radios: enable include children feature
+			$r = new InputfieldRadios();
+			$r->attr('id+name', 'menu_item_disable_items');
+			$r->label =  $this->_('Use enable/disable menu items feature');
+			$r->notes = $this->_('Allows you to set some menu items as disabled. If an item is disabled, the item together will all of its descendants will be set as disabled after you save the menu settings. Disabled items will not be output when the menu is viewed in the frontend.');
+
+			$radioOptions = array (
+							 1 => $this->_('Yes'),
+							 2 => $this->_('No'),
+		 	);
+
+			$r->addOptions($radioOptions);
+			$r->value = $disableItems;
+
+			$tab->add($r);
+
+		}// end if user can change and use allow markup/HTML setting
+
 		// if user has permission to allow editing of nestedSortable settings
 		if($user->hasPermission('menu-builder-settings')) {
 
@@ -1016,8 +1047,10 @@ class ProcessMenuBuilder extends Process implements Module {
 					5 => $this->_('Never'),
 			);
 
+
 			// $id is = id; $item = arrays of title, url, newtab, etc
 			foreach ($menuItems as $id => $item) {
+				
 
 				// set variables
 				$title = $item['title'];
@@ -1031,20 +1064,23 @@ class ProcessMenuBuilder extends Process implements Module {
 				$newtab = isset($item['newtab']) ? $item['newtab'] : 0;
 				$includeChildren = isset($item['include_children']) ? $item['include_children'] : '';
 				$menuMaxLevel = isset($item['m_max_level']) ? $item['m_max_level'] : '';
+				$disabledItem = isset($item['disabled_item']) ? $item['disabled_item'] : '';				
+				$disabledClass = $disabledItem ? ' menu_item_disabled' : '';
 
 				// PW pages should not have attribute target='_blank' - so no need for checkbox below
 
 				// if dealing with custom menu items
 				if($pages_id == 0) {
 
-						$checked = $newtab ? "checked" : '';
-						$newTabMarkup = "<label for='newtab{$id}'>
-											<input type='checkbox' name='newtab[{$id}]' value='{$id}' class='menu_settings' id='newtab{$id}' {$checked}>" .
+						$checked = $newtab ? 'checked' : '';
+						$newTabMarkup = "<label for='newtab{$id}'>" .
+											"<input type='checkbox' name='newtab[{$id}]' value='{$id}' class='menu_settings' id='newtab{$id}' {$checked}>" .
 											$this->_('Open link in a new tab/window') .
 										"</label>";
 
 						$type = $this->_('Custom');
 						$readonly = '';
+						$disableItemMarkup = '';
 
 				}
 
@@ -1069,15 +1105,25 @@ class ProcessMenuBuilder extends Process implements Module {
 
 						$includeChildrenMarkup = "
 
-						<span class='include_children'>" . $this->_('Include natural children') . "</span>
-						<select name='include_children[{$id}]' class='include_children'>" .
+						<span class='include_children'>" . $this->_('Include natural children') . "</span>" .
+						"<select name='include_children[{$id}]' class='include_children'>" .
 							$opts .
-						"</select>
-						<label class='include_children'>" . $this->_('Level') . "<input type='text' value='{$menuMaxLevel}' name='mb_max_level[{$id}]'></label>";
+						"</select>" .
+						"<label class='include_children'>" . $this->_('Level') . "<input type='text' value='{$menuMaxLevel}' name='mb_max_level[{$id}]'></label>";
 
 				}
 
-				if ($parent_id == $parent) {// if this menu item is a parent; create the inner-items/child-menu-items
+				// if menu item disabled
+				if($this->disableItems == 1) {
+						$checked = $disabledItem ? 'checked' : '';
+						$disableItemMarkup = "<label for='disabled_item{$id}'>" .
+											"<input type='checkbox' name='disabled_item[{$id}]' value='{$id}' class='menu_disabled' id='disabled_item{$id}' {$checked}>" .
+											$this->_('Disabled') .
+										"</label>";
+				}
+				
+				// if this menu item is a parent; create the inner-items/child-menu-items
+				if ($parent_id == $parent) {
 					// if this is the first child output '<ol>' with the class 'sortable'
 					if ($has_child === false) {
 						$has_child = true;// This is a parent
@@ -1095,7 +1141,7 @@ class ProcessMenuBuilder extends Process implements Module {
 							"<li id='item_{$id}' class='menu_item'>
 								<div class='handle'>
 								<a href='#' data-id='{$id}' class='item_expand_settings'><i data-id='{$id}' class='fa fa-caret-down'></i></a>
-								<span class='item_title_main' data-id='{$id}'>{$title}</span>
+								<span class='item_title_main{$disabledClass}' data-id='{$id}'>{$title}</span>
 								<span class='item_type_wrapper'>
 								<span class='item_type'>{$type}</span>
 								<a href='#' class='remove_menu'><i class='fa fa-trash'></i></a>
@@ -1118,7 +1164,9 @@ class ProcessMenuBuilder extends Process implements Module {
 
 						<label for="css_itemclass' . $id . '">' . $this->_("CSS Class (single or multiple values separated by space)") . '</label>
 						<input type="text" value="' . $cssitemclass . '" name="css_itemclass[' . $id . ']" class="menu_settings" id="css_itemclass' . $id . '">' .
-						 $includeChildrenMarkup .
+						$includeChildrenMarkup .
+
+						$disableItemMarkup .
 
 						$newTabMarkup .
 
@@ -1127,6 +1175,7 @@ class ProcessMenuBuilder extends Process implements Module {
 						<input type='hidden' value='{$parent_id}' name='item_parent[{$id}]' id='item_parent{$id}'>
 
 					</div>\n";
+
 
 					// call function again to generate nested list for sub-menu items belonging to this menu item.
 					$out .= $this->listMenu($id, $menuItems, $first);
@@ -1569,6 +1618,12 @@ class ProcessMenuBuilder extends Process implements Module {
 					$includeChildren = $menuPagesNew['children'] = (int) $post->menu_item_include_children == 1 ? 1 : '';
 				}
 
+				// if user can change and use disable items setting
+				if($user->hasPermission('menu-builder-disable-items')) {
+					// we only save this if user selects Yes; otherwise defaults to No (don't allow disabling of menu items)
+					$disableItems = $menuPagesNew['disable_items'] = (int) $post->menu_item_disable_items == 1 ? 1 : '';
+				}
+
 				// merge newly set menuPages values with (any) existing ones
 				$menuPagesSaved = json_decode($menu->menu_pages, true);
 				if(!is_array($menuPagesSaved)) $menuPagesSaved = array();
@@ -1606,6 +1661,8 @@ class ProcessMenuBuilder extends Process implements Module {
 
 				// array to hold our all our menu items
 				$menuItems = array();
+				// to hold IDs of disabled items to action cascading same status to descendants
+				$disabledItemsIDs = array();
 
 				// loop through the existing, updated menu items sent from nestedSortable
 				// only loop if we have existing menu times. we check the hidden field with IDs of menu items
@@ -1646,6 +1703,12 @@ class ProcessMenuBuilder extends Process implements Module {
 									$itemMMaxLevel = $itemIncludeChildren == 1 || $itemIncludeChildren == 3 ? (int) $post->mb_max_level[$itemID] : '';
 								}
 
+								// if current user can edit enable/disable menu items feature + change items enabled status
+								$itemDisabled = $disableItems && isset($post->disabled_item[$itemID]) ? 1 : '';							
+								
+								// if parent is disabled, then disable all descendants as well
+								if(in_array($itemParent, $disabledItemsIDs)) $itemDisabled = 1;
+								
 								$menuItems[$itemID] = array(
 
 										'title' => $itemTitle,
@@ -1656,8 +1719,12 @@ class ProcessMenuBuilder extends Process implements Module {
 										'pages_id' => $itemPagesID,
 										'newtab' => $itemNewTab,
 										'include_children' => $itemIncludeChildren,
+										'disabled_item' => $itemDisabled,
 										'm_max_level' => $itemMMaxLevel,
 								);
+
+								// add disabled item to array to check if to apply same status to descendants
+								if($itemDisabled) $disabledItemsIDs[] = $itemID;
 
 							}// end foreach loop for existing menu items
 

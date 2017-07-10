@@ -87,7 +87,7 @@ $defaultOptions = array(
 This method renders a breadcrumb navigation of a specified menu. The method also accepts two arguments/parameters:
 
 ````php
-render($menu, $options);
+renderBreadcrumbs($menu, $options);
 
 ````
 
@@ -130,7 +130,7 @@ Similar to **render()**, the first argument is not optional and can be a Page ob
 ### Options
 
 * Unless indicated otherwise, all the following options apply to both **menus (render())** and **breadcrumbs (renderBreadcrumbs())**.
-* Only three options apply to **getMenuItems()**: *default_title, default_class and current_class_level*.
+* Only four options apply to **getMenuItems()**: *default_title, default_class, current_class_level and check_listable*.
 * The term navigation is used in the context of both menus and breadcrumbs. 
 * The term 'Class(es)' indicates that multiple CSS Classes can be applied, separated by space.
 
@@ -153,6 +153,7 @@ Similar to **render()**, the first argument is not optional and can be a Page ob
 6. **m_max_level**:  This is a menu-only option related to the **include children** feature. It limits the depth from within which viewable descendant pages can be retrieved for display in a menu. The default is 1. This means that only fetch immediate children. A value of 2 means fetch both children and grandchildren, etc. The option can be applied globally and locally as explained previously.
 7. **b_max_level**:  This is breadcrumb-only option related to the **include children** feature. It limits the depth from within which viewable descendant pages can be retrieved for display in a breadcrumb. The default is 1. This means that only fetch immediate children. A value of 2 means fetch both children and grandchildren, etc. The option can only be applied globally.
 8. **current_class_level**: Using this option, you can specify how high up the menu tree you want to apply the **'current_class'** to the current item's ancestors. The default is 1, meaning (if specified) apply the **'current_class'** to only the current item. A setting of 3 implies apply it to the current item, its parent and grandparent, etc. In short, the option can be used to show some or all 'active/current' menu items at various levels in your menu. This option only applies to menus and not breadcrumbs.
+9. **check_listable**:  If set to 1, will not display items that are not (ProcessWire-) listable to the current user. The default is to show all items.
 
 ## How to Use
 
@@ -348,6 +349,12 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ## Changelog
+
+#Version 0.1.8
+1. Added enable/disable menu items settings.
+2. Added 'check_listable' option not to display menu items not listable to current user.
+3. 'current_class' now also applies to breadcrumbs.
+4. Code cleanup.
 
 #Version 0.1.7
 1. Fixed minor bug that affected display of titles of menu items with apostrophes in menu settings.

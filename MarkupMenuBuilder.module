@@ -31,7 +31,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 17,
+			'version' => 18,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -159,23 +159,39 @@ class MarkupMenuBuilder extends WireData implements Module {
 	private function processMenu(Array $menuItems) {
 
 		$o = $this->options;
+		$pages = $this->wire('pages');
 
 		$menu = new WireArray();
 
 		// create new menu objects from each item in the array
 		foreach ($menuItems as $id => $item) {
 
+			// if menu item disabled, ignore it
+			if(isset($item['disabled_item'])) continue;
+
+			$pagesID = isset($item['pages_id']) ? (int) $item['pages_id'] : '';
+			$p = null;
+			if($pagesID) {
+				$p = $pages->get($pagesID);
+				if(!$p || $p->id < 0) continue;
+			}
+			
+			// if option to check listable, skip if page not listable
+			if($o->checkListable && $p && !$p->listable()) continue;
+			
 			$m = new Menu();
+
+			## set Object Properties ##
 
 			$m->id = $id;
 			$m->parentID = isset($item['parent_id']) ? $item['parent_id'] : 0;// if parent_id not set, it means they are top tier items
-			$m->pagesID = isset($item['pages_id']) ? $item['pages_id'] : 0;// for PW pages, use their native IDs
+			$m->pagesID = $pagesID ? $pagesID : 0;// for PW pages, use their native IDs
 
 			// display saved vs actual/multilingual menu title/label
 			if($o->defaultTitle == 0 || $m->pagesID == 0) $m->title = $item['title'];
-			elseif($o->defaultTitle == 1) $m->title = $this->wire('pages')->get($m->pagesID)->title;
+			elseif($o->defaultTitle == 1) $m->title = $p->title;
 
-			$m->url = $m->pagesID ? $this->wire('pages')->get($m->pagesID)->url : $item['url'];// for PW pages, use their native URLs
+			$m->url = $m->pagesID ? $p->url : $item['url'];// for PW pages, use their native URLs
 			$m->newtab = isset($item['newtab']) ? 1 : '';
 			$m->cssID = isset($item['css_itemid']) ? $item['css_itemid'] : '';
 
@@ -188,7 +204,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 			$m->includeChildren = isset($item['include_children']) ? $item['include_children'] : '';
 			if($m->includeChildren == 5) $m->includeChildren = 0;// for consistency with $o->includeChildren
-			$m->menuMaxLevel  = isset($item['m_max_level']) ? $item['m_max_level'] : '';
+			$m->menuMaxLevel  = isset($item['m_max_level']) ? $item['m_max_level'] : '';			
 
 			$menu->add($m);
 
@@ -197,8 +213,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 		// add some other menu properties directly to the menu objects in this WireArray
 		foreach ($menu as $m) {
 				 $children = $menu->find("parentID=$m->id");
-				 if($children->count()) {
 
+				 if($children->count()) {
 						// set this item as a parent if it has children - for 'has_children'
 						$m->isParent = 1;
 
@@ -209,9 +225,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 						// add a last-child property to the menu item that is a last child - for use with 'last_class'
 						$last = $menu->get('id=' . $children->last()->id);
 						$last->isLast = 1;
-
 				 }
-
 
 		}// end 2nd foreach
 
@@ -413,7 +427,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		$rawMenuItems = $this->processRawMenu($menuItems);
 		// exit with error if no menu items found
 		if(!is_array($rawMenuItems)) return $this->throwError();
-
+	
 		$menu = $this->processMenu($rawMenuItems);// convert raw menu items to Menu objects
 
 		### - checks to see if to apply 'include_children' etc... - ###
@@ -528,9 +542,10 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$cssMenuID =  $o->menucssID ? ' id ="' . $o->menucssID . '" ' : '';
 				$cssMenuClass = $o->menucssClass ? 'class ="' . $o->menucssClass . '"' : '';
 
-				// css ID for current menu item {there is only one}
+				// css ID + Class for current menu item {there is only one}
 				$itemCurrent = $o->currentCSSID;
 				$cssID = strlen($itemCurrent) ? 'id="' . $itemCurrent . '"' : '';
+				$currentClass = $o->currentClass ? 'class ="' . $o->currentClass . '"' : '';
 
 				// build the breadcrumb
 				$out = '';
@@ -588,7 +603,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 								// if option set, include non-MB menu item pages if applicable
 								if($includeFamily) $out .= $includeFamily;
-								else $out .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} >{$title}</{$iTag}>";
+								else $out .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} {$currentClass}>{$title}</{$iTag}>";
 						}
 
 						$i++;
@@ -617,7 +632,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	private function currentItemParents($id, WireArray $menu) {
 
 		$out = '';
-		if($id && $menu->get('id=' . $id)->parentID) {
+		if($id && $menu->get('id=' . $id)->parentID) {// @TODO...PHP ERRORS HERE SOMETIMES?
 				$out .= $id . ',';// add the first's parent id
 				$parentID = $menu->get('id=' . $id)->parentID;
 				// recursively get the next parent item (ancestry: grandparent, great...etc)
@@ -673,7 +688,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 					// filter for viewable parents and homepage
 					if($parent->viewable() && $parent->id !=1) $parentIDs->add($parent);
 					$j++;// this means even non-viewable parents are counted
-		 			if($j == $o->breadcrumbMaxLevel) break;// @todo. note: for now, no $m->breadcrumbMaxLevel
+		 			if($j == $o->breadcrumbMaxLevel) break;// @todo. @note: for now, no $m->breadcrumbMaxLevel
 				}
 
 		}
@@ -753,9 +768,10 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		$iTag = $o->listType;// item tag. default = <li>
 		$divider = ' ' . $o->divider . ' ';// note the spaces before and after!
-		// css ID for current menu item {there is only one}
+		// css ID + Class for current menu item {there is only one}
 		$itemCurrent = $o->currentCSSID;
 		$cssID = strlen($itemCurrent) ? 'id="' . $itemCurrent . '"' : '';
+		$currentClass = $o->currentClass ? 'class ="' . $o->currentClass . '"' : '';
 
 		foreach ($selectedParents->reverse() as $p) {
 				if($closestParent->parents->has($p)) continue;// remove any parents that are already part of the navigation (to avoid duplicates)
@@ -765,7 +781,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		// append current page (our last item in this case)
 		$title = $this->wire('page')->title;
-		$miniBreadcrumbs .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} >{$title}</{$iTag}>";
+		$miniBreadcrumbs .= !$iTag ? "{$title}" : "<{$iTag} {$cssID} {$currentClass}>{$title}</{$iTag}>";
 
 		return $miniBreadcrumbs;
 
@@ -786,6 +802,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	private function includedFamilyMenu(Page $page = null, $depth = 1, $firstChild = null) {
 
 		// @credits @slkwrm for some code (https://processwire.com/talk/topic/563-page-level-and-sub-navigation/?p=4490)
+		// @TODO...unsure if $depth is working properly here?
 
 		$o = $this->options;
 		$depth -= 1;
@@ -1012,7 +1029,7 @@ class MenuOptions extends WireData {
 			has_children_class// any menu item that has children - NOT for breadcrumbs
 			first_class// NOT for breadcrumbs
 			last_class// NOT for breadcrumbs
-			current_class// NOT for breadcrumbs
+			current_class// for both breadcrumbs and menus
 			Number of ancestors to apply 'current_class' to besides current item
 			current_class_level// NOT for breadcrumbs - 1=current item only;2=current+parent;3=current+parent+grandparent
 			current_css_id// only for breadcrumbs
@@ -1046,6 +1063,7 @@ class MenuOptions extends WireData {
 		$this->set('includeChildren', isset($options['include_children']) && strlen($options['include_children']) ? $options['include_children'] : 4);
 		$this->set('menuMaxLevel', isset($options['m_max_level']) ? $options['m_max_level'] : 1);
 		$this->set('breadcrumbMaxLevel', isset($options['b_max_level']) ? $options['b_max_level'] : 1);
+		$this->set('checkListable', isset($options['check_listable']) ? 1 : '');
 
 	}
 
@@ -1074,6 +1092,7 @@ class Menu extends WireData {
 		$this->set('pagesID', '');// for pw pages
 		$this->set('cssID', '');
 		$this->set('cssClass', '');
+		$this->set('disabledItem', '');
 
 	}
 

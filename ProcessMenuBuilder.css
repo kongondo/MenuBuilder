@@ -147,12 +147,13 @@ div#menu_sortable_wrapper label {
 
 div.settings input[type=text].menu_settings {width:90%; margin-left: 1em !important; padding: 0.45em 0 0.45em 0.35em!important;}
 div.settings input[type=text].readonly {color: #646464 !important; background:#EBEBEB !important;}
-div.settings input[type=checkbox].menu_settings {margin-right: 0.3em; vertical-align: middle;}
+div.settings input[type=checkbox].menu_settings, div.settings input[type=checkbox].menu_disabled{margin-right: 0.3em; vertical-align: middle;}
 div.settings span.include_children {display: block; margin: 0.5em 0 0 1em; font-style: italic;}
 div.settings label.include_children {font-style: normal !important;	padding-top: 0 !important; margin-top: -0.3em;}
 div.settings select.include_children, div.settings label.include_children input[type='text']{vertical-align: middle; float: left;}
 div.settings select.include_children {margin: 0.3em 1em;}
 div.settings label.include_children input[type='text'] {width:12%; margin-right: 0.5em;	height: 1.7em;}
+span.menu_item_disabled {text-decoration: line-through;}
 
 
 /******** Third Tab (Settings) ************/
