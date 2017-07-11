@@ -1020,6 +1020,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$menuID = (int) $this->wire('input')->get->id;
 		$disableItemMarkup = '';
 
+
 		if($menuID) {
 
 			$has_child = false;
@@ -1048,13 +1049,12 @@ class ProcessMenuBuilder extends Process implements Module {
 					5 => $this->_('Never'),
 			);
 
-
 			// $id is = id; $item = arrays of title, url, newtab, etc
-			foreach ($menuItems as $id => $item) {
-				
+			foreach ($menuItems as $id => $item) {				
 
 				// set variables
 				$title = $item['title'];
+				$title2 = $this->wire('sanitizer')->entities($title);// for value of title input
 				// items without parent ids are top level items
 				// we give them an ID of 0 for display purposes (we won't save the value [see wireEncodeJSON()])
 				$parent_id = isset($item['parent_id']) ? $item['parent_id'] : 0;
@@ -1086,7 +1086,6 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 
 				else {
-
 						$type = $this->_('Page');
 						$url = $this->wire('pages')->get($pages_id)->path;
 						$readonly = ' readonly';
@@ -1155,7 +1154,7 @@ class ProcessMenuBuilder extends Process implements Module {
 					$out .=
 					'<div id="menu_edit' . $id . '" class="settings">
 						<label for="item_title' . $id . '">' . $this->_("Title") . '</label>
-						<input type="text" value="' . $title . '" name="item_title[' . $id . ']" class="menu_settings" id="item_title' . $id . '">
+						<input type="text" value="' . $title2 . '" name="item_title[' . $id . ']" class="menu_settings" id="item_title' . $id . '">
 
 						<label for="item_url' . $id . '">' . $this->_("URL") . '</label>
 						<input type="text" value="' . $url . '" name="item_url[' . $id . ']" class="menu_settings' . $readonly . '" id="item_url' . $id . '" ' . $readonly . '>

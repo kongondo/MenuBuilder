@@ -939,7 +939,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$menuItems[$m->id] = array(
 					'parent_id' => $m->parentID,// parent within this menu item; if 0 means top tier menu item
 					'pages_id' => $m->pagesID,// if 0 means external URl
-					'title' => $m->title,// default_title: 0=show saved titles;1=show actual/current titles
+					'title' => $m->title,// default_title: 0=show saved mb titles;1=show actual/current pw titles
 					'url' => $m->url,// menu items URL
 					'newtab' => $m->newtab,// open link in new tab?
 					'css_itemid' => $m->cssID,// the items own CSS ID
@@ -1038,7 +1038,7 @@ class MenuOptions extends WireData {
 			prepend home page at the as topmost item even if it isn't part of the breadcrumb
 			prepend_home// only for breadcrumbs => 0=no;1=yes
 			for PW pages, whether to show saved menu item titles/labels vs actual ones, e.g. useful for multilingual sites
-			default_title// 0=show saved titles;1=show actual/current titles
+			default_title// 0=show mb saved titles;1=show actual/current pw titles
 			include_children// whether to include natural/pw children of menu items;0=never;1=in menu only;2=in breadcrumbs only;3=in both;4=do not show
 			m_max_level// menus only - in conjunction with 'include_children', how many (depth) ancestral children, grandchildren, etc to show
 			b_max_level// breadcrumbs only - in conjunction with 'include_children', how many (depth) ancestral parents, grandparents, etc to show
