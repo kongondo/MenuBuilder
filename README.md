@@ -124,7 +124,7 @@ getMenuItems($menu, $type, $options);
 
 ````
 
-Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. The second argument determines the type of items that the method will return. A value of 1 will return an array and one of 2 (the default) will return a WireArray Menu Object. The third argument is similar to the $options passed to **render()**. **Please note that only three options are applicable to getMenuItems(), i.e.** *default_title, default_class and current_class_level*. You can, of course, create a function that will accept passing additional options (similar to **render()**) as an argument.
+Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. The second argument determines the type of items that the method will return. A value of 1 will return an array and one of 2 (the default) will return a WireArray Menu Object. The third argument is similar to the $options passed to **render()**. **Please note that only four options are applicable to getMenuItems(), i.e.** *default_title, default_class, current_class_level and check_listable*. You can, of course, create a function that will accept passing additional options (similar to **render()**) as an argument.
 
 
 ### Options
