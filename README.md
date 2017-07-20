@@ -341,6 +341,9 @@ This permission allows non-superusers to set and use the include children featur
 9. **menu-builder-disable-items**
 This permission allows non-superusers to set and use the disable menu items feature.
 
+10. **menu-builder-multi-lingual-items**
+This permission allows non-superusers to set and use the multi-lingual menu items feature (available only on multi-lingual sites).
+
 ## Uninstall
 
 Uninstall like any other ProcessWire module. Note that **All your menus will be deleted on uninstall!**. The associated fields and template above will also be deleted.
@@ -352,6 +355,11 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ## Changelog
+
+#Version 0.1.9
+1. All (custom and pages) menu items now optionally multi-lingual.
+2. Added setting to use permission 'menu-builder-multi-lingual-items'.
+5. Code refactoring.
 
 #Version 0.1.8
 1. Added enable/disable menu items settings.

@@ -127,7 +127,8 @@ div.handle i.fa-trash {
 
 /* Menu settings div */
 div.settings {	
-	display: inline-block;
+	/*display: inline-block;*/
+	display: none;
 	margin-bottom: 10px;
 	width:100%;
 	background: #F9F9F9;/*light grey*/
@@ -153,7 +154,27 @@ div.settings label.include_children {font-style: normal !important;	padding-top:
 div.settings select.include_children, div.settings label.include_children input[type='text']{vertical-align: middle; float: left;}
 div.settings select.include_children {margin: 0.3em 1em;}
 div.settings label.include_children input[type='text'] {width:12%; margin-right: 0.5em;	height: 1.7em;}
+
+/*@TODO...REARRANGE THIS CSS! */
+
+
+div.menu_edit_language_selector {height: 25px;}
+div.menu_language_wrapper {position: relative;	min-height: 135px;}
+div.menu_language {position: absolute;	top: 0; left: 0; width: 100%; display: none;}
+div.menu_language.menu_language_active {display: block;}
+
+
 span.menu_item_disabled {text-decoration: line-through;}
+span.menu_language_selector {
+		display: inline-block;
+		margin-top: 5px;
+		margin-right: 5px;
+		font-size: 85%;
+		cursor: pointer;
+		padding: 0 0.25em;
+}
+span.menu_language_selector:first-child {margin-left: 1em;}
+span.menu_language_active{background-color: #d2dce6;}
 
 
 /******** Third Tab (Settings) ************/

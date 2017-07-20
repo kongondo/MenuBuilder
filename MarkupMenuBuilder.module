@@ -31,7 +31,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 18,
+			'version' => 19,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -163,6 +163,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		$menu = new WireArray();
 
+		$language = $this->wire('user')->language ? $this->wire('user')->language : null;
+
+	
 		// create new menu objects from each item in the array
 		foreach ($menuItems as $id => $item) {
 
@@ -187,11 +190,32 @@ class MarkupMenuBuilder extends WireData implements Module {
 			$m->parentID = isset($item['parent_id']) ? $item['parent_id'] : 0;// if parent_id not set, it means they are top tier items
 			$m->pagesID = $pagesID ? $pagesID : 0;// for PW pages, use their native IDs
 
+			// title
+			$title = $item['title'];			
 			// display saved vs actual/multilingual menu title/label
-			if($o->defaultTitle == 0 || $m->pagesID == 0) $m->title = $item['title'];
-			elseif($o->defaultTitle == 1) $m->title = $p->title;
+			if($o->defaultTitle == 0 || $m->pagesID == 0) {
+				// if multi-lingual site, check for multi-lingual title, otherwise fall back to default
+				if(!is_null($language)) {
+					if($language->name !='default' && isset($item["title_{$language->name}"])) $title = $item["title_{$language->name}"];
+					else $title = $item['title'];
+				}			  
+			}
+			// pw page, if showing default title
+			elseif($o->defaultTitle == 1) $title = $p->title;
 
-			$m->url = $m->pagesID ? $p->url : $item['url'];// for PW pages, use their native URLs
+			$m->title = $title;		
+
+			// URL
+			if($m->pagesID) $url = $p->url;
+			elseif(!is_null($language)) {
+				// if multi-lingual site, check for multi-lingual url, otherwise fall back to default
+				if($language->name !='default' && isset($item["url_{$language->name}"])) $url = $item["url_{$language->name}"];
+				else $url = $item['url'];
+			}
+			else $url = $item['url'];
+
+			$m->url = $url;
+
 			$m->newtab = isset($item['newtab']) ? 1 : '';
 			$m->cssID = isset($item['css_itemid']) ? $item['css_itemid'] : '';
 

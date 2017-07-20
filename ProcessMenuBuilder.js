@@ -202,6 +202,29 @@ $(document).ready(function(){
 		}
 	});
 
+	// language selector
+	$('div#menu_sortable_wrapper').on('click', 'span.menu_language_selector', function(){
+		$(this).siblings('.menu_language_selector').removeClass('menu_language_active');
+		$(this).addClass('menu_language_active');
+		var id = $(this).attr('data-language');
+		var p = $(this).parent();
+		p.next('div.menu_language_wrapper').children().hide();
+		$('div#' + id).show();
+	});
+
+	// if no active menu, set first as active
+	$('div.handle').on('click', 'span.item_title_main', function(){
+		var p = $(this).parent();
+		var c = p.next('div.settings').children('div.menu_edit_language_selector');
+		var s = c.find('span.menu_language_active');
+		if(!s.length) {
+			var f = c.find('span.menu_language_selector ').filter(':first');
+			f.addClass('menu_language_active');
+			var id = f.attr('data-language');
+			$('div#' + id).show();
+		}		
+	});
+
 
 	/* 08. #### nestedSortable #### */
 
@@ -216,7 +239,7 @@ $(document).ready(function(){
 
 			//**Configuration***
 			$('ol.sortable').nestedSortable({
-					rootID: 0,//name given to items at the root level; default is null
+					rootID: 0,// name given to items at the root level; default is null
 					disableNesting: 'mjs-nestedSortable-no-nesting',
 					forcePlaceholderSize: true,
 					handle: 'div',
@@ -228,7 +251,7 @@ $(document).ready(function(){
 					revert: 250,
 					tolerance: 'pointer',
 					toleranceElement: '> div',
-
+					containment: 'ol#sortable_main',
 					
 					//****** custom ******
 					maxLevels: moduleConfigNested.config.maxLevels,
