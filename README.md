@@ -356,74 +356,74 @@ GPL2
 
 ## Changelog
 
-#Version 0.1.9
+### Version 0.1.9
 1. All (custom and pages) menu items now optionally multi-lingual.
 2. Added setting to use permission 'menu-builder-multi-lingual-items'.
 5. Code refactoring.
 
-#Version 0.1.8
+### Version 0.1.8
 1. Added enable/disable menu items settings.
 2. Added setting to use permission 'menu-builder-disable-items'.
 3. Added 'check_listable' option not to display menu items not listable to current user.
 4. 'current_class' now also applies to breadcrumbs.
 5. Code cleanup.
 
-#Version 0.1.7
+### Version 0.1.7
 1. Fixed minor bug that affected display of titles of menu items with apostrophes in menu settings.
 2. Code cleanup.
 
-#Version 0.1.6
+### Version 0.1.6
 1. Fixed JS Bug where select all checkbox was not working in Menu Builder dashboard.
 2. Fixed issue where InputfieldMarkup would not properly render HTML in descriptions.
 
-#Version 0.1.5
+### Version 0.1.5
 1. Added method getMenuItems that greatly simplifies the creation of complex custom menus.
 
-#Version 0.1.4
+### Version 0.1.4
 1. Moved first tab 'Main' to become the third tab and renamed it to 'Settings' for better UX.
 
-#Version 0.1.3
+### Version 0.1.3
 1. Fixed bug where on uninstalling the module, menu pages in the trash would not get deleted, throwing an error when attempting to delete their template.
 
-#Version 0.1.2
+### Version 0.1.2
 1. As per a request, added ability to use 'Page List Select Multiple' page field to select pages to add to menu items. This is in addition to the existing AsmSelect and PageAutocomplete.
 2. Fixed bug where 'new_tab' setting would not be reliably applied to new custom links menu items.
 
-#Version 0.1.1
+### Version 0.1.1
 1. Fixed bug relating to getLanguageValue() (issues #22 and #25).
 2. Fixed bug where 'has_children' would not be applied to a menu item whose children were included 'natively'.
 3. Switched to $this->wire('pages') from wire('pages') (and similar).
 4. As per request at issue #18, added option 'default_class' to enable application of a default CSS class to every menu item at API level.
 
-#Version 0.1.0
+### Version 0.1.0
 1. 	Cleaned-up HTML output by MarkupMenuBuilder.
 
-#Version 0.0.9
+### Version 0.0.9
 1. 	Fixed bug in 'current_class_level' when 'include_children' is active.
 
-#Version 0.0.8
+### Version 0.0.8
 1. 	Added new feature 'include children'. Allows global (menu-level) or item-level inclusion of a ProcessWire page menu item's 'natural' descendants (children, grandchildren, etc) in menus/breadcrumbs at runtime. This means such pages do not have to be added as part of the navigation during editing in Menu Builder.
 2. 	Added a 'current_class_level' to specify how far up menus the 'current_class' should be applied (i.e. current/active parents).
 3. 	Permission 'menu-builder-included-children' added to limit access to the new feature 'include children'.
 
-#Version 0.0.7
+### Version 0.0.7
 1. 	Added multilingual support for saving and displaying menus/breadcrumbs.
 
-#Version 0.0.6
+### Version 0.0.6
 1. 	Added method in MarkupMenuBuilder for rendering breadcrumbs - renderBreadcrumbs().
 2.  Can now also pass Page object to method render() to render menu items/breadcrumbs
 
-#Version 0.0.5
+### Version 0.0.5
 1. 	Corrected some markup errors.
 
-#Version 0.0.4
+### Version 0.0.4
 1. 	Added various permissions to control visibility and editing of advanced settings
 
-#Version 0.0.3
+### Version 0.0.3
 1. 	Option to allow markup in menu item title (label) - superusers only
 2. 	Added more options to render() method, e.g. first, last classes
 
-#Version 0.0.2
+### Version 0.0.2
 1.	First Beta version
 2.	Menus saved as ProcessWire pages
 3.	Menu items saved as JSON in a field in Menu pages
@@ -435,5 +435,5 @@ GPL2
 9.	Highly configurable MarkupMenuBuilder
 
 
-#Version 0.0.1
+### Version 0.0.1
 Initial alpha release
