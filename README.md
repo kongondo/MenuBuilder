@@ -356,6 +356,9 @@ GPL2
 
 ## Changelog
 
+### Version 0.2.0
+1. Modified 'current_class_level' option to apply 'current_class' to a menu item when viewing any of its descendant child pages (child, grandchild, etc.) in cases where those descendant pages are neither part of the menu nor included via 'include_children' if its value is set to '0'.
+
 ### Version 0.1.9
 1. All (custom and pages) menu items now optionally multi-lingual.
 2. Added setting to use permission 'menu-builder-multi-lingual-items'.
