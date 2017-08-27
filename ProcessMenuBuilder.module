@@ -34,7 +34,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder: Process',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 20,
+			'version' => 21,
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -348,7 +348,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				$menuAddPageItems->label = $this->_('Pages');
 				//$menuAddPageItems->set('parent_id', 1300);// @todo: configurable?
 
-				// see notes above about his variable
+				// see notes above about this variable
 				$menuPagesInput = 3;
 		}
 
@@ -1650,6 +1650,21 @@ class ProcessMenuBuilder extends Process implements Module {
 
 	}
 
+	/**
+	 * Set the name of user's language as suffix for use for finding cached menus.
+	 *
+	 * @return String $value Hyphenated language name.
+	 *
+	 */
+	private function getLanguageSuffixes() {
+		$languageNames = array();
+		$language = $this->wire('user')->language ? true : false;
+		if($language) {
+			foreach($this->wire('languages') as $language) $languageNames[] = $language->name;
+		}
+		return $languageNames;
+	}
+
 	/* ######################### - HOOKS - ######################### */
 
 	/**
@@ -1974,6 +1989,8 @@ class ProcessMenuBuilder extends Process implements Module {
 			}
 
 			if($pages->trash($menu)) {
+					// also delete cache of menu if present
+					$this->deleteMenuCache($menu->id);					
 					$this->message(sprintf($this->_('Menu Builder: Moved menu %1$s to trash: %2$s'), $menu->title, $menu->url));// tell user menu trashed
 					$this->session->redirect($page->url);
 			}
@@ -2040,6 +2057,9 @@ class ProcessMenuBuilder extends Process implements Module {
 		
 		#################	Save menu 	#################
 		$menu->save();
+
+		// also delete cache of menu if present so that can be refreshed
+		$this->deleteMenuCache($menu->id);
 
 		$this->message($this->_('Menu Builder: Saved Menu '. $menu->title));
 		if($post->menu_save_exit) $this->wire('session')->redirect($page->url);// @TODO...NOT WORKING IN MULTILINGUAL ENV FOR SOME REASON!
@@ -2184,12 +2204,15 @@ class ProcessMenuBuilder extends Process implements Module {
 			//$ml = $this->multiLingual ? true : false;
 			$ml = !is_null($this->menuItemsLanguages) ? true : false;
 
-			$itemIncludeChildren = '';
-			$itemMMaxLevel = '';
+			//$itemIncludeChildren = '';
+			//$itemMMaxLevel = '';
 
 			if($this->allowMarkup) $purifier = $this->wire('modules')->get('MarkupHTMLPurifier');
 
 			foreach($post->item_id as $itemID) {
+
+				$itemIncludeChildren = '';
+				$itemMMaxLevel = '';
 
 				$itemID = (int) $itemID;
 				if(!$itemID) continue;
@@ -2605,6 +2628,8 @@ class ProcessMenuBuilder extends Process implements Module {
 						foreach ($menus as $m) {
 							$m->trash();
 							$i++;
+							// also delete cache of menu if present
+							$this->deleteMenuCache($m->id);
 						}
 
 						$msg = sprintf(_n("Trashed %d menu.", "Trashed %d menus.", $i), $i);
@@ -2615,11 +2640,13 @@ class ProcessMenuBuilder extends Process implements Module {
 						foreach ($menus as $m) {
 							$m->delete();
 							$i++;
+							// also delete cache of menu if present
+							$this->deleteMenuCache($m->id);
 						}
 
 						$msg = sprintf(_n("Deleted %d menu.", "Deleted %d menus.", $i), $i);
 
-				}// end delete menus
+				}// end delete menus				
 
 				$msg = $this->_('Menu Builder') . ': ' . $msg;
 
@@ -2691,6 +2718,30 @@ class ProcessMenuBuilder extends Process implements Module {
 		// show error message if add button clicked without first entering some categories to add
 		else $this->error($this->_("Menu Builder: You need to add some menus."));
 
+	}
+
+	/**
+	 * Delete given Menu's cache.	 
+	 *
+	 * @param Integer $menuID ID of the Menu to delete.
+	 *
+	 */
+	private function deleteMenuCache($menuID) {
+		$languageNames = $this->getLanguageSuffixes();
+		// multi-lingual site
+		if(count($languageNames)) {
+			foreach ($languageNames as $name) {
+				$cacheName = 'menu-builder-' . $menuID . '-' . $name;
+				$this->wire('cache')->delete($cacheName);// delete the cache
+			}
+		}
+
+		// non-multi-lingual site
+		else {
+			$cacheName = 'menu-builder-' . $menuID;
+			$this->wire('cache')->delete($cacheName);// delete the cache
+		}
+		
 	}
 
 	/* ######################### - INSTALLERS - ######################### */

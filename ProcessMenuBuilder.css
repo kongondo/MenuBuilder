@@ -1,101 +1,22 @@
 /**
-*
-* CSS styles for ProcessMenuBuilder.
-*
-* @author Francis Otieno (Kongondo) <kongondo@gmail.com>
-*
-* https://github.com/kongondo/MenuBuilder
-* Created March 2015
-*
-*/
+ *
+ * CSS styles for ProcessMenuBuilder.
+ *
+ * @author Francis Otieno (Kongondo) <kongondo@gmail.com>
+ *
+ * https://github.com/kongondo/MenuBuilder
+ * Created March 2015
+ *
+ */
 
-
-/* 01. #### GENERAL #### */
-
-
+/** html **/
 /* Prevent "jump" on shorter pages */
 html {overflow-y:scroll;}
 
-
-/* 02 #### LANDING PAGE (list of menus) #### */
-
-span.limit-select {float: right;}
-
-/* 03. #### MENU EDIT PAGE #### */
-
-
-/******** Form ************/
-
-#menu_save, #menu_save_exit {float: left;}
-
-
-/******** First Tab (Build Menu) ************/
-
-
-/** Add page menu items (AsmSelect/Autocomplete) custom inputs + header labels **/
-li#menu_items_headers {
-	list-style: none;
-	text-transform: uppercase;
-	background: none;
-	color: inherit;
-	border: none;
-	margin: 0;
-}
-
-li#menu_items_headers:hover {cursor: auto; background: none !important;}
-
-/* only for the Auocomplete field */
-li#menu_items_headers span {	
-	margin: 1.5em 0 0.5em 0.1em !important;
-	display: inline-block;
-	width: 20%!important;
-	font-weight: bold;
-}
-
-li#menu_items_headers span#asm_title, li#menu_items_headers span#ac_title {width: 22% !important;}
-li#menu_items_headers span#asm_children, li#menu_items_headers span#ac_children {width: 15.5%!important;}
-li#menu_items_headers span#asm_level, li#menu_items_headers span#ac_level {width: 15%!important;}
-
-span#add_menu_items {display: block; padding: 0.3em 0 1.375em;}
-li.asmListItem, span.asmMB {cursor: move;}/* defined in jquery.asmselect-mb.js */
-span.asmListItemLabel, ol#item_addpages_items span.itemLabel {width: 20%; display: inline-block;}
-span.asmMB input, ol#item_addpages_items span.acMB input, ol#item_addpages_items span.plsMB input {margin: 0 !important; text-align: bottom; padding: 0 0.2em !important;}
-ol#item_addpages_items span.acMB input.ac_itemid, span.asmMB input.asm_itemid, ol#item_addpages_items span.plsMB input.pls_itemid {width: 20% !important;}
-ol#item_addpages_items span.acMB input.ac_itemclass, span.asmMB input.asm_itemclass, ol#item_addpages_items span.plsMB input.pls_itemclass {width: 20% !important;}
-ol#item_addpages_items span.acMB select.ac_include_children, span.asmMB select.asm_include_children, ol#item_addpages_items span.plsMB select.pls_include_children {width: 15% !important;}
-ol#item_addpages_items span.acMB input.ac_mb_max_level, span.asmMB input.asm_mb_max_level, ol#item_addpages_items span.plsMB input.pls_mb_max_level {width: 8% !important;}
-span.asmMB input {margin: 1px !important;}/*override above*/
-
-/** Add custom menu items table **/
-span#add_menu_items a#add_custom_menu_items, span#add_menu_items a#add_selector_menu_items {margin-left: 30px;}
-table.menu_add_custom_items_table input.new_custom {padding: 0 0.3em !important;}
-table.menu_add_custom_items_table i.fa-trash{position: relative; top: -5px; right: 3px;}
-
-/** Drag n Drop menu items **/
+/** div **/
+/* Drag n Drop menu items */
 div#menu_sortable_wrapper {margin-bottom: 3em !important;}
-
-/* Anchor on click remove all menus */
-div#menu_sortable_wrapper a#remove_menus {display: block; margin: 0 0 0.5em;}
-
-/* nestedSortable styles */
-.placeholder {outline: 1px dashed #4183C4;}
-.notice {color: #C33;}
-.mjs-nestedSortable-error {background: #FBE3E4; border-color: transparent;}
-ol#sortable_main, ol#sortable_main ol {margin: 5px !important; list-style-type: none;}
-ol#sortable_main li {list-style: none; width:27em;}
 li.mjs-nestedSortable-collapsed.mjs-nestedSortable-hovering div {border-color: #999; background: #FAFAFA;}
-.sortable li.mjs-nestedSortable-collapsed > ol {display: none;}
-
-ol#sortable_main li.menu_item {
-	display: block;
-	position: relative;
-	margin: 0 0 0 2em;
-	padding: 0;
-	min-height: 20px;
-	font-size: 1em;
-	line-height: 20px;
-}
-
 /* Menu item drag n drop handle (div) as used by nestedSortable */
 div.handle {
 	background: #F0F0F0 !important;
@@ -105,26 +26,6 @@ div.handle {
 	cursor: move !important;
 	padding: 5px;
 }
-
-/* Menu item settings' reveal/hide icon in drag n drop div handle */
-div.handle i.fa-caret-down, div.handle i.fa-caret-up {position: relative; float: left;}
-div.handle span.item_title_main {margin-left: 0.5em; cursor: pointer; font-size: 0.85em;}
-div.handle span.item_type_wrapper {position: absolute; right: 0; top: -1px;}
-
-/* label on draggable div handle showing menu type (Page or Custom */
-div.handle span.item_type {font-size: 0.785em; color: #9A9A9A; margin-right: 0.5em;}
-
-/* Anchor for onclick remove the associated menu item */
-div.handle a.remove_menu {}
-
-div.handle i.fa-trash {
-	position: relative;
-	border: none;
-	padding: 0.6em;
-	margin-right: -2.125em;
-	top: 1px;
-}
-
 /* Menu settings div */
 div.settings {	
 	/*display: inline-block;*/
@@ -136,34 +37,26 @@ div.settings {
 	position: relative;
 	padding-bottom: 1em;
 }
-
-div#menu_sortable_wrapper label {
-	margin-left: 1em !important;
-	padding-top: 0.75em !important;
-	font-style:italic;
-	color: #2F4248;
-	display: block;
-	font-size: 0.8em;
-}
-
-div.settings input[type=text].menu_settings {width:90%; margin-left: 1em !important; padding: 0.45em 0 0.45em 0.35em!important;}
-div.settings input[type=text].readonly {color: #646464 !important; background:#EBEBEB !important;}
-div.settings input[type=checkbox].menu_settings, div.settings input[type=checkbox].menu_disabled{margin-right: 0.3em; vertical-align: middle;}
-div.settings span.include_children {display: block; margin: 0.5em 0 0 1em; font-style: italic;}
-div.settings label.include_children {font-style: normal !important;	padding-top: 0 !important; margin-top: -0.3em;}
-div.settings select.include_children, div.settings label.include_children input[type='text']{vertical-align: middle; float: left;}
-div.settings select.include_children {margin: 0.3em 1em;}
-div.settings label.include_children input[type='text'] {width:12%; margin-right: 0.5em;	height: 1.7em;}
-
-/*@TODO...REARRANGE THIS CSS! */
-
-
 div.menu_edit_language_selector {height: 25px;}
 div.menu_language_wrapper {position: relative;	min-height: 135px;}
 div.menu_language {position: absolute;	top: 0; left: 0; width: 100%; display: none;}
 div.menu_language.menu_language_active {display: block;}
 
-
+/** span **/
+span.limit-select {float: right;}
+span#add_menu_items {display: block; padding: 0.3em 0 1.375em;}
+/* only for the Auocomplete field */
+li#menu_items_headers span {	
+	margin: 1.5em 0 0.5em 0.1em !important;
+	display: inline-block;
+	width: 20%!important;
+	font-weight: bold;
+}
+li#menu_items_headers span#asm_title, li#menu_items_headers span#ac_title {width: 22% !important;}
+li#menu_items_headers span#asm_children, li#menu_items_headers span#ac_children {width: 15.5%!important;}
+li#menu_items_headers span#asm_level, li#menu_items_headers span#ac_level {width: 15%!important;}
+span.asmListItemLabel, ol#item_addpages_items span.itemLabel {width: 20%; display: inline-block;}
+span.asmMB {cursor: move;}/* defined in jquery.asmselect-mb.js */
 span.menu_item_disabled {text-decoration: line-through;}
 span.menu_language_selector {
 		display: inline-block;
@@ -175,21 +68,111 @@ span.menu_language_selector {
 }
 span.menu_language_selector:first-child {margin-left: 1em;}
 span.menu_language_active{background-color: #d2dce6;}
-
-
-/******** Third Tab (Settings) ************/
-
-
-/*hide the add menu items wrappers on load*/
-li#wrap_item_addpages, li#item_addcustom, li#wrap_item_addselector {display: none;}
+div.handle span.item_title_main {margin-left: 0.5em; cursor: pointer; font-size: 0.85em;}
+div.handle span.item_type_wrapper {position: absolute; right: 0; top: -1px;}
+/* label on draggable div handle showing menu type (Page or Custom */
+div.handle span.item_type {font-size: 0.785em; color: #9A9A9A; margin-right: 0.5em;}
+div.settings span.include_children {display: block; margin: 0.5em 0 0 1em; font-style: italic;}
 span.unpublished, span.locked {color: red;}/* for highlighting some text */
 
+/** form **/
+#menu_save, #menu_save_exit {float: left;}
 
-/******** Fourth Tab (Delete) ************/
+/** input **/
+span.asmMB input,
+ol#item_addpages_items span.acMB input,
+ol#item_addpages_items span.plsMB input {margin: 0 !important; text-align: bottom; padding: 0 0.2em !important;}
+ol#item_addpages_items span.acMB input.ac_itemid,
+span.asmMB input.asm_itemid,ol#item_addpages_items span.plsMB input.pls_itemid {width: 20% !important;}
+ol#item_addpages_items span.acMB input.ac_itemclass,
+span.asmMB input.asm_itemclass,ol#item_addpages_items span.plsMB input.pls_itemclass {width: 20% !important;}
+ol#item_addpages_items span.acMB select.ac_include_children,
+span.asmMB select.asm_include_children,
+ol#item_addpages_items span.plsMB select.pls_include_children {
+	width: 15% !important;
+}
+ol#item_addpages_items span.acMB input.ac_mb_max_level,
+span.asmMB input.asm_mb_max_level,
+ol#item_addpages_items span.plsMB input.pls_mb_max_level {
+	width: 8% !important;
+}
+span.asmMB input {margin: 1px !important;}/*override above*/
+table.menu_add_custom_items_table input.new_custom {padding: 0 0.3em !important;}
+div.settings input[type=text].menu_settings {width:90%; margin-left: 1em !important; padding: 0.45em 0 0.45em 0.35em!important;}
+div.settings input[type=text].readonly {color: #646464 !important; background:#EBEBEB !important;}
+div.settings input[type=checkbox].menu_settings, div.settings input[type=checkbox].menu_disabled{margin-right: 0.3em; vertical-align: middle;}
+div.settings select.include_children, div.settings label.include_children input[type='text']{vertical-align: middle; float: left;}
+div.settings select.include_children {margin: 0.3em 1em;}
+div.settings label.include_children input[type='text'] {width:12%; margin-right: 0.5em;	height: 1.7em;}
+.hide {display: none;}
 
+/** label **/
+div#menu_sortable_wrapper label {
+	margin-left: 1em !important;
+	padding-top: 0.75em !important;
+	font-style:italic;
+	color: #2F4248;
+	display: block;
+	font-size: 0.8em;
+}
+div.settings label.include_children {font-style: normal !important;	padding-top: 0 !important; margin-top: -0.3em;}
+
+/** button **/
 /**
  * Don't show the save buttons when on the delete tab *
  * This works because WireTabs adds class names equal to the ID of the selected tab to the tab target container
- *
  */
 .ProcessMenuBuilderDelete #menu_save, .ProcessMenuBuilderDelete #menu_save_exit {display: none;}
+
+/** list **/
+/** Add page menu items (AsmSelect/Autocomplete) custom inputs + header labels **/
+li#menu_items_headers {
+	list-style: none;
+	text-transform: uppercase;
+	background: none;
+	color: inherit;
+	border: none;
+	margin: 0;
+}
+
+li#menu_items_headers:hover {cursor: auto; background: none !important;}
+li.asmListItem {cursor: move;}/* defined in jquery.asmselect-mb.js */
+.mjs-nestedSortable-error {background: #FBE3E4; border-color: transparent;}
+ol#sortable_main, ol#sortable_main ol {margin: 5px !important; list-style-type: none;}
+ol#sortable_main li {list-style: none; width:27em;}
+.sortable li.mjs-nestedSortable-collapsed > ol {display: none;}
+ol#sortable_main li.menu_item {
+	display: block;
+	position: relative;
+	margin: 0 0 0 2em;
+	padding: 0;
+	min-height: 20px;
+	font-size: 1em;
+	line-height: 20px;
+}
+/*hide the add menu items wrappers on load*/
+li#wrap_item_addpages, li#item_addcustom, li#wrap_item_addselector {display: none;}
+
+/** anchor **/
+/* Add custom menu items table */
+span#add_menu_items a#add_custom_menu_items, span#add_menu_items a#add_selector_menu_items {margin-left: 30px;}
+/* Anchor on click remove all menus */
+div#menu_sortable_wrapper a#remove_menus {display: block; margin: 0 0 0.5em;}
+/* Anchor for onclick remove the associated menu item */
+/* div.handle a.remove_menu {} */
+
+/** i **/
+table.menu_add_custom_items_table i.fa-trash{position: relative; top: -5px; right: 3px;}
+/* Menu item settings' reveal/hide icon in drag n drop div handle */
+div.handle i.fa-caret-down, div.handle i.fa-caret-up {position: relative; float: left;}
+div.handle i.fa-trash {
+	position: relative;
+	border: none;
+	padding: 0.6em;
+	margin-right: -2.125em;
+	top: 1px;
+}
+
+/* nestedSortable styles */
+.placeholder {outline: 1px dashed #4183C4;}
+.notice {color: #C33;}

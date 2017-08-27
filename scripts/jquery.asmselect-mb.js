@@ -58,7 +58,7 @@
 
 		$.extend(options, customOptions); 
 
-		return this.each(function(index) {
+		return this.each(function (index) {
 
 			var $original = $(this); 				// the original select multiple
 			var $container; 					// a container that is wrapped around our widget
@@ -332,8 +332,7 @@
 
 				//var $itemLabel = $('<input class="asmMB" name="new_page_css_item[]" value="" type="text">').addClass(options.listItemLabelClass);
 				var $itemLabel = $('<span></span>').addClass(options.listItemLabelClass);//@note: originally <span></span>
-
-				
+						
 				// @note: not using these optional stuff
 				// optional container where an <option>'s data-status attribute will be displayed
 				/*var $itemStatus = $("<span></span>").addClass(options.listItemStatusClass);

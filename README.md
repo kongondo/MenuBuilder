@@ -124,13 +124,13 @@ getMenuItems($menu, $type, $options);
 
 ````
 
-Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. The second argument determines the type of items that the method will return. A value of 1 will return an array and one of 2 (the default) will return a WireArray Menu Object. The third argument is similar to the $options passed to **render()**. **Please note that only four options are applicable to getMenuItems(), i.e.** *default_title, default_class, current_class_level and check_listable*. You can, of course, create a function that will accept passing additional options (similar to **render()**) as an argument.
+Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. The second argument determines the type of items that the method will return. A value of 1 will return an array and one of 2 (the default) will return a WireArray Menu Object. The third argument is similar to the $options passed to **render()**. **Please note that only 5 options are applicable to getMenuItems(), i.e.** *default_title, default_class, include_children, m_max_level and check_listable*. You can, of course, create a function that will accept passing additional options (similar to **render()**) as an argument. You can, of course, create a function that will accept passing additional options (similar to **render()**) as an argument.
 
 
 ### Options
 
 * Unless indicated otherwise, all the following options apply to both **menus (render())** and **breadcrumbs (renderBreadcrumbs())**.
-* Only four options apply to **getMenuItems()**: *default_title, default_class, current_class_level and check_listable*.
+* Only 5 options apply to **getMenuItems()**: *default_title, default_class, include_children, m_max_level and check_listable*.
 * The term navigation is used in the context of both menus and breadcrumbs. 
 * The term 'Class(es)' indicates that multiple CSS Classes can be applied, separated by space.
 
@@ -154,6 +154,8 @@ Similar to **render()**, the first argument is not optional and can be a Page ob
 7. **b_max_level**:  This is breadcrumb-only option related to the **include children** feature. It limits the depth from within which viewable descendant pages can be retrieved for display in a breadcrumb. The default is 1. This means that only fetch immediate children. A value of 2 means fetch both children and grandchildren, etc. The option can only be applied globally.
 8. **current_class_level**: Using this option, you can specify how high up the menu tree you want to apply the **'current_class'** to the current item's ancestors. The default is 1, meaning (if specified) apply the **'current_class'** to only the current item. A setting of 3 implies apply it to the current item, its parent and grandparent, etc. An option of 0 will apply **'current_class'** to all ancestors of the current page being viewed irrespective if that current page is part of the menu. In short, the option can be used to show some or all 'active/current' menu items at various levels in your menu. This option only applies to menus and not breadcrumbs.
 9. **check_listable**:  If set to 1, will not display items that are not (ProcessWire-) listable to the current user. The default is to show all items.
+0. **cached_menu**:  Menu-only option. If set to 1, will build and subsequently fetch menu items from cache to help speed up process if required. Not available to **getMenuItems()**.
+1. **cached_menu_time**:  Menu-only option. When caching is used, sets lifetime of cache in seconds. You can also use [other values](https://processwire.com/api/ref/wire-cache/save/) accepted by WireCache. The default is 1 day (86400 seconds).
 
 ## How to Use
 
@@ -355,6 +357,13 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ## Changelog
+
+### Version 0.2.1
+1. Fixed bug in 'current_class_level' where 'current_class' was being applied to 'Home' menu item when level was set to '0'.
+2. getMenuItems() now honours both locally and globally set 'include_children'.
+3. Added 'cached_menu' option to MarkupMenuBuilder to save and fetch menus from cache to speed up menu rendering if required.
+4. Added 'cached_menu_time' to set cached menu expiration time.
+5. Fixed bug in ProcessMenuBuilder where 'include_children' and 'm_max_level' inputs would be displayed when the page selected to add to menu was 'Home'.
 
 ### Version 0.2.0
 1. Modified 'current_class_level' option to apply 'current_class' to a menu item when viewing any of its descendant child pages (child, grandchild, etc.) in cases where those descendant pages are neither part of the menu nor included via 'include_children' if its value is set to '0'.
