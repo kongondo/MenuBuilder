@@ -641,6 +641,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		$total = count($menu);
 		$cnt = 0;
 		$o = $this->options;
+		$page = $this->wire('page');
 
 		$out = '';
 		$hasChild = false;
@@ -681,7 +682,14 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$itemHasChildren = $m->is_parent  ? $o->hasChildrenClass . ' ' : '';				
 				$itemLast = $m->is_last || $total - $cnt == 1 ? $o->lastClass . ' ' : '';
 				// apply current item class to current page + ancestors if specified for both native and included menu items
-				$itemCurrent = 	$m->is_current == 1 ? $o->currentClass . ' ' : '';
+				//$itemCurrent = 	$m->is_current == 1 ? $o->currentClass . ' ' : '';
+				// @note: $itemCurrent: This needs to be live! it cannot be cached				
+				$itemCurrent = 	'';				
+				if($o->currentClassLevel == 0 && $m->pages_id !=1 && $page->parents->has('id=' . $m->pages_id)) $itemCurrent = $o->currentClass . ' ';
+				elseif($page->id == $m->pages_id) $itemCurrent = $o->currentClass . ' ';
+				// @TODO: MAKE $currentClassLevel > 1 work with cached items
+				/* elseif($o->currentClassLevel > 1) {
+				} */
 
 				$classes = $itemCSSClass . $itemHasChildren . $itemLast . $itemCurrent . $itemFirst;
 				$classes = trim(preg_replace('/\s+/', ' ', $classes));
@@ -1324,7 +1332,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 					'is_parent' => $m->isParent,// does this menu item have children (bool)
 					'is_first' => $m->isFirst,// first menu item at its tier? (bool)
 					'is_last' => $m->isLast,// last menu item at its tier? (bool)
-					'is_current' => $m->isCurrent,// menu item matches current page? (bool)
+					'is_current' => $m->isCurrent,// menu item matches current page? (bool) @todo: unset for cache!
 				);
 			}
 			// filter out empty values
