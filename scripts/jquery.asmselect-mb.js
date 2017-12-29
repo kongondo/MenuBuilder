@@ -74,46 +74,18 @@
 				// initialize the alternate select multiple
 
 				// this loop ensures uniqueness, in case of existing asmSelects placed by ajax (1.0.3)
-				while($("#" + options.containerClass + index).size() > 0) index++; 
-
-				// @note: mod for MB
-				var extraLabels ='<li id="menu_items_headers">';
-				extraLabels +='<span id="asm_title">Title</span>';
-				extraLabels +='<span id="asm_css_id">CSS ID</span>';
-				extraLabels +='<span id="asm_css_class">CSS Class</span>';
-
-				//conditionally add 'include children' markup
-				var moduleConfigIncludeChildren = config.ProcessMenuBuilder2;
-
-				if(!jQuery.isEmptyObject(moduleConfigIncludeChildren)) {
-						var incChildren = moduleConfigIncludeChildren.config.children;
-						if(incChildren == 1) {
-							extraLabels +='<span id="asm_children">Children</span>';
-							extraLabels +='<span id="asm_level">Level</span>';
-						}			
-				}
-
-				extraLabels +='</li>';
-				
-				/*var $headers = $('<li id="menu_items_headers"><span>Title</span><span>CSS ID</span><span>CSS Class</span><span>Children</span><span>Level</span></li>');*/
-
-				var $headers = $(extraLabels);
+				while($("#" + options.containerClass + index).size() > 0) index++;				
 
 				$select = $("<select></select>")
 					.addClass(options.selectClass)
 					.attr('name', options.selectClass + index)
 					.attr('id', options.selectClass + index);
 
-
 				$selectRemoved = $("<select></select>");
-
-
 
 				$ol = $("<" + options.listType + "></" + options.listType + ">")
 					.addClass(options.listClass)
-					.attr('id', options.listClass + index)
-					.append($headers);//@note: mod for MB
-					
+					.attr('id', options.listClass + index)					
 
 				$container = $("<div></div>")//@note: originally <div></div>
 					.addClass(options.containerClass) 
@@ -364,38 +336,20 @@
 					$itemLabel.html($O.html());
 					/*if($O.attr('data-desc')) $itemDesc.html($O.attr('data-desc'));*/
 				}
+				/******************************** @kongondo /********************************/
+				// @note: added to store extra data for MB menu items (links) -> css id, css class and link target attribute
+				// grab the extra inputs (<span></span>) from the hidden template
+				var $extraInputTemplate = $('div#menu_items_new_asm_extra_inputs_template span.asmMB');
+				// clone the markup
+				var $extraInput = $extraInputTemplate.clone();
+				// add to variable to pass to asm select
+				var $mbExtras = $($extraInput).addClass(options.listItemExtraClass);
 
-				//@note: added to store extra data for MB menu items (links) -> css id, css class and link target attribute
-				var extraInput ='<span class="asmMB">';
-				extraInput +='<input name="new_page_css_itemid[]" type="text" class="asm_itemid">';
-				extraInput +='<input name="new_page_css_itemclass[]" type="text" class="asm_itemclass">';
-
-				//conditionally add 'include children' input markup
-				var moduleConfigIncludeChildren = config.ProcessMenuBuilder2;
-
-				if(!jQuery.isEmptyObject(moduleConfigIncludeChildren)) {
-						var incChildren = moduleConfigIncludeChildren.config.children;
-						if(incChildren == 1) {
-							extraInput +='<select name="new_page_include_children[]" class="asm_include_children">';
-							extraInput +='<option value="4">No</option>';
-							extraInput +='<option value="1">Menu</option>';
-							extraInput +='<option value="2">Breadcrumbs</option>';
-							extraInput +='<option value="3">Both</option>';
-							extraInput +='<option value="5">Never</option>';
-							extraInput +='</select>';
-							extraInput +='<input type="text" name="new_page_mb_max_level[]" class="asm_mb_max_level">';
-						}			
-				}
-
-				extraInput +='</span>';
-
-				var $mbExtras = $(extraInput).addClass(options.listItemExtraClass);
-				
 				var $item = $("<li></li>")//@note: originally <li>
 					.attr('rel', optionId)
 					.addClass(options.listItemClass)
 					.append($itemLabel)
-					.append($mbExtras)
+					.append($mbExtras)// @kongondo: our extra inputs
 					/*.append($itemDesc)
 					.append($itemStatus)*/
 					.append($removeLink)

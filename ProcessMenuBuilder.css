@@ -42,6 +42,20 @@ div.menu_language_wrapper {position: relative;	min-height: 135px;}
 div.menu_language {position: absolute;	top: 0; left: 0; width: 100%; display: none;}
 div.menu_language.menu_language_active {display: block;}
 
+/** Add page menu itemscustom inputs + header labels **/
+
+/* div#menu_items_headers_template {display: none;} */
+div#menu_items_headers:hover {cursor: auto; background: none !important;}
+div#menu_items_headers span {	
+	margin: 1.5em 0 0.5em 0.1em !important;
+	display: inline-block;
+	width: 20%!important;
+	font-weight: bold;
+}
+div#menu_items_headers span#asm_title, div#menu_items_headers span#ac_title {width: 22% !important;}
+div#menu_items_headers span#asm_children, div#menu_items_headers span#ac_children {width: 15.5%!important;}
+div#menu_items_headers span#asm_level, div#menu_items_headers span#ac_level {width: 15%!important;}
+
 /** span **/
 span.limit-select {float: right;}
 span#add_menu_items {display: block; padding: 0.3em 0 1.375em;}
@@ -104,7 +118,7 @@ div.settings input[type=checkbox].menu_settings, div.settings input[type=checkbo
 div.settings select.include_children, div.settings label.include_children input[type='text']{vertical-align: middle; float: left;}
 div.settings select.include_children {margin: 0.3em 1em;}
 div.settings label.include_children input[type='text'] {width:12%; margin-right: 0.5em;	height: 1.7em;}
-.hide {display: none;}
+.hide {display: none !important;}
 
 /** label **/
 div#menu_sortable_wrapper label {
@@ -123,24 +137,18 @@ div.settings label.include_children {font-style: normal !important;	padding-top:
  * This works because WireTabs adds class names equal to the ID of the selected tab to the tab target container
  */
 .ProcessMenuBuilderDelete #menu_save, .ProcessMenuBuilderDelete #menu_save_exit {display: none;}
+/* @note: PW3.x [via JS]*/
+#menu_save.hide, #menu_save_exit.hide {display: none;}
+
+a#_ProcessMenuBuilderDelete.pw-active ~ #menu_save_exit {display: none;}
 
 /** list **/
-/** Add page menu items (AsmSelect/Autocomplete) custom inputs + header labels **/
-li#menu_items_headers {
-	list-style: none;
-	text-transform: uppercase;
-	background: none;
-	color: inherit;
-	border: none;
-	margin: 0;
-}
-
-li#menu_items_headers:hover {cursor: auto; background: none !important;}
 li.asmListItem {cursor: move;}/* defined in jquery.asmselect-mb.js */
 .mjs-nestedSortable-error {background: #FBE3E4; border-color: transparent;}
 ol#sortable_main, ol#sortable_main ol {margin: 5px !important; list-style-type: none;}
 ol#sortable_main li {list-style: none; width:27em;}
 .sortable li.mjs-nestedSortable-collapsed > ol {display: none;}
+
 ol#sortable_main li.menu_item {
 	display: block;
 	position: relative;
@@ -152,6 +160,8 @@ ol#sortable_main li.menu_item {
 }
 /*hide the add menu items wrappers on load*/
 li#wrap_item_addpages, li#item_addcustom, li#wrap_item_addselector {display: none;}
+
+
 
 /** anchor **/
 /* Add custom menu items table */

@@ -64,20 +64,20 @@ The available **render()** options are:
 ````php
 $defaultOptions = array(
 
-		'wrapper_list_type' => 'ul',//ul, ol, nav, div, etc.
-		'list_type' => 'li',//li, a, span, etc.
-		'menu_css_id' => '',//a CSS ID for the menu
-		'menu_css_class' => '',//a CSS Class for the menu
-		'submenu_css_class' => '',//CSS Class for sub-menus
-		'has_children_class' => '',//CSS Class for any menu item that has children
-		'first_class'=>'',//CSS Class for the first item in 
-		'last_class' => '',
-		'current_class' => '',
-		'default_title' => 0,//0=show saved titles;1=show actual/current titles
-		'include_children' => 4,//show 'natural' MB non-native descendant items as part of navigation
-		'm_max_level' => 1,//how deep to fetch 'include_children'
-		'current_class_level' => 1,//how high up the ancestral tree to apply 'current_class'
-		'default_class' => '',//a CSS class to apply to all menu items
+	'wrapper_list_type' => 'ul',// ul, ol, nav, div, etc.
+	'list_type' => 'li',// li, a, span, etc.
+	'menu_css_id' => '',// a CSS ID for the menu
+	'menu_css_class' => '',// a CSS Class for the menu
+	'submenu_css_class' => '',// CSS Class for sub-menus
+	'has_children_class' => '',// CSS Class for any menu item that has children
+	'first_class'=>'',// CSS Class for the first item in 
+	'last_class' => '',
+	'current_class' => '',
+	'default_title' => 0,// 0=show saved titles;1=show actual/current titles
+	'include_children' => 4,// show 'natural' MB non-native descendant items as part of navigation
+	'm_max_level' => 1,// how deep to fetch 'include_children'
+	'current_class_level' => 1,// how high up the ancestral tree to apply 'current_class'
+	'default_class' => '',// a CSS class to apply to all menu items
 
 );
 ````
@@ -99,17 +99,18 @@ The available **renderBreadcrumbs()** options are:
 ````php
 $defaultOptions = array(
 
-		'wrapper_list_type' => 'ul',//ul, ol, nav, div, etc.
-		'list_type' => 'li',//li, a, span, etc.
-		'menu_css_id' => '',
-		'menu_css_class' => '',
-		'current_css_id' => '',
-		'divider' => '&raquo;',// e.g. Home >> About Us >> Leadership
-		//prepend home page at the as topmost item even if it isn't part of the breadcrumb
-		'prepend_home' => 0,//=> 0=no;1=yes
-		'default_title' => 0,//0=show saved titles;1=show actual/current titles
-		'include_children' => 4,//show 'natural' MB non-native descendant items as part of navigation
-		'b_max_level' => 1,//how deep to fetch 'include_children'
+	'wrapper_list_type' => 'ul',// ul, ol, nav, div, etc.
+	'list_type' => 'li',// li, a, span, etc.
+	'menu_css_id' => '',
+	'menu_css_class' => '',
+	'current_css_id' => '',
+	'current_class' => '',
+	'divider' => '&raquo;',// e.g. Home >> About Us >> Leadership
+	// prepend home page at the as topmost item even if it isn't part of the breadcrumb
+	'prepend_home' => 0,// 0=no;1=yes
+	'default_title' => 0,// 0=show saved titles;1=show actual/current titles
+	'include_children' => 4,// show 'natural' MB non-native descendant items as part of navigation
+	'b_max_level' => 1,// how deep to fetch 'include_children'
 
 );
 ````
@@ -143,7 +144,7 @@ Similar to **render()**, the first argument is not optional and can be a Page ob
 6. **has_children_class**:  **For menus only**, a CSS Class(es) applied to the **'list_type'** of any menu item that has children items, i.e. a parent menu item or in other words, a menu item containing one or more nested menu items. Nothing is applied by default unless you specify you want to use the option.
 7. **first_class**:  **For menus only** and at all menu levels (i.e. nesting), a CSS Class(es) applied to the **'list_type'** of any menu item that is at the top-most position at each menu level. Nothing is applied by default unless you specify you want to use the option.
 8. **last_class**:  **For menus only** and at all menu levels (i.e. nesting), a CSS Class(es) applied to the **'list_type'** of any menu item that is at the bottom-most position at each menu level. Nothing is applied by default unless you specify you want to use the option. At any level, if there is only a single menu item, it means that it is both the first and last menu item. If you specified both **'last_class'** and **'first_class'** in your menu options, that menu item will have both of these applied to it.
-9. **current_class**:  **For menus only**, a CSS Class(es) applied to the **'list_type'** of the current menu item, i.e. the menu item that corresponds to the page that is currently being viewed in your browser. Nothing is applied by default unless you specify you want to use the option.
+9. **current_class**:  A CSS Class(es) applied to the **'list_type'** of the current navigation item, i.e. the navigation item that corresponds to the page that is currently being viewed in your browser. Nothing is applied by default unless you specify you want to use the option.
 0. **current_css_id**:  **For breadcrumbs only**, a CSS ID applied to the **'list_type'** of the current breadcrumb item, i.e. the breadcrumb item that corresponds to the page that is currently being viewed in your browser. Nothing is applied by default unless you specify you want to use the option. Note that by default, current breadcrumb items are not wrapped around **&lt;a&gt;** (anchor/link) tags as it makes no sense to do so.
 1. **default_class**:  **For menus only** and at all menu levels (i.e. nesting), a CSS Class(es) applied to each menu item (e.g. a Bootstrap or Foundation CSS Class).
 2. **divider**:  **For breadcrumbs only**, a HTML Character Entity applied after the anchor tag **&lt;a&gt;** of breadcrumb items to indicate ancestry, i.e. items to the left of the divider are ancestral parents, grandparents, great grandparents, etc. to the breadcrumb item on the right of the divider. The default character used is **&raquo;**. Note that if there is only one breadcrumb item in the navigation, the divider is not applied. Also, it is not applied after the last breadcrumb item which is always the current breadcrumb item. You are not limited to using [HTML Character Entities](http://dev.w3.org/html5/html-author/charref) but can use whatever character suits your needs or nothing at all by specifying **'divider' => ''** in your options.
@@ -169,24 +170,24 @@ The simplest way to render a menu is to use the method **render()**. It is strai
 
 ````php
 
-//load the module
-$menu = $modules->get('MarkupMenuBuilder');//Load the module. $menu is an example
+// load the module
+$menu = $modules->get('MarkupMenuBuilder');// $menu is an example
 
 /**you can render by menu Page object, name, title, id or properly formatted array of menu items**/
 
-//render by name, title or id
-echo $menu->render('Title of Your Menu');//render the menu by title
-echo $menu->render('name-of-your-menu');//render the menu by name
+// render by name, title or id
+echo $menu->render('Title of Your Menu');// render the menu by title
+echo $menu->render('name-of-your-menu');// render the menu by name
 echo $menu->render('1234');//render by ID
 
-//render by passing a Page object
+// render by passing a Page object
 $m = $pages->get(1234);
 echo $menu->render($m);//render by Page object
 
-//render by passing an array
-//get the Menu Builder field menu_items for this menu. That is where your menu items JSON string is stored
+// render by passing an array
+// get the Menu Builder field menu_items for this menu. That is where your menu items JSON string is stored
 $json = $pages->get(1234)->menu_items;
-//convert the JSON string to an array. Here we assume the JSON string is not empty
+// convert the JSON string to an array. Here we assume the JSON string is not empty
 $array = json_decode($json, true);
 echo $menu->render($array);//render by array
 
@@ -220,26 +221,26 @@ Rendering breadcrumbs is quite similar to the above, the only difference being t
 
 ````php
 
-//load the module
-$menu = $modules->get('MarkupMenuBuilder');//Load the module. $menu is an example
+// load the module
+$menu = $modules->get('MarkupMenuBuilder');// $menu is an example
 
 /**you can render by menu Page object, name, title, id or properly formatted array of menu items**/
 
-//render by name, title or id
-echo $menu->renderBreadcrumbs('Title of Your Menu');//render the menu by title
-echo $menu->renderBreadcrumbs('name-of-your-menu');//render the menu by name
-echo $menu->renderBreadcrumbs('1234');//render by ID
+// render by name, title or id
+echo $menu->renderBreadcrumbs('Title of Your Menu');// render the menu by title
+echo $menu->renderBreadcrumbs('name-of-your-menu');// render the menu by name
+echo $menu->renderBreadcrumbs('1234');// render by ID
 
-//render by passing a Page object
+// render by passing a Page object
 $m = $pages->get(1234);
-echo $menu->renderBreadcrumbs($m);//render by Page object
+echo $menu->renderBreadcrumbs($m);
 
-//render by passing an array
-//get the Menu Builder field menu_items for this menu. That is where your menu items JSON string is stored
+// render by passing an array
+// get the Menu Builder field menu_items for this menu. That is where your menu items JSON string is stored
 $json = $pages->get(1234)->menu_items;
-//convert the JSON string to an array. Here we assume the JSON string is not empty
+// convert the JSON string to an array. Here we assume the JSON string is not empty
 $array = json_decode($json, true);
-echo $menu->renderBreadcrumbs($array);//render by array
+echo $menu->renderBreadcrumbs($array);// render by array
 
 ````
 
@@ -247,14 +248,14 @@ Additionally, you can pass some options to the method. See above for available o
 
 ````php
 $options = array(
-		'wrapper_list_type' => 'div',
-		'list_type' => 'span',
-		//'list_type' => '',//if empty, no tag will be applied + no CSS ID
-		'menu_css_id' => 'crumbs',
-		'menu_css_class' => 'trail',
-		'current_css_id' => 'current',
-		'divider' => '&ast;',
-		'prepend_home' => 1
+	'wrapper_list_type' => 'div',
+	'list_type' => 'span',
+	//'list_type' => '',// if empty, no tag will be applied + no CSS ID
+	'menu_css_id' => 'crumbs',
+	'menu_css_class' => 'trail',
+	'current_css_id' => 'current',
+	'divider' => '&ast;',
+	'prepend_home' => 1
 );
 
 echo $menu->renderBreadcrumbs(1234, $options);
@@ -357,6 +358,11 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ## Changelog
+
+### Version 0.2.2
+1. Support for namespaced ProcessWire only (ProcessWire 3.x).
+2. [Various](https://processwire.com/talk/topic/4451-menu-builder/?do=findComment&comment=152707) [bug](https://github.com/kongondo/MenuBuilder/issues/35) fixes in getMenuItems() and breadcrumbs.
+3. Fixed [bug](https://github.com/kongondo/MenuBuilder/issues/34) that prevented menus in multi lingual environments from saving.
 
 ### Version 0.2.1
 1. Fixed bug in 'current_class_level' where 'current_class' was being applied to 'Home' menu item when level was set to '0'.
