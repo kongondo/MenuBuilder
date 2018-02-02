@@ -359,6 +359,9 @@ GPL2
 
 ## Changelog
 
+### Version 0.2.3
+1. Fixed a bug where inactive pages in multi-language sites would still be displayed in menus.
+
 ### Version 0.2.2
 1. Support for namespaced ProcessWire only (ProcessWire 3.x).
 2. [Various](https://processwire.com/talk/topic/4451-menu-builder/?do=findComment&comment=152707) [bug](https://github.com/kongondo/MenuBuilder/issues/35) fixes in getMenuItems() and breadcrumbs.

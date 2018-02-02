@@ -31,7 +31,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 22,
+			'version' => 23,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -214,6 +214,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 			if($pagesID) {
 				$p = $pages->get($pagesID);
 				if(!$p || $p->id < 0) continue;
+				// skip inactive language page @note: PW will do this automatically for 'include_children'
+				if(!$p->viewable($language)) continue;
 			}
 			
 			// if option to check listable, skip if page not listable

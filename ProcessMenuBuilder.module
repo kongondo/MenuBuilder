@@ -12,6 +12,7 @@
 *
 * ProcessWire 3.x
 * Copyright (C) 2016 by Ryan Cramer
+*
 * Licensed under GNU/GPL v2, see LICENSE.TXT
 *
 * http://www.processwire.com
@@ -36,7 +37,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder: Process',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 22,
+			'version' => 23,
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
