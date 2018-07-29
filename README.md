@@ -125,13 +125,13 @@ getMenuItems($menu, $type, $options);
 
 ````
 
-Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. The second argument determines the type of items that the method will return. A value of 1 will return an array and one of 2 (the default) will return a WireArray Menu Object. The third argument is similar to the $options passed to **render()**. **Please note that only 5 options are applicable to getMenuItems(), i.e.** *default_title, default_class, include_children, m_max_level and check_listable*. You can, of course, create a function that will accept passing additional options (similar to **render()**) as an argument. You can, of course, create a function that will accept passing additional options (similar to **render()**) as an argument.
+Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. The second argument determines the type of items that the method will return. A value of 1 will return an array and one of 2 (the default) will return a WireArray Menu Object. The third argument is similar to the $options passed to **render()**. **Please note that only 6 options are applicable to getMenuItems(), i.e.** *default_title, default_class, include_children, m_max_level, current_class_level and check_listable*. You can, of course, create a function that will accept passing additional options (similar to **render()**) as an argument.
 
 
 ### Options
 
 * Unless indicated otherwise, all the following options apply to both **menus (render())** and **breadcrumbs (renderBreadcrumbs())**.
-* Only 5 options apply to **getMenuItems()**: *default_title, default_class, include_children, m_max_level and check_listable*.
+* Only 6 options apply to **getMenuItems()**: *default_title, default_class, include_children, m_max_level, current_class_level and check_listable*.
 * The term navigation is used in the context of both menus and breadcrumbs. 
 * The term 'Class(es)' indicates that multiple CSS Classes can be applied, separated by space.
 
