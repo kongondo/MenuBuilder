@@ -359,6 +359,10 @@ GPL2
 
 ## Changelog
 
+### Version 0.2.4
+1. Fixed a bug where default_class was not getting applied to included children in getMenuItems() context.
+2. Fixed a bug where last_class was not getting applied correctly/at all to some menu items.
+
 ### Version 0.2.3
 1. Fixed a bug where inactive pages in multi-language sites would still be displayed in menus.
 

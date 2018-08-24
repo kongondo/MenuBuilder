@@ -31,7 +31,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 23,
+			'version' => 24,
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -295,8 +295,18 @@ class MarkupMenuBuilder extends WireData implements Module {
 	 */
 	private function processMenuObjects2($menu) {
 
+		// deal with top level menu items first
+		$topMenuItems = $menu->find("parentID=0");
+		// assign isFirst to the first top most menu item
+		$firstTop = $topMenuItems->first();
+		$firstTop->isFirst = 1;
+		// assign isLast to last top most menu item
+		$lastTop = $topMenuItems->last();
+		$lastTop->isLast = 1;
+
+		// assing isFirst and isLast as applicable to sub-menu items
 		foreach ($menu as $m) {
-			$children = $menu->find("parentID=$m->id,limit=1");// @note: we could a used a $menu->get() as well
+			$children = $menu->find("parentID=$m->id");// @note: we need these children for first and last
 			if($children->count()) {
 				// set this item as a parent if it has children - for 'has_children'
 				$m->isParent = 1;
@@ -308,7 +318,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$last->isLast = 1;
 			}
 		}
-
+		
 		return $menu;
 
 	}
@@ -592,10 +602,10 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 				// item CSS
 				$itemCSSID = $m->cssID ? ' id="' . $m->cssID . '"' : '';
-				$itemCSSClass = $m->cssClass ? $m->cssClass . ' ' : '';
-				$itemFirst = $m->isFirst || $cnt == 0 ? $o->firstClass : '';
-				$itemHasChildren = $m->isParent || $hasNativeChildren ? $o->hasChildrenClass . ' ' : '';
-				$itemLast = $m->isLast || $total - $cnt == 1 ? $o->lastClass . ' ' : '';
+				$itemCSSClass = $m->cssClass ? $m->cssClass . ' ' : '';				
+				$itemFirst = $m->isFirst ? $o->firstClass : '';
+				$itemHasChildren = $m->isParent || $hasNativeChildren ? $o->hasChildrenClass . ' ' : '';				
+				$itemLast = $m->isLast ? $o->lastClass . ' ' : '';
 				// apply current item class to current page + ancestors if specified for both native and included menu items
 				$itemCurrent = 	$m->isCurrent == 1 ? $o->currentClass . ' ' : '';
 
@@ -1242,6 +1252,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$m->isParent = 1;// @note: can add here and will still work with adding to $menu WireArray above (PHP has the reference to the object)
 				$this->includedFamilyMenuRaw($child, $depth, $menu, $m->id);
 			}// end if has visible children
+
+			// default CSS class set via $options at runtime
+			$m->cssClass = $o->defaultClass ? $o->defaultClass : '';
 
 		}// end foreach
 
