@@ -11,7 +11,7 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 * Easily apply CSS IDs and Classes to each and every menu item if you wish
 * Optionally set custom links to open in a new tab
 * Readily view the structure and settings for each menu and menu item
-* For each menu, multiple configurable ways to add menu items from ProcessWire pages - PageAutocomplete, PageListSelectMultiple OR AsmSelect[default] AND ProcessWire Selector 
+* For each menu, multiple configurable ways to add menu items from ProcessWire pages - PageAutocomplete, PageListSelectMultiple OR AsmSelect[default] AND ProcessWire Selector
 * Using a Selector, you can search for pages to add, for example, template=basic-page, limit=20, sort=title.
 * Batch edit menus
 * Menus stored as pages (note: just the menu, not the items!)
@@ -39,7 +39,7 @@ The module has two components:
 
 ## Note
 
-* The module installs three fields: **'menu_items', 'menu_pages'** and **'menu_settings'** and one template **'menus'**. If any similarly named fields/template are already present on your site, the module will not install but throw an error instead. You would need to rename your fields/template first. 
+* The module installs three fields: **'menu_items', 'menu_pages'** and **'menu_settings'** and one template **'menus'**. If any similarly named fields/template are already present on your site, the module will not install but throw an error instead. You would need to rename your fields/template first.
 * To allow access to the Menu Builder admin, a non-superuser must have the permission **menu-builder**. The permission is created on install.
 * Some Menu Builder admin options are only available to Superusers by default. Other users would require specific permissions as described below.
 
@@ -70,7 +70,7 @@ $defaultOptions = array(
 	'menu_css_class' => '',// a CSS Class for the menu
 	'submenu_css_class' => '',// CSS Class for sub-menus
 	'has_children_class' => '',// CSS Class for any menu item that has children
-	'first_class'=>'',// CSS Class for the first item in 
+	'first_class'=>'',// CSS Class for the first item in
 	'last_class' => '',
 	'current_class' => '',
 	'default_title' => 0,// 0=show saved titles;1=show actual/current titles
@@ -132,7 +132,7 @@ Similar to **render()**, the first argument is not optional and can be a Page ob
 
 * Unless indicated otherwise, all the following options apply to both **menus (render())** and **breadcrumbs (renderBreadcrumbs())**.
 * Only 6 options apply to **getMenuItems()**: *default_title, default_class, include_children, m_max_level, current_class_level and check_listable*.
-* The term navigation is used in the context of both menus and breadcrumbs. 
+* The term navigation is used in the context of both menus and breadcrumbs.
 * The term 'Class(es)' indicates that multiple CSS Classes can be applied, separated by space.
 
 
@@ -155,7 +155,7 @@ Similar to **render()**, the first argument is not optional and can be a Page ob
 7. **b_max_level**:  This is breadcrumb-only option related to the **include children** feature. It limits the depth from within which viewable descendant pages can be retrieved for display in a breadcrumb. The default is 1. This means that only fetch immediate children. A value of 2 means fetch both children and grandchildren, etc. The option can only be applied globally.
 8. **current_class_level**: Using this option, you can specify how high up the menu tree you want to apply the **'current_class'** to the current item's ancestors. The default is 1, meaning (if specified) apply the **'current_class'** to only the current item. A setting of 3 implies apply it to the current item, its parent and grandparent, etc. An option of 0 will apply **'current_class'** to all ancestors of the current page being viewed irrespective if that current page is part of the menu. In short, the option can be used to show some or all 'active/current' menu items at various levels in your menu. This option only applies to menus and not breadcrumbs.
 9. **check_listable**:  If set to 1, will not display items that are not (ProcessWire-) listable to the current user. The default is to show all items.
-0. **cached_menu**:  Menu-only option. If set to 1, will build and subsequently fetch menu items from cache to help speed up process if required. Not available to **getMenuItems()**. Only compatible with **'current_class_level' '0' OR '1'**. 
+0. **cached_menu**:  Menu-only option. If set to 1, will build and subsequently fetch menu items from cache to help speed up process if required. Not available to **getMenuItems()**. Only compatible with **'current_class_level' '0' OR '1'**.
 1. **cached_menu_time**:  Menu-only option. When caching is used, sets lifetime of cache in seconds. You can also use [other values](https://processwire.com/api/ref/wire-cache/save/) accepted by WireCache. The default is 1 day (86400 seconds).
 
 ## How to Use
@@ -263,15 +263,15 @@ echo $menu->renderBreadcrumbs(1234, $options);
 
 #### Using the Include Children Feature
 
-This is a flexible and powerful feature that you can leverage to produce all sorts of dynamic navigation for your ProcessWire website. With lots of power comes responsibility. The features should only be enabled (see relevant permission below) for users who know what they are doing. For example, a user could unknowingly use the feature to include descendant pages of a menu item that has hundreds of descendants, leading to undesirable effects. 
+This is a flexible and powerful feature that you can leverage to produce all sorts of dynamic navigation for your ProcessWire website. With lots of power comes responsibility. The features should only be enabled (see relevant permission below) for users who know what they are doing. For example, a user could unknowingly use the feature to include descendant pages of a menu item that has hundreds of descendants, leading to undesirable effects.
 
 #####  Menu-Level Values
 
 At the global/menu/API-level, the following values can be passed with 'include_children'. This is useful if you want to override some item-level settings. The priority order of the settings and in comparison to item-level settings are explained further below.
 
 * **0**: Overrides all settings, global and local and suppresses output of 'include_children'.
-* **1**: Include children of all navigation items but only in the menu unless specified otherwise in item-level setting. 
-* **2**: Include children of all navigation items but only in the breadcrumbs unless specified otherwise in item-level setting. 
+* **1**: Include children of all navigation items but only in the menu unless specified otherwise in item-level setting.
+* **2**: Include children of all navigation items but only in the breadcrumbs unless specified otherwise in item-level setting.
 * **3**: Include children of all navigation items in both the menu and breadcrumbs unless specified otherwise in item-level setting. This assumes you are passing the same options to both **render()** and **renderBreadcrumbs()**.
 * **4**: Do not include children of any navigation item unless specified otherwise in item-level setting. This is the default setting (automatically applied) and does not need to be specified in your $options.
 
@@ -281,9 +281,9 @@ At the global/menu/API-level, the following values can be passed with 'include_c
 At the local/admin/item-level, the following values can be saved with each navigation item either when creating or editing the menu item in the Menu Builder admin. This is useful when you want fine-grained control over 'include_children' output. The priority order of the settings and in comparison to menu-level settings are explained later below.
 
 * **No**: This is the default value; It means do not include children of this menu item unless overridden by a menu-level setting.
-* **Menu**: Include children of this navigation item but only in the menu unless overridden by a **0** menu-level setting. 
-* **Breadcrumbs**: Include children of this navigation item but only in the breadcrumbs unless overridden by a **0** menu-level setting. 
-* **Both**: Include children of this navigation item in both the menu and breadcrumbs overridden only by a **0** menu-level setting. 
+* **Menu**: Include children of this navigation item but only in the menu unless overridden by a **0** menu-level setting.
+* **Breadcrumbs**: Include children of this navigation item but only in the breadcrumbs unless overridden by a **0** menu-level setting.
+* **Both**: Include children of this navigation item in both the menu and breadcrumbs overridden only by a **0** menu-level setting.
 * **Never**: Never include children of this navigation item.
 
 
@@ -308,7 +308,7 @@ By default, if using AsmSelect or PageAutocomplete to select pages to add to you
 You can use the following permissions to control visibility and access to various advanced settings of Menu Builder by non-superusers. In ProcessWire, by default, Superusers inherit all permissions. **Note that you will have to create and apply the permissions yourself using the normal ProcessWire way**, i.e.
 
 * Create a role, e.g. **menu-editor**.
-* Create **permissions** and add assign them (when editing your role) to the role you created. 
+* Create **permissions** and add assign them (when editing your role) to the role you created.
 * Create a **user** and assign them the role with the Menu Builder permissions.
 
 There are 9 permissions at your disposal for fine-grained access control of your Menu Builder admin.
@@ -358,6 +358,9 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ## Changelog
+
+### Version 0.2.5
+1. Fixed typos and minor bugs where we needed to check if a variable was an array first before counting it.
 
 ### Version 0.2.4
 1. Fixed a bug where default_class was not getting applied to included children in getMenuItems() context.
