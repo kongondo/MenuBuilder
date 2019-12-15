@@ -37,7 +37,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder: Process',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 25,
+			'version' => '0.2.6',
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -224,7 +224,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$menuPages = $this->menuPages;
 
 			// set include children + disable items status + for users with right permission
-			if(count($menuPages)) {
+			if(!empty($menuPages)) {
 				// enable include children feature
 				if(isset($menuPages['children']) && $this->wire('user')->hasPermission('menu-builder-include-children')) {
 					$this->includeChildren = $menuPages['children'];
@@ -359,7 +359,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		else {
 
 			$opts = $this->wire('pages')->find($pagesSelector);
-			if(!count($opts)) {
+			if(empty($opts)) {
 				$this->error($this->_('Menu Builder: Your selector did not find any selectable pages for your menu! Confirm its validity.'));
 				$description = $this->_('No pages were found to add to your menu. Rectify the specified error first.');
 			}
@@ -467,7 +467,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// if menu populated, create nested list
 		$markup = '<h4>' . $this->_('No items have been added to this menu yet') . '</h4>';
-		if(count($this->menuItems)) {
+		if(!empty($this->menuItems)) {
 			$markup = '<div id="menu_sortable_wrapper">' .
 							'<a href="#" id="remove_menus">' . $this->_('Delete All') . '</a>' .
 							$this->listMenu(0) .
@@ -527,7 +527,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		));
 
 		// fetch menu items and display their properties in the overview table
-		if(count($menuItems)) {
+		if(!empty($menuItems)) {
 
 			foreach ($menuItems as $menu => $menuItem) {
 
@@ -1022,7 +1022,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// grab a limited number of menus to show in menus tab. Limit is determined in $this->setShowLimit() above
 		$menus = $this->menusParent->children("include=all, sort=title, limit={$this->showLimit}");
-		if (count($menus)) 	$table = $this->buildTable($menus);
+		if (!empty($menus)) 	$table = $this->buildTable($menus);
 		// display a headline indicating quantities
 		$m->description = $this->buildMenusCountHeadline($menus);
 		// pagination
@@ -1126,7 +1126,8 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			// count number of menu items in each menu
 			$menuItemsJSON = $menu->menu_items;
-			$menuItemsCnt = count(json_decode($menuItemsJSON, true));
+			$menuItemsArray = json_decode($menuItemsJSON, true);
+			$menuItemsCnt = !empty($menuItemsArray) ? count($menuItemsArray): 0;
 			// check if menu is published or not
 			$menu->is(Page::statusUnpublished) ? $pubStatus = '<span class="unpublished">' . $this->_('No') . '</span>' : $pubStatus = $this->_('Yes');
 			// check if menu is locked for editing
@@ -1927,7 +1928,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		);
 
 		// if custom settings found, we overwrite default ones
-		if(count($this->menuSettings)) {
+		if(!empty($this->menuSettings)) {
 			foreach ($this->menuSettings as $key => $value) $nestedSortableOptions['config'][$key] = $value['setting'];
 		}
 		// ProcessMenuBuilderNestedSortable
@@ -1950,7 +1951,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$options = array('config' => array('children' => 0));// do not include children
 
 		// @todo: this could be refactored!
-		if(count($this->menuPages)) {
+		if(!empty($this->menuPages)) {
 			// if a custom 'include children' setting found, we overwrite the default one
 			foreach ($this->menuPages as $key => $value) {
 				if($key == 'children' && $this->wire('user')->hasPermission('menu-builder-include-children')) {
@@ -2216,7 +2217,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// if user can change and use multi-lingual menu items feature
 		if($user->hasPermission('menu-builder-multi-lingual-items')) {
-			$this->menuItemsLanguages = $menuPagesNew['menu_items_languages'] = is_array($post->menu_items_languages) && count($post->menu_items_languages) ? $post->menu_items_languages : '';
+			$this->menuItemsLanguages = $menuPagesNew['menu_items_languages'] = is_array($post->menu_items_languages) && !empty($post->menu_items_languages) ? $post->menu_items_languages : '';
 		}
 
 		// merge newly set menuPages values with (any) existing ones
@@ -2225,7 +2226,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$menuPages = array_merge($menuPagesSaved, $menuPagesNew);
 
 		// JSON string of menu pages and menu items to save
-		$menuPagesJSON = count($menuPages) ? wireEncodeJSON($menuPages) : '';// using wireEncodeJSON ensures we only save non-empty values
+		$menuPagesJSON = !empty($menuPages) ? wireEncodeJSON($menuPages) : '';// using wireEncodeJSON ensures we only save non-empty values
 
 		return $menuPagesJSON;
 
@@ -2244,7 +2245,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		#################	01. Process existing menu items 	#################
 		$menuItems = $this->saveSingleMenuItemsExisting($post);
 		// we'll need this to auto-increment menu IDs for new menu items (to ensure uniqueness)
-		$lastID = count($menuItems) ? max(array_keys($menuItems)) : 0;// will give us the highest numbered array key (the itemID)
+		$lastID = !empty($menuItems) ? max(array_keys($menuItems)) : 0;// will give us the highest numbered array key (the itemID)
 
 		$this->menuItemID = $lastID + 1;
 
@@ -2256,7 +2257,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		#################	04: Process NEW menu items from Selector 	#################
 		$menuItems = $this->saveSingleMenuItemsNewSelector($post, $menuItems);
 
-		$menuitemsJSON = count($menuItems) ? wireEncodeJSON($menuItems) : '';
+		$menuitemsJSON = !empty($menuItems) ? wireEncodeJSON($menuItems) : '';
 
 		return $menuitemsJSON;
 
@@ -2285,7 +2286,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// loop through the existing, updated menu items sent from nestedSortable
 		// only loop if we have existing menu times. we check the hidden field with IDs of menu items
-		if(count($post->item_id)) {
+		if(!empty($post->item_id)) {
 
 			//$ml = $this->multiLingual ? true : false;
 			$ml = !is_null($this->menuItemsLanguages) ? true : false;
@@ -2357,9 +2358,9 @@ class ProcessMenuBuilder extends Process implements Module {
 			}// end foreach loop for existing menu items
 
 			// merge menu items with multilingual titles and custom URLs if applicable
-			if(count($menuItemsLanguage)) $menuItems = array_replace_recursive($menuItems, $menuItemsLanguage);
+			if(!empty($menuItemsLanguage)) $menuItems = array_replace_recursive($menuItems, $menuItemsLanguage);
 
-		}// end if count $post->item_id
+		}// end if !empty $post->item_id
 
 		return $menuItems;
 
@@ -2571,7 +2572,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$items = $pages->find($selectorPages . $sel);
 		}
 
-		if (count($items)) {
+		if (!empty($items)) {
 
 			foreach ($items as $item) {
 
@@ -2591,7 +2592,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			}// end foreach $items as $item
 
-		}// end if count($items)
+		}// end if !empty($items)
 
 		return $menuItems;
 
@@ -2626,7 +2627,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		}// end if user has menu-builder-settings permission
 
 		// JSON string of menu settings to save
-		$menuSettingsJSON = count($menuSettings) ? json_encode($menuSettings) : '';
+		$menuSettingsJSON = !empty($menuSettings) ? json_encode($menuSettings) : '';
 
 		return $menuSettingsJSON;
 
@@ -2652,7 +2653,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$actionMenus = $post->menus_action;// checkbox array name
 
 		// check if menus were selected.
-		if (count($actionMenus)) {
+		if (!empty($actionMenus)) {
 
 			// prepare sent menu IDs to find and TRASH the menu pages
 			$menuIds = implode('|', $actionMenus);// split array elements, joining them with pipe (I) to use in selector
@@ -2818,7 +2819,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	private function deleteMenuCache($menuID) {
 		$languageNames = $this->getLanguageSuffixes();
 		// multi-lingual site
-		if(count($languageNames)) {
+		if(!empty($languageNames)) {
 			foreach ($languageNames as $name) {
 				$cacheName = 'menu-builder-' . $menuID . '-' . $name;
 				$this->wire('cache')->delete($cacheName);// delete the cache
