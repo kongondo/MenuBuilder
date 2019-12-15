@@ -304,7 +304,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		$lastTop = $topMenuItems->last();
 		$lastTop->isLast = 1;
 
-		// assing isFirst and isLast as applicable to sub-menu items
+		// assign isFirst and isLast as applicable to sub-menu items
 		foreach ($menu as $m) {
 			$children = $menu->find("parentID=$m->id");// @note: we need these children for first and last
 			if($children->count()) {
@@ -1348,6 +1348,13 @@ class MarkupMenuBuilder extends WireData implements Module {
 		// else return Menu Array if $type == 1
 		elseif($type == 1) {
 			foreach ($menuItemsObject as $m) {
+
+				// get number of children if requested in options
+				if($options->getNumChildren) {
+					// add number of children for parent items
+					if($m->isParent) $m->numChildren = $this->getNumChildren($m->id,$menuItemsObject);
+				}
+
 				$menuItems[$m->id] = array(
 					'parent_id' => $m->parentID,// parent within this menu item; if 0 means top tier menu item
 					'pages_id' => $m->pagesID,// if 0 means external URl; if ID, then the REAL PW id of that page
@@ -1362,6 +1369,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 					'is_first' => $m->isFirst,// first menu item at its tier? (bool)
 					'is_last' => $m->isLast,// last menu item at its tier? (bool)
 					'is_current' => $m->isCurrent,// menu item matches current page? (bool) @todo: unset for cache!
+					// number of children items if menu item is a parent
+					'num_children' => $m->numChildren,
 				);
 			}
 			// filter out empty values
@@ -1402,7 +1411,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 				if(!$page->numChildren) continue;// skip non-parents
 				###################
 				$depth = $m->menuMaxLevel ? $m->menuMaxLevel : $o->menuMaxLevel;
-				$firstChild = $m->isParent ? $page->child->id : null;// for skipping 'first_class' when native MB
+				// for skipping 'first_class' when native MB
+				$firstChild = $m->isParent ? $page->child->id : null;
+
 				$menu = $this->includedFamilyMenuRaw($page, $depth, $menu, $m->id, $firstChild);
 				// @note/@todo: confirm OK to apply here rather than earlier due to the 'first_class' issue above
 				$m->isParent = 1;
@@ -1411,6 +1422,20 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		return $menu;
 
+	}
+
+	/**
+	 * Fetch included children to add to menu items as objects.
+	 * For internal use by getMenuItems().
+	 *
+	 * @access private
+	 * @param object $menu WireArray with menu objects to add included children to.
+	 * @return object $menu WireArray with added menu objects.
+	 *
+	 */
+	private function getNumChildren($menuID,$menu) {
+		$numChildren = $menu->find('parentID=' . $menuID);
+		return $numChildren->count;
 	}
 
 	/**
@@ -1495,6 +1520,7 @@ class MenuOptions extends WireData {
 			check_listable// menus only -  If set to 1, will not display items that are not (ProcessWire-) listable to the current user. The default is to show all items.
 			cached_menu// menus only - will build and subsequently fetch menu items from cache to help speed up process if required
 			cached_menu_time// menus only - how long a cached menu should exist for. Default is 1 day @note: can use everything WireCache accepts @see: https://processwire.com/api/ref/wire-cache/save/
+			get_num_children// ONLY for getMenuItems()
 		*/
 
 		// define menu properties
@@ -1519,6 +1545,7 @@ class MenuOptions extends WireData {
 		$this->set('checkListable', isset($options['check_listable']) ? 1 : '');
 		$this->set('cachedMenu', isset($options['cached_menu']) && 1 == (int) $options['cached_menu'] ? 1 : '');
 		$this->set('cachedMenuTime', isset($options['cached_menu_time']) ? $options['cached_menu_time'] : 86400);
+		$this->set('getNumChildren', isset($options['get_num_children']) ? $options['get_num_children'] :0);
 
 	}
 
