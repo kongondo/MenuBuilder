@@ -31,7 +31,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 			'title' => 'Menu Builder: Markup',
 			'summary' => 'Render menus created by Process Menu Builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => 25,
+			'version' => '0.2.6',
 			'href' => 'http://processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
@@ -93,7 +93,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		if($options->cachedMenu) $cachedMenu = $this->processMenuFromCache($menuItems);
 
 		// building menu from cache
-		if(count($cachedMenu)) {
+		if(!empty($cachedMenu)) {
 			// convert raw menu items settings to WireData Objects for use in buildMenuFromCache()
 			$this->menuItems = $this->arrayToObject($cachedMenu);// @note: returns an array containing WireData objects
 			$menu = $this->buildMenuFromCache();
@@ -455,7 +455,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		if($menuID) {
 			$cachedMenu = $this->getMenuCache($menuID);
 			// if no menu cache, build one
-			if(!count($cachedMenu)) $this->createMenuCache($menuID);
+			if(empty($cachedMenu)) $this->createMenuCache($menuID);
 		}
 
 		return $cachedMenu;
@@ -550,7 +550,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 	private function buildMenu($parent = 0) {
 
 		$menu = $this->menuItems;// WireArray with Menu objects
-		$total = count($menu);
+		// $total = count($menu);
 		$cnt = 0;
 		$o = $this->options;
 
@@ -1391,7 +1391,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		// per-item/selective include children
 		else $menuItems = $menu->find("includeChildren=1|3,pagesID!=1");// @note: skip Home!
 
-		if(count($menuItems)) {
+		if(!empty($menuItems)) {
 			foreach ($menuItems as $m) {
 				if($m->pagesID == 1) continue;// skip Home page!
 				// if overriding 'global include' with 'never show' at per-item level
