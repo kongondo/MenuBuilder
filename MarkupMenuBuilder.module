@@ -1118,6 +1118,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 	 *
 	 * Triggered if user specifies in $options or on a per/item basis to include natural children of a menu item(s).
 	 * By 'naturally' is meant from a ProcessWire tree point of view, i.e. 'child - parent - grandparent - great grandparent' etc...
+	 * @note: For internal use by buildMenu() ONLY!
+	 * @see includedFamilyMenuRaw() for getMenuItems() use.
 	 *
 	 * @access private
 	 * @param Page $page Page whose children are to be included as menu items.
@@ -1192,7 +1194,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 	 *
 	 * Triggered if user specifies in $options or on a per/item basis to include natural children of a menu item(s).
 	 * By 'naturally' is meant from a ProcessWire tree point of view, i.e. 'child - parent - grandparent - great grandparent' etc...
-	 * Used by getMenuItems() to return the menu objects themselves.
+	 * @note: Used by getMenuItemsIncludedChildren() ONLY to return the menu objects themselves for getMenuItems().
+	 * @see: includedFamilyMenu() for buildMenu() use.
 	 *
 	 * @access private
 	 * @param Page $page Page whose children are to be included as menu items.
@@ -1214,6 +1217,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		if(is_null($page)) $page = $this->wire('page');// @note/@todo: not really necessary in this case?
 
+
 		# current class
 		// if option to apply current_class to MB ancestor items as well is specified
 		$parentIDs = array();
@@ -1224,10 +1228,15 @@ class MarkupMenuBuilder extends WireData implements Module {
 		elseif($o->currentClassLevel && $o->currentClassLevel > 1) $parentIDs = $this->currentPageParents(true);
 
 		# counts
-		$count = $page->numVisibleChildren-1;
+		$count = $page->numVisibleChildren-1;// to counter-balance 0-based index below ($n)
+
+		// if maximum children per parent menu item is set, limit included (natural/pw) children to that number
+		// @todo: should we deduct any present non-native children? i.e. those already in GUI? Maybe doesn't make sense since those added via GUI are done so deliberately and visibly!
+		$childrenLimit = (int) $o->maximumChildrenPerParent;
+		$selector = $childrenLimit ? "limit={$childrenLimit}" : '';
 
 		# build objects
-		foreach($page->children as $n => $child) {
+		foreach($page->children($selector) as $n => $child) {
 
 			$m = new Menu();
 			#$m->id = $child->id;// @note: better to give unique ID in case natural parent used twice in menu
@@ -1238,7 +1247,13 @@ class MarkupMenuBuilder extends WireData implements Module {
 			$m->url = $child->url;
 			// note: we skip 'first_class' for this menu page/item when native sibling MB children already exist for Page
 			$m->isFirst = $n == 0 && $child->id != $firstChild ? 1 : '';
+			// @note: we let last child remain irrespective of $childrenLimit above! In that case, showMore (@see below) should designate what the last child is!
 			$m->isLast = $count - $n == 0 ? 1 : '';
+			// add 'show more' text to last SHOWN item if applicable
+			// if last item in show limit AND there are more visible children available (i.e. more children than limit allows)
+			if($childrenLimit - $n == 1 && $page->numVisibleChildren > $childrenLimit) $m->showMoreText = $o->showMoreText;
+
+
 			// check for current items (family tree)
 			$m->isCurrent = in_array($child->id, $parentIDs) || $child->id == $this->wire('page')->id ? 1 : '';
 
@@ -1350,13 +1365,13 @@ class MarkupMenuBuilder extends WireData implements Module {
 			foreach ($menuItemsObject as $m) {
 
 				// get number of children if requested in options
-				if($options->getNumChildren) {
+				if($options->getTotalChildren) {
 					// add number of children for parent items
-					if($m->isParent) $m->numChildren = $this->getNumChildren($m->id,$menuItemsObject);
+					if($m->isParent) $m->totalChildren = $this->getTotalChildren($m->id,$menuItemsObject);
 				}
 
 				$menuItems[$m->id] = array(
-					'parent_id' => $m->parentID,// parent within this menu item; if 0 means top tier menu item
+					'parent_id' => $m->parentID,// parent ID of this menu item; if 0 means top tier menu item
 					'pages_id' => $m->pagesID,// if 0 means external URl; if ID, then the REAL PW id of that page
 					'title' => $m->title,// default_title: 0=show saved mb titles;1=show actual/current pw titles
 					'url' => $m->url,// menu items URL
@@ -1369,8 +1384,11 @@ class MarkupMenuBuilder extends WireData implements Module {
 					'is_first' => $m->isFirst,// first menu item at its tier? (bool)
 					'is_last' => $m->isLast,// last menu item at its tier? (bool)
 					'is_current' => $m->isCurrent,// menu item matches current page? (bool) @todo: unset for cache!
-					// number of children items if menu item is a parent
+					// number of natural/pw children items if menu item is a parent
 					'num_children' => $m->numChildren,
+					// total number of children items if menu item is a parent (natural + GUI children)
+					'total_children' => $m->totalChildren,
+					'show_more_text' => $m->showMoreText,
 				);
 			}
 			// filter out empty values
@@ -1409,6 +1427,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 				########
 				$page = $this->wire('pages')->get($m->pagesID);
 				if(!$page->numChildren) continue;// skip non-parents
+
+				// total natural/pw children of menu item
+				$m->numChildren = $page->numChildren;
 				###################
 				$depth = $m->menuMaxLevel ? $m->menuMaxLevel : $o->menuMaxLevel;
 				// for skipping 'first_class' when native MB
@@ -1425,17 +1446,19 @@ class MarkupMenuBuilder extends WireData implements Module {
 	}
 
 	/**
-	 * Fetch included children to add to menu items as objects.
+	 * Count total number of child items for a menu item.
+	 * Includes both natural/ProcessWire children and items added via GUI.
 	 * For internal use by getMenuItems().
 	 *
 	 * @access private
-	 * @param object $menu WireArray with menu objects to add included children to.
-	 * @return object $menu WireArray with added menu objects.
+	 * @param integer $parentID ID of the parent menu item whose children to count.
+	 * @param object WireArray of menu objects.
+	 * @return integer $totalChildren->count Count of children.
 	 *
 	 */
-	private function getNumChildren($menuID,$menu) {
-		$numChildren = $menu->find('parentID=' . $menuID);
-		return $numChildren->count;
+	private function getTotalChildren($parentID,$menu) {
+		$totalChildren = $menu->find('parentID=' . $parentID);
+		return $totalChildren->count;
 	}
 
 	/**
@@ -1520,8 +1543,13 @@ class MenuOptions extends WireData {
 			check_listable// menus only -  If set to 1, will not display items that are not (ProcessWire-) listable to the current user. The default is to show all items.
 			cached_menu// menus only - will build and subsequently fetch menu items from cache to help speed up process if required
 			cached_menu_time// menus only - how long a cached menu should exist for. Default is 1 day @note: can use everything WireCache accepts @see: https://processwire.com/api/ref/wire-cache/save/
-			get_num_children// ONLY for getMenuItems()
+
+			get_total_children// ONLY for getMenuItems() @todo? amend?
+			maximum_children_per_parent// only for include_children, i.e. natural/pw children of menu items AND applies GLOBALLY, i.e. not per menu-item-level! for getMenuItems() ONLY
+			show_more_text// the text to show for 'show more'. Used in combination with 'maximum_children_per_parent'. for getMenuItems() ONLY
 		*/
+
+		$showMoreText = $this->_('View More');
 
 		// define menu properties
 		$this->set('wrapperListType', isset($options['wrapper_list_type']) ? $options['wrapper_list_type'] : 'ul');
@@ -1545,7 +1573,9 @@ class MenuOptions extends WireData {
 		$this->set('checkListable', isset($options['check_listable']) ? 1 : '');
 		$this->set('cachedMenu', isset($options['cached_menu']) && 1 == (int) $options['cached_menu'] ? 1 : '');
 		$this->set('cachedMenuTime', isset($options['cached_menu_time']) ? $options['cached_menu_time'] : 86400);
-		$this->set('getNumChildren', isset($options['get_num_children']) ? $options['get_num_children'] :0);
+		$this->set('getTotalChildren', isset($options['get_total_children']) ? $options['get_total_children'] :0);
+		$this->set('maximumChildrenPerParent', isset($options['maximum_children_per_parent']) ? $options['maximum_children_per_parent'] :0);
+		$this->set('showMoreText', isset($options['show_more_text']) ? $options['show_more_text'] :$showMoreText);// show_more_text
 
 	}
 
@@ -1575,6 +1605,8 @@ class Menu extends WireData {
 		$this->set('cssID', '');
 		$this->set('cssClass', '');
 		$this->set('disabledItem', '');
+		$this->set('numChildren', '');
+		$this->set('totalChildren', '');
 
 	}
 
