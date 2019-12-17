@@ -74,7 +74,7 @@ $defaultOptions = array(
 	'last_class' => '',
 	'current_class' => '',
 	'default_title' => 0,// 0=show saved titles;1=show actual/current titles
-	'include_children' => 4,// show 'natural' MB non-native descendant items as part of navigation
+	'include_children' => 4,// show 'natural' (ProcessWire pages descendant items as part of navigation
 	'm_max_level' => 1,// how deep to fetch 'include_children'
 	'current_class_level' => 1,// how high up the ancestral tree to apply 'current_class'
 	'default_class' => '',// a CSS class to apply to all menu items
@@ -133,8 +133,8 @@ The third argument is similar to the $options passed to **render()** but accepts
 
 ### Options
 
-* 7 options apply to **getMenuItems()**: *default_title, default_class, include_children, m_max_level, current_class_level,check_listable and get_num_children*.
-* The term navigation is used in the context of both menus and breadcrumbs.
+* From the options available to **render()** above, 5 also apply to **getMenuItems()**: *default_title, default_class, include_children, m_max_level and current_class_level*. In addition, **getMenuItems()** also takes a number of options only applicable to it as outlined below.
+* In this section the term navigation is used in the context of menus only.
 * The term 'Class(es)' indicates that multiple CSS Classes can be applied, separated by space.
 
 
@@ -144,7 +144,39 @@ The third argument is similar to the $options passed to **render()** but accepts
 4. **m_max_level**:  This is a menu-only option related to the **include children** feature. It limits the depth from within which viewable descendant pages can be retrieved for display in a menu. The default is 1. This means that only fetch immediate children. A value of 2 means fetch both children and grandchildren, etc. The option can be applied globally and locally as explained previously.
 5. **current_class_level**: Using this option, you can specify how high up the menu tree you want to apply the **'current_class'** to the current item's ancestors. The default is 1, meaning (if specified) apply the **'current_class'** to only the current item. A setting of 3 implies apply it to the current item, its parent and grandparent, etc. An option of 0 will apply **'current_class'** to all ancestors of the current page being viewed irrespective if that current page is part of the menu. In short, the option can be used to show some or all 'active/current' menu items at various levels in your menu. This option only applies to menus and not breadcrumbs.
 6. **check_listable**:  If set to 1, will not display items that are not (ProcessWire-) listable to the current user. The default is to show all items.
-7. **get_num_children**:  If set to 1, will return a property with the number of child items each parent menu item has. This is useful for showing children counts or 'show more menus'. The default is not to return counts. If menu items are an array (see $type above) the property is accessed in the index **'num_children'**. If menu items are an object, it is accessed using **'numChildren'**.
+7. **maximum_children_per_parent**:  If set to greater than 0, it will limit the number of child items fetched for each parent menu item using the **include children** option. The default is 0, meaning, all visible child items are fetched for a parent. Please note that child items set via the GUI are not included in the count. For instance, if **maximum_children_per_parent** is set to *3* and a parent item has *1* child item set via the GUI, a total of *4* items will be returned for that parent, i.e. *3+4* items.
+8. **get_total_children**:  If set to 1, it will return a property with the number of child items each parent menu item has. The property accounts for both natural (ProcessWire) children as well any added via the GUI. The default is not to return counts.
+9. **show_more_text**:  This is used in conjuction with **maximum_children_per_parent**. It returns a string property with the text that should be displayed if a parent menu item has more (visible) child items than the limit set by **maximum_children_per_parent**. The default (English) string is **View More**.
+
+### Properties
+
+Menu items returned via **getMenuItems()** have the following properties, as applicable. As previously mentioned, if *$type=1*  (see above), **getMenuItems()** will return an array. The array index equivalents of the menu items' properties are indicated in parentheses. **Please note that if a propety is empty (including zero value), it will have no equivalent array index**. For menu items returned as objects, the properties can be accessed using $menuItem->propertName. It is also possible to query menu items using their property names. For instance:
+
+````php
+
+$items = $menu->find("parentID=10");
+
+$item = $menu->get("id=5");
+
+````
+
+1. **parentID(parent_id)**:  The ID of the parent of a menu item. Please note that these IDs are for internal reference and do not correspond to ProcessWire page IDs! .An ID of **0** means the menu item has no parent and is therefore a top-tier menu item.
+2. **pagesID(pages_id)**: The ProcessWire page ID of the menu item. If **0** it means the menu item is a custom menu item with a link external to ProcessWire.
+3. **title(title)**: The title of the menu item. Please note that this may vary depending on the setting **default_title** above.
+4. **url(url)**: The URL the menu item points to.
+5. **newtab(new_tab)**: For custom menu items only. If value is 1, custom links will open in a new browser tab.
+6. **cssID(css_itemid)**: A single menu item's CSS ID.
+7. **cssClass(css_itemclass)**: A single menu item's CSS class(es).
+8. **includeChildren(include_children)**: A value of 1 denotes that the menu item will be including its native (ProcessWire) children as menu items.
+9. **menuMaxLevel(m_max_level)**: Specifies how deep child menu items are fetched using **include_children**.
+0. **isParent(is_parent)**: Returns 1 if a menu item is a parent (i.e., has children menu items).
+1. **isFirst(is_first)**: Returns 1 if a menu item is the first child of its parent or for top-tier menu items, if the item is the first item.
+2. **isLast(is_last)**: Returns 1 if a menu item is the last child of its parent or for top-tier menu items, if the item is the last item.
+3. **isCurrent(is_current)**: Returns 1 if a menu item matches the current page being viewed in the browser.
+4. **numChildren(num_children)**: Shows the number of visible (in the ProcessWire sense) natural (ProcessWire pages) children that the menu item has.
+5. **totalChildren(total_children)**: Denotes the total number of child items a menu item has. This includes both natural (see **numChildren**) and any children added via the GUI (backend), both natural and non-natural. By default, this property is not included. It only applies if the option **get_total_children** (see above) is set to 1.
+6. **showMoreText(show_more_text)**: This is only applicable if the option **maximum_children_per_parent** (see above) is in effect. It will be applied to the last shown child item of a parent in case that parent has more children than the limit set in **maximum_children_per_parent**.
+
 
 ## How to Use
 
@@ -154,7 +186,9 @@ The third argument is similar to the $options passed to **render()** but accepts
 
 #### Rendering a Menu
 
-The simplest way to render a menu is to use the method **render()**. It is straightforward and can be passed various options to customise your menu. However, for the ultimate flexibility and total freedom, especially for complex menu structures, we recommend that you use the method **getMenuItems()**. Please note that the method **getMenuItems()** will not return a menu out of the box. Instead, it returns menu items that you can optionally manipulate, traverse using any recursive function (or for simpler menus, nested foreachs) and output within a HTML structure of your choosing. It means that you can apply logic within your chosen recursive function (or loop) to output extra details with your menu, for instance grab some data from a field within the pages that your menu items represent. Another example would be to show some parts of the menu only when a user is logged in, etc. If working with the Menu object, it means you can easily add properties to some or all of the menu items at runtime. It also means you have all the powerful WireArray [methods](http://processwire.com/api/arrays/) at your disposal (don't touch sort though!).
+The simplest way to render a menu is to use the method **render()**. It is straightforward and can be passed various options to customise your menu.
+
+However, for the ultimate flexibility and total freedom, especially for complex menu structures, we recommend that you use the method **getMenuItems()**. Please note that the method **getMenuItems()** will not return a menu out of the box. Instead, it returns menu items that you can optionally manipulate, traverse using any recursive function (or for simpler menus, nested foreachs) and output within a HTML structure of your choosing. It means that you can apply logic within your chosen recursive function (or loop) to output extra details with your menu, for instance grab some data from a field within the pages that your menu items represent. Another example would be to show some parts of the menu only when a user is logged in, etc. If working with the Menu object, it means you can easily add properties to some or all of the menu items at runtime. It also means you have all the powerful WireArray [methods](http://processwire.com/api/arrays/) at your disposal (don't touch sort though!).
 
 ````php
 
@@ -286,7 +320,7 @@ As a sanity check, in the Menu Builder admin, a navigation item made up of your 
 
 #### Other Usage Notes
 
-Note that you are not limited to using MarkupMenuBuilder. You can also use your own PHP (or even JavaScript) recursive function to display your menu by decoding the saved JSON string containing menu items and passing the resulting array to your function for traversal. The CSS is up to you, of course. Here's a nice [example](https://processwire.com/talk/topic/4451-menu-builder/?p=99003) from a forum member.
+Note that you are not limited to using MarkupMenuBuilder. You can also use your own PHP (or even JavaScript) recursive function to display your menu by decoding the saved JSON string containing menu items and passing the resulting array to your function for traversal. The CSS is up to you, of course. Here's a nice [example](https://processwire.com/talk/topic/4451-menu-builder/?p=99003) from a forum member. However, It is preferable to use **getMenuItems()** as shown above.
 
 
 By default, if using AsmSelect or PageAutocomplete to select pages to add to your menu, the module will return a maximum of 50 pages. In that case, you might run into the 'not all my selectable pages are displayed [issue](https://github.com/kongondo/MenuBuilder/issues/21)'. You have two choices to resolve this. One, use PageListSelectMultiple instead. Alternatively, add a custom selector in the text field 'Pages selectable in menu' (main tab). For instance, *limit=50*. Or *limit=50, sort=title* or any other valid ProcessWire selector. You will either need to be logged in as a superuser or have the permission **menu-builder-selectable** in order to do this.
@@ -346,6 +380,11 @@ Uninstall like any other ProcessWire module. Note that **All your menus will be 
 GPL2
 
 ## Changelog
+
+### Version 0.2.6
+1. Added the properties numChildren, totalChildren and showMoreText for use with getMenuItems().
+2. Added option maximum_children_per_parent to limit the maximum number of (included) children a menu item can return.
+3. Refactored code to improve efficiency.
 
 ### Version 0.2.5
 1. Fixed typos and minor bugs where we needed to check if a variable was an array first before counting it.
