@@ -384,7 +384,9 @@ GPL2
 ### Version 0.2.6
 1. Added the properties numChildren, totalChildren and showMoreText for use with getMenuItems().
 2. Added option maximum_children_per_parent to limit the maximum number of (included) children a menu item can return.
-3. Refactored code to improve efficiency.
+3. Fixed CSS issue that affected menu items' trash cans in the backend. Thanks @duncan.
+4. Refactored code to improve efficiency.
+
 
 ### Version 0.2.5
 1. Fixed typos and minor bugs where we needed to check if a variable was an array first before counting it.
