@@ -27,7 +27,7 @@ div.handle {
 	padding: 5px;
 }
 /* Menu settings div */
-div.settings {	
+div.settings {
 	/*display: inline-block;*/
 	display: none;
 	margin-bottom: 10px;
@@ -46,7 +46,7 @@ div.menu_language.menu_language_active {display: block;}
 
 /* div#menu_items_headers_template {display: none;} */
 div#menu_items_headers:hover {cursor: auto; background: none !important;}
-div#menu_items_headers span {	
+div#menu_items_headers span {
 	margin: 1.5em 0 0.5em 0.1em !important;
 	display: inline-block;
 	width: 20%!important;
@@ -60,7 +60,7 @@ div#menu_items_headers span#asm_level, div#menu_items_headers span#ac_level {wid
 span.limit-select {float: right;}
 span#add_menu_items {display: block; padding: 0.3em 0 1.375em;}
 /* only for the Auocomplete field */
-li#menu_items_headers span {	
+li#menu_items_headers span {
 	margin: 1.5em 0 0.5em 0.1em !important;
 	display: inline-block;
 	width: 20%!important;
@@ -179,7 +179,7 @@ div.handle i.fa-trash {
 	position: relative;
 	border: none;
 	padding: 0.6em;
-	margin-right: -2.125em;
+	/* margin-right: -2.125em; */
 	top: 1px;
 }
 
