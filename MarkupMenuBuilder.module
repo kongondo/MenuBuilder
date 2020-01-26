@@ -277,8 +277,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 			if ($m->includeChildren == 5) $m->includeChildren = 0; // for consistency with $o->includeChildren
 			$m->menuMaxLevel  = isset($item['m_max_level']) ? $item['m_max_level'] : '';
 
-			// ADD EXTRA CUSTOM (SIMPLE) FIELDS
-			// @TODO: THIS SHOULD ONLY BE APPLICABLE TO getMenuItems()! add a check?
+			// ADD EXTRA FIELDS if requested
+			// @note: : this is only applicable to getMenuItems(). check already done in getMenuItems()!
 			// @note: we skip non PW pages here!
 			if ($p !== null && !empty($this->validExtraFields)) $m = $this->addExtraFields($m, $p);
 
@@ -1235,6 +1235,10 @@ class MarkupMenuBuilder extends WireData implements Module {
 			// check for current items (family tree)
 			$m->isCurrent = in_array($child->id, $parentIDs) || $child->id == $this->wire('page')->id ? 1 : '';
 
+			// ADD EXTRA FIELDS if requested
+			// @note: : this is only applicable to getMenuItems(). check already done in getMenuItems()!
+			if (!empty($this->validExtraFields)) $m = $this->addExtraFields($m, $child);
+
 			// add menu Object to WireArray
 			$menu->add($m);
 			$this->currentMenuItemID++; // increment for next menu item ID
@@ -1247,6 +1251,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 			// default CSS class set via $options at runtime
 			$m->cssClass = $o->defaultClass ? $o->defaultClass : '';
+
 		} // end foreach
 
 		return $menu;
@@ -1320,7 +1325,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		// For cached menus, $options is already an object as set in createMenuCache(), we ignore it
 		if (is_array($options)) $options = $this->processOptions($options); // run options first so that some properties can be set early on
 
-		// @todo: for new option extraFields, we need to process the fields to be added! we need to validate them first!
+		## extra fields ##
 		/*
 			@note:: running here so that we confine to getMenuItems() use only! - we also run before process processMenu()! to be ready for it
 		*/
@@ -1383,11 +1388,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 					'show_more_text' => $m->showMoreText,
 				);
 
-				// @TODO? EFFICIENT?
 				// @TODO: VALUES FOR INCLUDED CHILDREN NEEDED TO!
 				// @TODO: USE THIS IN GETMENU ITEMS!
 				// $m->extraFieldsAdded (BOOL)
-				// @TODO: HERE WE NEED TO CHECK OUR VALID PROPERTY THEN JUST RUN!
 				// add custom fields values
 				if (!empty($this->validExtraFields)) {
 					foreach ($this->validExtraFields as $extraField) {
@@ -1495,19 +1498,19 @@ class MarkupMenuBuilder extends WireData implements Module {
 				if($fieldtype == 'FieldtypeImage') {
 					$value = $this->getExtraFieldImages($extraField, $page);
 				}
-				// files  @todo: account for mutli files fields vs single
+				// files
 				elseif($fieldtype == 'FieldtypeFile') {
 					$value = $this->getExtraFieldFiles($extraField, $page);
 				}
-				// pagefields  @todo: account for mutli page fields vs single
+				// pagefields
 				elseif($fieldtype == 'FieldtypePage') {
 					$value = $this->getExtraFieldPages($extraField, $page);
 				}
-				// options @todo: account for mutli options fields vs single
+				// options
 				elseif($fieldtype == 'FieldtypeOptions') {
 					$value = $this->getExtraFieldOptions($extraField, $page);
 				}
-				// datetime @todo: remember output format vs timestamp
+				// datetime
 				elseif($fieldtype == 'FieldtypeDatetime') {
 					$value = $this->getExtraFieldDatetime($extraField, $page);
 				}
@@ -1919,8 +1922,6 @@ class MarkupMenuBuilder extends WireData implements Module {
 	 *
 	 */
 	private function getExtraFieldOptions($extraField, $page) {
-
-		// @todo: need to sort out multilingual options!
 
 		$field = $extraField['name'];
 
