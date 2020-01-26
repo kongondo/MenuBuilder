@@ -304,12 +304,16 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		// deal with top level menu items first
 		$topMenuItems = $menu->find("parentID=0");
+		// if we found
 		// assign isFirst to the first top most menu item
 		$firstTop = $topMenuItems->first();
-		$firstTop->isFirst = 1;
+		// if we found the first item
+		if($firstTop) $firstTop->isFirst = 1;
+
 		// assign isLast to last top most menu item
 		$lastTop = $topMenuItems->last();
-		$lastTop->isLast = 1;
+		// if we found the last item
+		if($lastTop) $lastTop->isLast = 1;
 
 		// assign isFirst and isLast as applicable to sub-menu items
 		foreach ($menu as $m) {
@@ -1332,8 +1336,13 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		// get the item with the highest menu ID so as to increment and apply to subsequent included children as IDs
 		$lastMenuItem = $menuItemsObject->get('sort=-id');
-		$lastMenuItemID = (int) $lastMenuItem->id;
-		$this->currentMenuItemID = $lastMenuItemID + 1;
+		// check if we found the last menu item
+		// @todo: confirm works!
+		if($lastMenuItem) {
+			$lastMenuItemID = (int) $lastMenuItem->id;
+			$this->currentMenuItemID = $lastMenuItemID + 1;
+		}
+
 
 		// add 'include children' if applicable
 		// @note: it will check for both globally or locally included children
@@ -1387,8 +1396,6 @@ class MarkupMenuBuilder extends WireData implements Module {
 					}
 				}
 			}
-
-
 
 			// filter out empty values
 			$menuItems = array_map('array_filter', $menuItems);
@@ -1505,19 +1512,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 					$value = $this->getExtraFieldDatetime($extraField, $page);
 				}
 
-				# check multilingual fields #
-
-				// textlanguage
-				elseif($fieldtype == 'FieldtypeTextLanguage') {
-					$value = $this->getExtraFieldTextlanguage($extraField, $page);
-				}
-				// textarealanguage
-				elseif($fieldtype == 'FieldtypeTextareaLanguage') {
-					$value = $this->getExtraFieldTextarealanguage($extraField, $page);
-				}
-
 				# else, this is a field that does not have options #
-				// checkbox, integer, float, url, email, textfield, textareafield
+				// checkbox, integer, float, url, email, textfield (including multi-lingual), textareafield (including multi-lingual)
 				else $value = $page->$fieldname;
 
 
@@ -1672,12 +1668,12 @@ class MarkupMenuBuilder extends WireData implements Module {
 				## check if getting other specific meta for image ##
 
 				// set description
-				if(isset($extraField['description']) && (int)$extraField['description']) {
+				if(!empty($extraField['description']) ) {
 					$values[$item->name]['description'] = $item->description;
 				}
 
 				// set tags
-				if(isset($extraField['tags']) && (int)$extraField['tags']) {
+				if(!empty($extraField['tags'])) {
 					$values[$item->name]['tags'] = $item->tags;
 				}
 
@@ -1797,13 +1793,18 @@ class MarkupMenuBuilder extends WireData implements Module {
 				## check if getting other specific meta for file ##
 
 				// set description
-				if(isset($extraField['description']) && (int)$extraField['description']) {
+				if(!empty($extraField['description'])) {
 					$values[$item->name]['description'] = $item->description;
 				}
 
 				// set tags
-				if(isset($extraField['tags']) && (int)$extraField['tags']) {
+				if(!empty($extraField['tags'])) {
 					$values[$item->name]['tags'] = $item->tags;
+				}
+
+				// set filesizeStr
+				if(!empty($extraField['filesize_str']) ) {
+					$values[$item->name]['filesize_str'] = $item->filesizeStr;
 				}
 
 			}
@@ -1892,7 +1893,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 				);
 
 				## check if getting other specific fields for page other than title and url ##
-				if(isset($extraField['fields']) && !empty($extraField['fields'])){
+				if(!empty($extraField['fields'])){
 					foreach($extraField['fields'] as $property) {
 						if($item->$property) {
 							$values[$item->name][$property] = $item->$property;
@@ -1934,7 +1935,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		// if show all selectable options requested
 		// SHOW ALL OPTION + 'mark' SELECTED
-		if(isset($extraField['all_options']) && (int) $extraField['all_options']){
+		if(!empty($extraField['all_options'])){
 			// get all options for this options field
 			$f = $this->wire('fields')->get($field);
 			$allOptions = $f->type->getOptions($f);
@@ -1963,7 +1964,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 				);
 
 				// if value requested as well
-				if(isset($extraField['value']) && (int) $extraField['value']) {
+				if(!empty($extraField['value'])) {
 					$values[$item->id]['value'] = $item->value;
 				}
 			}
@@ -2000,34 +2001,6 @@ class MarkupMenuBuilder extends WireData implements Module {
 		return $value;
 
 	}
-
-	/**
-	 * Return array of allowed Fieldtypes for use with extraFields.
-	 *
-	 * @access private
-	 * @param array $extraField Array with options for the textlanguage field.
-	 * @param Page $page Page with the required field value.
-	 * @return array $value Array of with values for returned textlanguage field.
-	 *
-	 */
-	private function getExtraFieldTextlanguage($extraField, $page) {
-
-	}
-
-	/**
-	 * Return array of allowed Fieldtypes for use with extraFields.
-	 *
-	 * @access private
-	 * @param array $extraField Array with options for the textarealanguage field.
-	 * @param Page $page Page with the required field value.
-	 * @return array $value Array of with values for returned textarealanguage field.
-	 *
-	 */
-	private function getExtraFieldTextarealanguage($extraField, $page) {
-
-	}
-
-
 
 	/**
 	 * Return array of allowed Fieldtypes for use with extraFields.
