@@ -973,15 +973,16 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// markup module
 		$m = $modules->get('InputfieldMarkup');
-		$m->label = $this->_('Add menus');
-		$m->description = $this->_('One menu title per line.');
+		$m->label = $this->_('Add new menu');
+		//$m->description = $this->_('A title is required.');
 		$m->collapsed = Inputfield::collapsedYes;
 
-		// textarea
-		$f = $modules->get('InputfieldTextarea');
-		$f->attr('name', 'menus_add_text');
-		$f->skipLabel = Inputfield::skipLabelHeader;// we don't want a label displayed here
-
+		// @note: multi-lingual aware title field
+		$f = $modules->get('InputfieldPageTitle');
+		$f->attr('name', 'menus_add_title');
+		$f->label = $this->_('Title');
+		$f->useLanguages = true;
+		$f->notes = $this->_('A title is required for at least the default languge.');
 		$m->add($f);
 
 		// submit button to save quick menus create [save unpublished!]
@@ -2762,50 +2763,67 @@ class ProcessMenuBuilder extends Process implements Module {
 	private function saveNewMenu($post) {
 
 		$sanitizer = $this->wire('sanitizer');
-		$addMenus = $post->menus_add_text;// $addMenus will be a string of text separated by a new line (\n).
+		$session = $this->wire('session');
+
+		// @TODO: NEW ADD MENU MULTILINGUAL
+
+		// default/main language title
+		$title = $sanitizer->text($post->menus_add_title);
 		$newUnpublishedBtn = $post->menu_new_unpublished_btn;
 
-		if ($addMenus) {
+		if($title) {
 
-			$failed = array();
-			$menus = explode("\n", $addMenus);// convert to an array
+			$page = new Page();
+			$page->parent = $this->menusParent;
+			$page->template = $this->wire('templates')->get("menus");
+			$page->title = $title;
+			// sanitize and convert to a URL friendly page name
+			$page->name = $sanitizer->pageName($page->title);
+			// check if name already taken
+			if($page->parent->child("name={$page->name}, include=all")->id) {
+				$this->error($this->_("Menu Builder: A menu with that title already exists."));
+			}
+			// save new menu  + also check multi-lingual
+			else {
+				if ($this->wire('languages')) {
+					foreach ($this->wire('languages') as $language) {
 
-			// Sanitize and save new menus
+					// skip default language as already set above
+						if($language->name == 'default') continue;
 
-			$i = 0;// set counter for number of menus added
-			foreach ($menus as $m) {
-				$p = new Page();
-				$p->parent = $this->menusParent;
-				$p->template = $this->wire('templates')->get("menus");
-				$p->title = $sanitizer->text($m);
-				if (!$p->title) continue;// skip to next if no title provided
-				if ($p->title) $p->name = $sanitizer->pageName($p->title);// sanitize and convert to a URL friendly page name
-
-				// check if name already taken
-				if($p->parent->child("name={$p->name}, include=all")->id) {
-					// if the name already exists, add it to the $failed array [to display to user in error message later] and skip to next title
-					$failed [] = $p->title;
-					continue;
-				}
+						// set values for other languages
+						else {
+							// @todo: @note: we set language as active
+							$page->set("status$language", 1);
+							$id = $language->id;
+							$title = $sanitizer->text($post->{"menus_add_title__$id"});
+							$name = $sanitizer->pageName($title);
+							// set language page title
+							$page->title->setLanguageValue($language, $title);
+							// @note: name is not a field, so we set this way
+							$page->set("name$language", $name);
+						}
+					}
+				} // end if languages
 
 				// if user pressed 'save unpublished', we save new menus unpublished
-				if ($newUnpublishedBtn) $p->addStatus(Page::statusUnpublished);
-				$p->save();
-				$i++;
+				if ($newUnpublishedBtn) $page->addStatus(Page::statusUnpublished);
 
-			}// end foreach $menus as $m
+				// save
+				$page->save();
 
-			// create a string of "failed" menu titles to add to error message
-			$failedTitles = implode(', ', $failed);
+				// success message
+				$this->message(sprintf(__('Added new menu: %s'), $page->title));
 
-			if($i > 0) $this->message(sprintf(_n("Added %d new menu.", "Added %d new menus.", $i), $i));// tell user how many menus were added
-			if($failedTitles) $this->error($this->_("Some menus not added because names already in use. These are: {$failedTitles}."));
-			$this->session->redirect($this->wire('page')->url);// redirect to landing page
+				// redirect to landing page
+				$this->session->redirect($this->wire('page')->url);
 
-		}// end if $addMenus
+			}
 
-		// show error message if add button clicked without first entering some categories to add
-		else $this->error($this->_("Menu Builder: You need to add some menus."));
+		}// end if menu title provided
+
+		// show error message if add button clicked without first entering a menu title
+		else $this->error($this->_("Menu Builder: You need to specify a menu title."));
 
 	}
 
