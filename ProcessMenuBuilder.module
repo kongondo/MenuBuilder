@@ -75,7 +75,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	private $cookieName;
 
 	/**
-	 * int value of number of posts/categories/tags to show per page respective dashboard page.
+	 * int value of number of menus to show per dashboard page.
 	 *
 	 */
 	private $showLimit;
@@ -87,7 +87,9 @@ class ProcessMenuBuilder extends Process implements Module {
 	private $menuSettings;
 
 	// multilingual
+	private $multilingual;// bool to check if in multilingual environment
 	private $menuItemsLanguages;
+
 
 	/**
 	 * Initialise the module. This is an optional initialisation method called before any execute methods.
@@ -108,6 +110,8 @@ class ProcessMenuBuilder extends Process implements Module {
 		$config = $this->wire('config');
 		$config->scripts->add($this->config->urls->ProcessMenuBuilder . 'scripts/jquery.mjs.nestedSortable.js');
 		$config->scripts->add($this->config->urls->ProcessMenuBuilder . 'scripts/jquery.asmselect-mb.js');
+
+		$this->multilingual = $this->wire('languages') ? true : false;
 
 		$this->menusParent = $this->wire('page');
 
@@ -240,7 +244,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			############################################ - Second Tab (menu items overview) - ####################################
 			$form->add($this->editTabOverview());
 			############################################ - Third Tab (menu settings) - ###########################################
-			$form->add($this->editTabMenuSettings($menu->title, $pubStatus, $editStatus));
+			$form->add($this->editTabMenuSettings($menu, $pubStatus, $editStatus));
 			############################################ - Fourth Tab (delete) - ############################################
 			if(!$menu->is(Page::statusLocked)) $form->add($this->editTabDelete($menu->id));
 
@@ -585,13 +589,13 @@ class ProcessMenuBuilder extends Process implements Module {
 	 * Third tab contents for executeEdit().
 	 *
 	 * @access protected
-	 * @param string $title Title of the menu being edited.
-	 * @param string $unpublished Whether the menu being edited is unpublished.
-	 * @param string $locked Whether the menu being edited is locked.
+	 * @param Page $menu The menu being edited.
+	 * @param string $unpublished String to show whether the menu being edited is unpublished.
+	 * @param string $locked String to show whether the menu being edited is locked.
 	 * @return object $tab To render as markup.
 	 *
 	 */
-	protected function editTabMenuSettings($title, $unpublished = null, $locked = null) {
+	protected function editTabMenuSettings($menu, $unpublished = null, $locked = null) {
 
 		$modules = $this->wire('modules');
 		$user = $this->wire('user');
@@ -604,20 +608,41 @@ class ProcessMenuBuilder extends Process implements Module {
 		$tab->attr('id', $id);
 		$tab->class .= ' WireTab';
 
-		$tx = $modules->get('InputfieldText');
-		$tx->label = $this->_('Menu title');
-		$tx->required = true;
-		$tx->attr('name', 'menu_title');
-		$tx->attr('value', $title);
-		$tx->description = $this->_('A menu title is required.');
+		// menu title
+		// @note: multi-lingual aware title field
+		$f = $modules->get('InputfieldPageTitle');
+		$f->attr('name', 'menu_title');
+		$f->label = $this->_('Menu title');
+		$f->useLanguages = true;
+		$f->required = true;
+		$f->attr('value', $menu->title);
+
+		// different description if in multi-lingual setting
+		if($this->multilingual) {
+			$description = $this->_('A menu title is required for at least the default language.');
+		}
+		else $description = $this->_('A menu title is required.');
+
+		$f->description = $description;
 
 		$notes = ($unpublished || $locked) ? $this->_('Menu status: ') : '';
 		if ($unpublished) $notes .= $this->_('Unpublished, ');
 		if ($locked) $notes .= $this->_('Locked');
 
-		$tx->notes = rtrim($notes, ', ');
+		$f->notes = rtrim($notes, ', ');
 
-		$tab->add($tx);
+		// if in multilingual site, set respective languages description values where available
+		if($this->multilingual) {
+			foreach ($this->wire('languages') as $language) {
+				// skip default language as already set above
+				if($language->name == 'default') continue;
+				$langTitle = $menu->getLanguageValue($language, 'title');
+				// set title in the language
+				$f->set("value$language->id", $langTitle);
+			}
+		}
+
+		$tab->add($f);
 
 		// display configurable backend menu settings for users with right permissions
 		// options for nestedSortable + ProcessWire selector for pages selectable in $menuAddPageItems AsmSelect
@@ -982,7 +1007,16 @@ class ProcessMenuBuilder extends Process implements Module {
 		$f->attr('name', 'menus_add_title');
 		$f->label = $this->_('Title');
 		$f->useLanguages = true;
-		$f->notes = $this->_('A title is required for at least the default languge.');
+
+		// different description if in multi-lingual setting
+		if($this->multilingual) {
+			$description = $this->_('A menu title is required for at least the default language.');
+		}
+
+		else $description = $this->_('A menu title is required.');
+
+		$f->description = $description;
+
 		$m->add($f);
 
 		// submit button to save quick menus create [save unpublished!]
@@ -1580,7 +1614,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	 */
 	private function getLanguages($mode='') {
 		$languages = array();
-		if($this->wire('languages')) {
+		if($this->multilingual) {
 			foreach ($this->wire('languages') as $language) {
 				if(1 == $mode && is_array($this->menuItemsLanguages)) {
 					// skip non-active languages (in respect of MB)
@@ -2095,7 +2129,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	/**
 	 * Save a single menu item.
 	 *
-	 * @param integer $menuID ID of the Menu to delete.
+	 * @param integer $menuID ID of the Menu to save.
 	 * @param array $post Post input with a menu's settings.
 	 * @access private
 	 *
@@ -2108,6 +2142,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$sanitizer = $this->wire('sanitizer');
 		$page = $this->wire('page');
 		$pages = $this->wire('pages');
+		$session = $this->wire('session');
 
 		$menu = $pages->get($menuID);
 
@@ -2117,6 +2152,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			return false;
 		}
 
+		// @todo: if locked, maybe hide link or hide save buttons!
 		// if menu is locked for editing, exit with an error
 		if($menu->is(Page::statusLocked)) {
 			$this->error($this->_('Menu Builder: This menu is locked for edits.'));
@@ -2136,22 +2172,60 @@ class ProcessMenuBuilder extends Process implements Module {
 		$menu->title = $menuTitle;
 		$menu->name = $sanitizer->pageName($menuTitle);
 
-		#################	01. Process menu 'pages'	#################
-		$menu->menu_pages = $this->saveSingleMenuPages($menu, $post);
-		#################	02. Process EXISTING menu items 	#################
-		$menu->menu_items = $this->saveSingleMenuItems($post);
-		#################	03. Process menu settings 	#################
-		if($user->hasPermission('menu-builder-settings')) $menu->menu_settings = $this->saveSingleMenuSettings($post);// only save for users with right permission
+		// check if name already taken
+		// @note: we use ID since if we checked name, we might just be checking the name of the menu we are editing!
+		$child = $menu->parent->child("name={$menu->name}, include=all");
+		// if different ID, it means there is a menu sibling; abort!
+		if($child->id && $child->id !== $menuID) {
+			$this->error($this->_("Menu Builder: A menu with that title already exists."));
+			// redirect back to the menu we were editing
+			$session->redirect($page->url . 'edit/?id=' . $menuID);
+		}
 
-		#################	Save menu 	#################
-		$menu->save();
+		// else process menu
+		else {
 
-		// also delete cache of menu if present so that can be refreshed
-		$this->deleteMenuCache($menu->id);
+			// save other languages' titles if in multi-lingual environment
 
-		$this->message($this->_('Menu Builder: Saved Menu '. $menu->title));
-		if($post->menu_save_exit) $this->wire('session')->redirect($page->url);
-		else $this->wire('session')->redirect($page->url . 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+			if ($this->multilingual) {
+				foreach ($this->wire('languages') as $language) {
+
+				// skip default language as already set above
+					if($language->name == 'default') continue;
+
+					// set values for other languages
+					else {
+
+						$id = $language->id;
+						$title = $sanitizer->text($post->{"menu_title__$id"});
+						$name = $sanitizer->pageName($title);
+						// set language page title
+						$menu->title->setLanguageValue($language, $title);
+						// @note: name is not a field, so we set this way
+						$menu->set("name$language", $name);
+					}
+				}
+			} // end if languages
+
+
+
+			#################	01. Process menu 'pages'	#################
+			$menu->menu_pages = $this->saveSingleMenuPages($menu, $post);
+			#################	02. Process EXISTING menu items 	#################
+			$menu->menu_items = $this->saveSingleMenuItems($post);
+			#################	03. Process menu settings 	#################
+			if($user->hasPermission('menu-builder-settings')) $menu->menu_settings = $this->saveSingleMenuSettings($post);// only save for users with right permission
+
+			#################	Save menu 	#################
+			$menu->save();
+
+			// also delete cache of menu if present so that can be refreshed
+			$this->deleteMenuCache($menu->id);
+
+			$this->message($this->_('Menu Builder: Saved Menu '. $menu->title));
+			if($post->menu_save_exit) $session->redirect($page->url);
+			else $session->redirect($page->url . 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+		}
 
 	}
 
@@ -2763,9 +2837,6 @@ class ProcessMenuBuilder extends Process implements Module {
 	private function saveNewMenu($post) {
 
 		$sanitizer = $this->wire('sanitizer');
-		$session = $this->wire('session');
-
-		// @TODO: NEW ADD MENU MULTILINGUAL
 
 		// default/main language title
 		$title = $sanitizer->text($post->menus_add_title);
@@ -2785,7 +2856,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			}
 			// save new menu  + also check multi-lingual
 			else {
-				if ($this->wire('languages')) {
+				if ($this->multilingual) {
 					foreach ($this->wire('languages') as $language) {
 
 					// skip default language as already set above
@@ -2793,7 +2864,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 						// set values for other languages
 						else {
-							// @todo: @note: we set language as active
+							// @note: we set language as active
 							$page->set("status$language", 1);
 							$id = $language->id;
 							$title = $sanitizer->text($post->{"menus_add_title__$id"});
