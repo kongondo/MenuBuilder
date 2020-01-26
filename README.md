@@ -74,7 +74,7 @@ $defaultOptions = array(
 	'last_class' => '',
 	'current_class' => '',
 	'default_title' => 0,// 0=show saved titles;1=show actual/current titles
-	'include_children' => 4,// show 'natural' (ProcessWire pages descendant items as part of navigation
+	'include_children' => 4, // whether to include natural/pw children of menu items in navigation; 0=never;1=in menu only;2=in breadcrumbs only;3=in both;4=do not show
 	'm_max_level' => 1,// how deep to fetch 'include_children'
 	'current_class_level' => 1,// how high up the ancestral tree to apply 'current_class'
 	'default_class' => '',// a CSS class to apply to all menu items
@@ -109,7 +109,7 @@ $defaultOptions = array(
 	// prepend home page at the as topmost item even if it isn't part of the breadcrumb
 	'prepend_home' => 0,// 0=no;1=yes
 	'default_title' => 0,// 0=show saved titles;1=show actual/current titles
-	'include_children' => 4,// show 'natural' MB non-native descendant items as part of navigation
+	'include_children' => 4,// whether to include natural/pw children of menu items in navigation; 0=never;1=in menu only;2=in breadcrumbs only;3=in both;4=do not show
 	'b_max_level' => 1,// how deep to fetch 'include_children'
 
 );
