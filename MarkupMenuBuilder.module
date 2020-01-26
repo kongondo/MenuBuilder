@@ -117,6 +117,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		// render the menu
 		return $menu;
+
 	}
 
 	/**
@@ -152,8 +153,15 @@ class MarkupMenuBuilder extends WireData implements Module {
 		elseif (is_string($menu)) {
 			// grab the menu
 			$menuName = $this->wire('sanitizer')->pageName($menu);
-			$menuParent = $this->wire('pages')->get($this->config->adminRootPageID)->child('name=setup, check_access=0')->child('name=menu-builder, check_access=0');
-			$menu = $menuParent->child("name=$menuName, check_access=0");
+			// get menu name selector
+			/*  @note: this caters for multi-lingual sites in cases menu is called using its language name or title
+			*/
+			$fieldSelector = $this->getMenuNameSearchFieldSelector();
+			// get ProcessWire setup page (this is the parent of Menu Builder Page)
+			$setupPage = $this->wire('pages')->get($this->config->adminRootPageID)->child("$fieldSelector=setup, include=all");
+			// get Menu Builder Page
+			$menuBuilderPage = $setupPage->child("$fieldSelector=menu-builder, include=all");
+			$menu = $menuBuilderPage->child("$fieldSelector=$menuName, include=all");
 			if ($menu) $menuItems = json_decode($menu->menu_items, true);
 		}
 
@@ -468,6 +476,35 @@ class MarkupMenuBuilder extends WireData implements Module {
 		}
 
 		return $cachedMenu;
+	}
+
+	/**
+	 * Determine field selector for searching for a menu by name.
+	 *
+	 * This is multi-lingual aware.
+	 *
+	 * @access private
+	 * @return string $fieldSelector String to use as field selector to search for a given menu name|title.
+	 *
+	 */
+	private function getMenuNameSearchFieldSelector() {
+
+		// if in multi-lingual environment
+		if($this->wire('languages')) {
+			$languagesIDs = array();
+				foreach($this->wire('languages') as $language) {
+					// for default language, we just search 'name'
+					if($language->name == 'default') $languagesIDs[] = "name";
+					// else for other languages: @note: this will set the field to name1012, etc, where '1012' is the language id
+					else $languagesIDs[] = "name{$language->id}";
+				}
+				$fieldSelector = implode("|", $languagesIDs);
+		}
+		// non multi-lingual site
+		else $fieldSelector = "name";
+
+		return $fieldSelector;
+
 	}
 
 	/**
