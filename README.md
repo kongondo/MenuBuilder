@@ -23,7 +23,7 @@ This Module allows you to easily create custom menus/navigation lists in the Pro
 * Delete single or all menu items without deleting the menu itself
 * Easily render menus and breadcrumbs in the frontend using MarkupMenuBuilder
 * Optionally create complex menu structures by returning only menu items using MarkupMenuBuilder and passing these to your custom recursive menu function
-* Fully multilingual
+* Fully multi-lingual
 
 ## How to Install
 
@@ -56,10 +56,10 @@ render($menu, $options);
 
 ````
 
-The first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. **Note that for multilingual environments, you cannot pass the method a title or a name; only the other three choices will work**.
+The first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. **Note that using titles or names in multi-lingual environments also works irrespective of the current user's language**.
 The second argument is an optional array and will fall back to defaults if no user configurations are passed to the method.
 
-The available **render()** options are:
+The available **render()** options are. **Please note the possible values for each**.
 
 ````php
 $defaultOptions = array(
@@ -91,10 +91,10 @@ renderBreadcrumbs($menu, $options);
 
 ````
 
-Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. This means that you only have to retrieve a menu once and pass that to both **render()** and **renderBreadcrumbs()**. **Note that for multilingual environments, you cannot pass the method a title or a name; only the other three choices will work**.
+Similar to **render()**, the first argument is not optional and can be a Page object, a title, name or id of a menu or an array of menu items returned from a menu's menu_items field. This means that you only have to retrieve a menu once and pass that to both **render()** and **renderBreadcrumbs()**. **Note that using titles or names in multi-lingual environments also works irrespective of the current user's language**.
 The second argument is an optional array and will fall back to defaults if no user configurations are passed to the method. The options are very similar to those of **render()**. Hence, as applicable, you can create one array of options and pass it to both **render()** and **renderBreadcrumbs()**. The methods will pick up what's of relevance to them.
 
-The available **renderBreadcrumbs()** options are:
+The available **renderBreadcrumbs()** options are shown below. **Please note the possible values for each**.
 
 ````php
 $defaultOptions = array(
@@ -131,14 +131,14 @@ The second argument determines the type of items that the method will return. A 
 
 The third argument is similar to the $options passed to **render()** but accepts slightly only a limited number of options as noted below.
 
-### Options
+#### getMenuItems() Options
 
 * From the options available to **render()** above, 5 also apply to **getMenuItems()**: *default_title, default_class, include_children, m_max_level and current_class_level*. In addition, **getMenuItems()** also takes a number of options only applicable to it as outlined below.
 * In this section the term navigation is used in the context of menus only.
 * The term 'Class(es)' indicates that multiple CSS Classes can be applied, separated by space.
 
 
-1. **default_title**:  Controls whether to display Menu Builder saved menu item titles/labels versus displaying pages' actual/current titles.  This is useful in scenarios where, for example, you need dynamic titles such as in a multilingual environment where you would want navigation labels to change depending on the current language. The default option is to display saved titles. To instead display actual titles, set option to **'default_title' => 1** in your options array.
+1. **default_title**:  Controls whether to display Menu Builder saved menu item titles/labels versus displaying pages' actual/current titles.  This is useful in scenarios where, for example, you need dynamic titles such as in a multi-lingual environment where you would want navigation labels to change depending on the current language. The default option is to display saved titles. To instead display actual titles, set option to **'default_title' => 1** in your options array.
 2. **default_class**:  **For menus only** and at all menu levels (i.e. nesting), a CSS Class(es) applied to each menu item (e.g. a Bootstrap or Foundation CSS Class).
 3. **include_children**:  Controls whether to display viewable descendant ProcessWire pages (children, grandchildren, etc.) of Menu Builder ProcessWire pages' navigation items at runtime as opposed to editing and saving them in Menu Builder admin. This is useful in a number of cases. For instance, you may wish to limit the number of menu items appearing in a particular menu in the the Menu Builder admin, e.g. in cases where these are many. This option can be applied globally (i.e. at a menu-level/$options level) and locally (at a menu-item-level). Item-level settings mean that only children of the specified item will be included. The 'include_children' option is disabled by default. Please see below for further details on how to use the feature.
 4. **m_max_level**:  This is a menu-only option related to the **include children** feature. It limits the depth from within which viewable descendant pages can be retrieved for display in a menu. The default is 1. This means that only fetch immediate children. A value of 2 means fetch both children and grandchildren, etc. The option can be applied globally and locally as explained previously.
@@ -147,6 +147,7 @@ The third argument is similar to the $options passed to **render()** but accepts
 7. **maximum_children_per_parent**:  If set to greater than 0, it will limit the number of child items fetched for each parent menu item using the **include children** option. The default is 0, meaning, all visible child items are fetched for a parent. Please note that child items set via the GUI are not included in the count. For instance, if **maximum_children_per_parent** is set to *3* and a parent item has *1* child item set via the GUI, a total of *4* items will be returned for that parent, i.e. *3+4* items.
 8. **get_total_children**:  If set to 1, it will return a property with the number of child items each parent menu item has. The property accounts for both natural (ProcessWire) children as well any added via the GUI. The default is not to return counts.
 9. **show_more_text**:  This is used in conjuction with **maximum_children_per_parent**. It returns a string property with the text that should be displayed if a parent menu item has more (visible) child items than the limit set by **maximum_children_per_parent**. The default (English) string is **View More**.
+0. **extra_fields**:  Accepts an array of named ProcessWire fields and respective options whose values to return for each menu item as applicable. fault is not to return counts. Please see dedicated section below for how to use this feature.
 
 ### Properties
 
@@ -176,11 +177,198 @@ $item = $menu->get("id=5");
 4. **numChildren(num_children)**: Shows the number of visible (in the ProcessWire sense) natural (ProcessWire pages) children that the menu item has.
 5. **totalChildren(total_children)**: Denotes the total number of child items a menu item has. This includes both natural (see **numChildren**) and any children added via the GUI (backend), both natural and non-natural. By default, this property is not included. It only applies if the option **get_total_children** (see above) is set to 1.
 6. **showMoreText(show_more_text)**: This is only applicable if the option **maximum_children_per_parent** (see above) is in effect. It will be applied to the last shown child item of a parent in case that parent has more children than the limit set in **maximum_children_per_parent**.
+7. **named_field**(e.g., *description*) specified in **extra_fields**. See notes below.
 
 
-## How to Use
+### Extra Fields
 
-* Access Menu Builder in your ProcessWire admin and create a menu(s).
+This option provides a powerful way to build complex navigation systems, for instance, mega menus, that provide more information to your web users than a simple menu. The option is only supported in **getMenuItems()**. To use it, pass an array to your $options as shown below.
+
+#### Supported Fieldtypes
+
+The following Fieldtypes can be used in **extra_fields**:
+
+* FieldtypeURL
+* FieldtypeCheckbox
+* FieldtypeEmail
+* FieldtypeInteger
+* FieldtypeFloat
+* FieldtypePageTitle
+* FieldtypeText
+* FieldtypeTextarea
+* FieldtypePageTitleLanguage
+* FieldtypeTextLanguage
+* FieldtypeTextareaLanguage
+* FieldtypeDatetime
+* FieldtypeImage
+* FieldtypeFile
+* FieldtypeOptions
+* FieldtypePage
+
+#### Using Extra Fields
+
+The option **extra_fields** accepts an associative multi-dimensional array with named ProcessWire fields with options if applicable. Each inner array must have a *name* index whose value corresponds to the name of the ProcessWire field whose value to return for a given menu item.
+
+**getMenuItems()** will return values of the named fields for each menu where applicable. For multi-lingual sites, the correct values for the current user's language are returned. For simpler fields, the single value is returned. For more complex fields (such as image fields), an array of items with values is returned.
+
+Examples and options for all supported Fieldtypes are shown below.
+
+##### Datetime Fields
+FieldtypeDatetime fields can accept one string option, *format*. If this is not specified, the value of the field as returned by ProcessWire will be returned. This will be in accordance with the field's date output format. If specified, the value returned will be formatted as per the string in *format*, for instance *d-m-Y*.
+
+Example
+````php
+$options = array(
+	'extra_fields' =>array(
+		// example FieldtypeDatetime field
+		array('name'=>'date'),// e.g. $m->date
+		// example FieldtypeDatetime field with option
+		array('name'=>'date', 'format'=>'d/m/Y'),// e.g. ['date'] or $m->date
+	)
+);
+````
+
+##### Image and File Fields
+FieldtypeImage and FieldtypeFile fields will have their values returned as arrays irrespective of whether the fields are of type single or multiple files/images. The names (of the original image/file) and urls of images/files are always returned irrespective of the options below.
+
+Available options (none need to be declared) for FieldtypeImage fields are:
+
+* **eq**: This will return the image at the specified index. This has precedence over count below. Needs to be an integer. Only applicable to multi-image fields.
+* **count**: This will return the first *n* images as per the integer specified in this option. This has lower precedence compared to eq above. Only applicable to multi-image fields. **Please note that if both eq and count are not specified, the first image will be returned**.
+* **width**: Images requested will be of the specified width. The value needs to be an integer. If not specified and a height is specified, the image width will be set to auto.
+* **height**: Images requested will be of the specified height. The value needs to be an integer. If not specified and a width is specified, the image height will be set to auto. **Please note that if both width and height are not specified,images will be returned at their original size**.
+* **description**: Determines if to return image descriptions. If this is not desired, just leave out the option. If descriptions are needed, the value specified needs to be a boolean or a *truthy* integer. In multi-lingual sites, the value for the current user's language is returned.
+* **tags**: Determines if to return image tags. If this is not desired, just leave out the option. If tags are needed, the value specified needs to be a boolean or a *truthy* integer.
+
+Example
+````php
+$options = array(
+	'extra_fields' =>array(
+		// example FieldtypeImage field with no options
+		array('name'=>'images'),// e.g. $m->images. (will return array with values for the first image)
+		// example FieldtypeImage field with options
+		array('name'=>'images','eq'=>2,'height'=>250),// returns the image at index 2 and sized at height 250px, width auto
+		// example FieldtypeImage field with options
+		array('name'=>'images','count'=>3,'height'=>200,'width'=>200),// returns the first 3 images and sized at height and width 200px
+	)
+);
+````
+
+Available options (none need to be declared) for FieldtypeFile fields are:
+
+* **eq**: This will return the file at the specified index. This has precedence over count below. Needs to be an integer. Only applicable to multi-files fields.
+* **count**: This will return the first *n* files as per the integer specified in this option. This has lower precedence compared to eq above. Only applicable to multi-file fields. **Please note that if both eq and count are not specified, the first file will be returned**.
+* **description**: Determines if to return file descriptions. If this is not desired, just leave out the option. If descriptions are needed, the value specified needs to be a boolean *true* or a *truthy* integer. In multi-lingual sites, the value for the current user's language is returned.
+* **tags**: Determines if to return file tags. If this is not desired, just leave out the option. If tags are needed, the value specified needs to be a boolean or a *truthy* integer.
+* **filesize_str**: Determines if to return a file's size in human readable format, e.g. 20 kB. If this is not desired, just leave out the option. If the file size is needed, the value specified needs to be a boolean *true* or a *truthy* integer.
+
+Example
+````php
+$options = array(
+	'extra_fields' =>array(
+		// example FieldtypeFile field (multi) with no options
+		array('name'=>'documents','count'=>5),// e.g. $m->documents. (will return array with values for the first 5 documents)
+		// example FieldtypeFile field (single) with options
+		array('name'=>'download','filesize_str'=>true,'description'=>1,'tags'=>true),// returns the file together with the file size, description and tags.
+	)
+);
+````
+
+##### Page Reference Fields
+
+FieldtypePage will have their values returned as arrays irrespective of whether the fields are of type single or multiple pages. The titles and urls of pages are always returned irrespective of the options below.
+
+**Caution: Special attention should be paid to both the number of page items to return as well as the fields returned for those page items. The page items' fields may themselves be *page reference fields*. Failure to carefully consider the count of pages and/or the pages' fields can result in site performance issues (high memory usage, etc).**
+
+Available options (none need to be declared) for FieldtypePage fields are:
+
+* **eq**: This will return the page at the specified index. This has precedence over count below. Needs to be an integer. Only applicable to multi-page fields.
+* **count**: This will return the first *n* pages as per the integer specified in this option. This has lower precedence compared to eq above. Only applicable to multi-page fields. **Please note that if both eq and count are not specified, the first page will be returned**.
+* **fields**: A simple array of names of fields whose values to return for pages. Use with care as per caution above.
+
+Example
+````php
+$options = array(
+	'extra_fields' =>array(
+		// example FieldtypePage field (multi) without options
+		array('name'=>'countries'),// e.g. $m->countries (will return the first page)
+			// example FieldtypePage field (multi) with options
+		array(
+			'name'=>'countries',
+			'count' => 3,
+			// values of fields inside 'countries' pages to return
+			'fields' => array('population','gdp','summary'),
+			),// e.g. $m->countries (will return the first 3 pages values)
+
+			// example FieldtypePage field (single) without options
+			array('name'=>'city'),// e.g. ['city'] or $m->city
+	)
+);
+````
+
+##### Options Fields
+TBD
+
+##### Language Fields
+
+FieldtypeTextLanguage, FieldtypeTextareaLanguage and FieldtypePageTitleLanguage fields will have their respective values returned according to the current user's langauge. Only the field names need to be specified. No other options are applicable. The values will be accessible as a property of a menu object (or an index in an array, see **Properties** above) in **getMenuItems()** as $m->nameOfField.
+
+Example
+````php
+$options = array(
+	'extra_fields' =>array(
+		// example FieldtypeTextLanguage field
+		array('name'=>'headline'),// e.g. $m->headline
+		// example FieldtypeTextareaLanguage field
+		array('name'=>'body'),// e.g. ['body'] or $m->body
+	)
+);
+````
+
+##### Other Fields
+
+Fields of type FieldtypeURL, FieldtypeCheckbox, FieldtypeEmail, FieldtypeInteger, FieldtypeFloat, FieldtypePageTitle, FieldtypeText and FieldtypeTextarea will have their values returned in their respective native formats.
+
+Example
+````php
+$options = array(
+	'extra_fields' =>array(
+		// example FieldtypeURL field
+		array('name'=>'web'),// e.g. $m->web
+		// example FieldtypeCheckbox field
+		array('name'=>'selected'),// e.g. ['selected'] or $m->selected
+	)
+);
+````
+
+##### Example Extra Fields Array
+
+An example array is shown below.
+
+````php
+$options = array(
+	'extra_fields' =>array(
+		// datetime: with options. this will return the value of the date as per the specified format
+		array('name'=>'date','format'=>'d/m/Y'),
+		// image field with options (returns array of images equal to  'count'  of size 200 x 150 each with their original image name, description, tags and url)
+		array(
+			'name' => 'images',
+			'width' => 200,
+			'height' => 150,
+			'count' => 2,
+			'description' =>true,// or a truth value, e.g. 1
+			'tags' =>1,// or a truthy value, e.g. true
+		),
+		// page field without options (will return first page in page field)
+		array('name'=>'cities')// returns array with selected page's url and title
+	)
+);
+````
+
+
+## How to Use Menu Builder
+
+* Access Menu Builder in your ProcessWire admin and create a menu.
 * Edit the menu and add items to it, dragging and dropping them in different positions as you wish.
 * Once you've created a menu, you can view it in the frontend by loading it using MarkupMenuBuilder in a template file as follows.
 
@@ -382,9 +570,9 @@ GPL2
 ## Changelog
 
 ### Version 0.2.7
-1. In multilingual environments, menus and breadcrumbs can retrieved using their titles or names in any language irrespective of the current user's language.
+1. In multi-lingual environments, menus and breadcrumbs can retrieved using their titles or names in any language irrespective of the current user's language.
 2. For getMenuItems() usage only, added option extra_fields to return values of some specific fields on the menu item pages. See documentation for compatible Fieldtypes.
-3. Changed menu builder GUI and process for adding Menus. Menus are now added one at a time and can have multilingual titles.
+3. Changed menu builder GUI and process for adding Menus. Menus are now added one at a time and can have multi-lingual titles.
 
 ### Version 0.2.6
 1. Added the properties numChildren, totalChildren and showMoreText for use with getMenuItems().
@@ -469,7 +657,7 @@ GPL2
 3. 	Permission 'menu-builder-included-children' added to limit access to the new feature 'include children'.
 
 ### Version 0.0.7
-1. 	Added multilingual support for saving and displaying menus/breadcrumbs.
+1. 	Added multi-lingual support for saving and displaying menus/breadcrumbs.
 
 ### Version 0.0.6
 1. 	Added method in MarkupMenuBuilder for rendering breadcrumbs - renderBreadcrumbs().
