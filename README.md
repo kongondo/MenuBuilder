@@ -307,7 +307,25 @@ $options = array(
 ````
 
 ##### Options Fields
-TBD
+
+FieldtypeOptions will have their values returned as arrays irrespective of whether the fields are of type single or multiple options. The titles and ids of options are always returned irrespective of the options below.
+
+Available options (none need to be declared) for FieldtypeOptions fields are:
+
+* **all_options**: Determines whether to return all selectable options for the field. If this is not desired, just leave out the setting. If all all selectable options are needed, the value specified for *all_options* needs to be a boolean or a *truthy* integer.
+* **value**: Determines if to return an option's *value* property as well as the *title*. If this is not desired, just leave out this setting. If the value property is needed, this needs to be specified as a boolean *true* or a *truthy* integer. This setting is only applicable if you have set up your FieldtypeOptions field to separately store *titles* and *values* ([see FieldtypeOptions documenation](https://processwire.com/docs/fields/select-options-fieldtype/#separate-option-values)).
+
+Example
+````php
+$options = array(
+	'extra_fields' =>array(
+		// example FieldtypeOptions field (single), no options
+		array('name'=>'option'),// e.g. $m->options (will return the id and the title of the selected option)
+		// example FieldtypeOptions field (multi) with option
+		array('name'=>'sizes', 'all_options'=>true, 'value'=>true),// e.g. $m->sizes (will return all selectable options as well as their value properties. The selected option will have an index [selected] with value 1)
+	)
+);
+````
 
 ##### Language Fields
 
@@ -341,29 +359,470 @@ $options = array(
 );
 ````
 
-##### Example Extra Fields Array
+##### Example Extra Fields Option Array
 
-An example array is shown below.
+Below is an example *countries trivia* navigation using *extra_fields* in its $option. The output of the navigation is shown afterward.
 
 ````php
 $options = array(
 	'extra_fields' =>array(
-		// datetime: with options. this will return the value of the date as per the specified format
-		array('name'=>'date','format'=>'d/m/Y'),
-		// image field with options (returns array of images equal to  'count'  of size 200 x 150 each with their original image name, description, tags and url)
+		// datetime
+		array('name'=>'visit','format'=>'d M Y'),
+		// checkbox
+		array('name'=>'safari'),
+		// float
+		array('name'=>'gdp'),
+		// image
 		array(
 			'name' => 'images',
-			'width' => 200,
-			'height' => 150,
-			'count' => 2,
+			'width' => 500,
+			'count' => 3,
 			'description' =>true,// or a truth value, e.g. 1
 			'tags' =>1,// or a truthy value, e.g. true
 		),
-		// page field without options (will return first page in page field)
-		array('name'=>'cities')// returns array with selected page's url and title
+		// page field
+		array(
+			'name'=>'cities',
+			'count'=>2,
+			'fields'=>array('summary','population','web')),
+		// options
+		array('name'=>'languages')
+
 	)
 );
 ````
+
+Below is the array output of the above example menu using **extra_fields** option.
+
+````html
+
+(
+    [1] => Array
+        (
+            [pages_id] => 1279
+            [title] => South Africa
+            [url] => /mb-tests/country-facts/country-facts-countries/south-africa/
+            [is_first] => 1
+            [visit] => 16 Jan 2017
+            [safari] => 1
+            [gdp] => 6160.73
+            [images] => Array
+                (
+                    [south_africa-1.jpg] => Array
+                        (
+                            [name] => south_africa-1.jpg
+                            [description] => South Africa is a country on the southernmost tip of the African continent, marked by several distinct ecosystems. Inland safari destination Kruger National Park is populated by big game. The Western Cape offers beaches, lush winelands around Stellenbosch and Paarl, craggy cliffs at the Cape of Good Hope, forest and lagoons along the Garden Route, and the city of Cape Town, beneath flat-topped Table Mountain.
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1279/south_africa-1.500x0.jpg
+                        )
+
+                    [south_africa-2.jpg] => Array
+                        (
+                            [name] => south_africa-2.jpg
+                            [description] =>
+                            [tags] => Safari Delightful
+                            [url] => /site-menubuilder/assets/files/1279/south_africa-2.500x0.jpg
+                        )
+
+                    [south_africa-3.jpg] => Array
+                        (
+                            [name] => south_africa-3.jpg
+                            [description] =>
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1279/south_africa-3.500x0.jpg
+                        )
+
+                )
+
+            [cities] => Array
+                (
+                    [port-elizabeth] => Array
+                        (
+                            [title] => Port Elizabeth
+                            [url] => /mb-tests/country-facts/country-facts-cities/port-elizabeth/
+                            [population] => 312392
+                            [web] => https://www.nmbt.co.za/
+                        )
+
+                    [soweto] => Array
+                        (
+                            [title] => Soweto
+                            [url] => /mb-tests/country-facts/country-facts-cities/soweto/
+                            [population] => 1271628
+                            [web] => http://www.soweto.gov.za/
+                        )
+
+                )
+
+            [languages] => Array
+                (
+                    [1] => Array
+                        (
+                            [id] => 1
+                            [title] => English
+                        )
+
+                    [2] => Array
+                        (
+                            [id] => 2
+                            [title] => Tswana
+                        )
+
+                    [3] => Array
+                        (
+                            [id] => 3
+                            [title] => Afrikaans
+                        )
+
+                    [4] => Array
+                        (
+                            [id] => 4
+                            [title] => Zulu
+                        )
+
+                    [5] => Array
+                        (
+                            [id] => 5
+                            [title] => Xhosa
+                        )
+
+                    [6] => Array
+                        (
+                            [id] => 6
+                            [title] => Northern Sotho
+                        )
+
+                    [7] => Array
+                        (
+                            [id] => 7
+                            [title] => Venda
+                        )
+
+                    [8] => Array
+                        (
+                            [id] => 8
+                            [title] => Southern Sotho
+                        )
+
+                    [9] => Array
+                        (
+                            [id] => 9
+                            [title] => Tsonga
+                        )
+
+                    [10] => Array
+                        (
+                            [id] => 10
+                            [title] => Swati
+                        )
+
+                    [11] => Array
+                        (
+                            [id] => 11
+                            [title] => Ndebele
+                        )
+
+                )
+
+        )
+
+    [2] => Array
+        (
+            [pages_id] => 1262
+            [title] => China
+            [url] => /mb-tests/country-facts/country-facts-countries/china/
+            [visit] => 23 Sep 2021
+            [safari] => 1
+            [gdp] => 8826.99
+            [images] => Array
+                (
+                    [china-1.jpg] => Array
+                        (
+                            [name] => china-1.jpg
+                            [description] => China, officially the People's Republic of China, is a country in East Asia and is the world's most populous country, with a population of around 1.428 billion in 2017. Covering approximately 9,600,000 square kilometers, it is the third-largest or the fourth-largest country by area.
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1262/china-1.500x0.jpg
+                        )
+
+                    [china-2.jpg] => Array
+                        (
+                            [name] => china-2.jpg
+                            [description] =>
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1262/china-2.500x0.jpg
+                        )
+
+                    [china-3.jpg] => Array
+                        (
+                            [name] => china-3.jpg
+                            [description] =>
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1262/china-3.500x0.jpg
+                        )
+
+                )
+
+            [cities] => Array
+                (
+                    [wuhan] => Array
+                        (
+                            [title] => Wuhan
+                            [url] => /mb-tests/country-facts/country-facts-cities/wuhan/
+                            [population] => 11081000
+                            [web] => http://www.wuhan.gov.cn/
+                        )
+
+                    [suzhou] => Array
+                        (
+                            [title] => Suzhou
+                            [url] => /mb-tests/country-facts/country-facts-cities/suzhou/
+                            [population] => 10721700
+                            [web] => http://www.suzhou.gov.cn/
+                        )
+
+                )
+
+            [languages] => Array
+                (
+                    [12] => Array
+                        (
+                            [id] => 12
+                            [title] => Mandarin
+                        )
+
+                )
+
+        )
+
+    [3] => Array
+        (
+            [pages_id] => 1260
+            [title] => Canada
+            [url] => /mb-tests/country-facts/country-facts-countries/canada/
+            [visit] => 11 Jan 2020
+            [gdp] => 45032.1
+            [images] => Array
+                (
+                    [canada-1.jpg] => Array
+                        (
+                            [name] => canada-1.jpg
+                            [description] => The beauty that is Canada
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1260/canada-1.500x0.jpg
+                        )
+
+                    [canada-2.jpg] => Array
+                        (
+                            [name] => canada-2.jpg
+                            [description] =>
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1260/canada-2.500x0.jpg
+                        )
+
+                    [canada-3.jpg] => Array
+                        (
+                            [name] => canada-3.jpg
+                            [description] =>
+                            [tags] => Travel Wow
+                            [url] => /site-menubuilder/assets/files/1260/canada-3.500x0.jpg
+                        )
+
+                )
+
+            [cities] => Array
+                (
+                    [quebec-city] => Array
+                        (
+                            [title] => Quebec City
+                            [url] => /mb-tests/country-facts/country-facts-cities/quebec-city/
+                            [population] => 531902
+                            [web] => https://www.ville.quebec.qc.ca/en/
+                        )
+
+                    [vancouver] => Array
+                        (
+                            [title] => Vancouver
+                            [url] => /mb-tests/country-facts/country-facts-cities/vancouver/
+                            [population] => 631486
+                            [web] => https://vancouver.ca/
+                        )
+
+                )
+
+            [languages] => Array
+                (
+                    [1] => Array
+                        (
+                            [id] => 1
+                            [title] => English
+                        )
+
+                    [13] => Array
+                        (
+                            [id] => 13
+                            [title] => French
+                        )
+
+                )
+
+        )
+
+    [4] => Array
+        (
+            [pages_id] => 1263
+            [title] => Switzerland
+            [url] => /mb-tests/country-facts/country-facts-countries/switzerland/
+            [gdp] => 80189.7
+            [images] => Array
+                (
+                    [switzerland-2.jpg] => Array
+                        (
+                            [name] => switzerland-2.jpg
+                            [description] =>
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1263/switzerland-2.500x0.jpg
+                        )
+
+                    [switzerland-3.jpg] => Array
+                        (
+                            [name] => switzerland-3.jpg
+                            [description] =>
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1263/switzerland-3.500x0.jpg
+                        )
+
+                    [switzerland-1.jpg] => Array
+                        (
+                            [name] => switzerland-1.jpg
+                            [description] => Switzerland is a mountainous Central European country, home to numerous lakes, villages and the high peaks of the Alps. Its cities contain medieval quarters, with landmarks like capital Bern’s Zytglogge clock tower and Lucerne’s wooden chapel bridge. The country is also known for its ski resorts and hiking trails. Banking and finance are key industries, and Swiss watches and chocolate are world renowned.
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1263/switzerland-1.500x0.jpg
+                        )
+
+                )
+
+            [cities] => Array
+                (
+                    [chur] => Array
+                        (
+                            [title] => Chur
+                            [url] => /mb-tests/country-facts/country-facts-cities/chur/
+                            [population] => 33373
+                            [web] => http://www.chur.ch/
+                        )
+
+                    [st-gallen] => Array
+                        (
+                            [title] => St. Gallen
+                            [url] => /mb-tests/country-facts/country-facts-cities/st-gallen/
+                            [population] => 75806
+                            [web] => http://www.stadt.sg.ch/
+                        )
+
+                )
+
+            [languages] => Array
+                (
+                    [13] => Array
+                        (
+                            [id] => 13
+                            [title] => French
+                        )
+
+                    [14] => Array
+                        (
+                            [id] => 14
+                            [title] => German
+                        )
+
+                    [15] => Array
+                        (
+                            [id] => 15
+                            [title] => Italian
+                        )
+
+                    [16] => Array
+                        (
+                            [id] => 16
+                            [title] => Romansh
+                        )
+
+                )
+
+        )
+
+    [5] => Array
+        (
+            [pages_id] => 1261
+            [title] => USA
+            [url] => /mb-tests/country-facts/country-facts-countries/usa/
+            [is_last] => 1
+            [visit] => 08 Aug 2020
+            [gdp] => 59531.7
+            [images] => Array
+                (
+                    [usa-1.jpg] => Array
+                        (
+                            [name] => usa-1.jpg
+                            [description] => The U.S. is a country of 50 states covering a vast swath of North America, with Alaska in the northwest and Hawaii extending the nation’s presence into the Pacific Ocean.
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1261/usa-1.500x0.jpg
+                        )
+
+                    [usa-2.jpg] => Array
+                        (
+                            [name] => usa-2.jpg
+                            [description] =>
+                            [tags] =>
+                            [url] => /site-menubuilder/assets/files/1261/usa-2.500x0.jpg
+                        )
+
+                    [usa-3.jpeg] => Array
+                        (
+                            [name] => usa-3.jpeg
+                            [description] =>
+                            [tags] => Mountains
+                            [url] => /site-menubuilder/assets/files/1261/usa-3.500x0.jpeg
+                        )
+
+                )
+
+            [cities] => Array
+                (
+                    [seattle] => Array
+                        (
+                            [title] => Seattle
+                            [url] => /mb-tests/country-facts/country-facts-cities/seattle/
+                            [population] => 608660
+                            [web] => http://www.seattle.gov/
+                        )
+
+                    [chicago] => Array
+                        (
+                            [title] => Chicago
+                            [url] => /mb-tests/country-facts/country-facts-cities/chicago/
+                            [population] => 2695598
+                            [web] => http://chicago.gov/
+                        )
+
+                )
+
+            [languages] => Array
+                (
+                    [1] => Array
+                        (
+                            [id] => 1
+                            [title] => English
+                        )
+
+                )
+
+        )
+
+)
+
+````
+
 
 ## How to Use Menu Builder
 
