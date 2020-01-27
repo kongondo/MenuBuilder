@@ -1366,20 +1366,16 @@ class MarkupMenuBuilder extends WireData implements Module {
 		/*
 			@note:: running here so that we confine to getMenuItems() use only! - we also run before process processMenu()! to be ready for it
 		*/
-
-
 		if (is_array($options->extraFields) && !empty($options->extraFields)) {
 			$this->validExtraFields = $this->getValidExtraFields();
 		}
-
-		// @TODO: VALUES FOR INCLUDED CHILDREN NEEDED TO!
 
 		$menuItemsObject = $this->processMenu($rawMenuItems);
 
 		// get the item with the highest menu ID so as to increment and apply to subsequent included children as IDs
 		$lastMenuItem = $menuItemsObject->get('sort=-id');
 		// check if we found the last menu item
-		// @todo: confirm works!
+		// @todo: confirm works! needs further testing
 		if($lastMenuItem) {
 			$lastMenuItemID = (int) $lastMenuItem->id;
 			$this->currentMenuItemID = $lastMenuItemID + 1;
@@ -1425,8 +1421,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 					'show_more_text' => $m->showMoreText,
 				);
 
-				// @TODO: VALUES FOR INCLUDED CHILDREN NEEDED TO!
-				// @TODO: USE THIS IN GETMENU ITEMS!
+				// @todo: use this in getmenu items?
 				// $m->extraFieldsAdded (BOOL)
 				// add custom fields values
 				if (!empty($this->validExtraFields)) {
@@ -1570,10 +1565,8 @@ class MarkupMenuBuilder extends WireData implements Module {
 		}
 
 		// if we added at least one extra field value, we track that in the menu item
-		// @TODO: USE THIS IN GETMENU ITEMS!
-		// @TODO: VALUES FOR INCLUDED CHILDREN NEEDED TO!
-		if($countFieldsAdded) $m->extraFieldsAdded = true;
-
+		// @todo: use this in getmenu items?
+		//if($countFieldsAdded) $m->extraFieldsAdded = true;
 
 		return $m;
 
@@ -1702,7 +1695,7 @@ class MarkupMenuBuilder extends WireData implements Module {
 		// populate values if we have items
 		if(!is_null($items)){
 			foreach($items as $item) {
-				// we always populate name
+				// we always populate name (of the original image)
 				$values[$item->name] = array('name' => $item->name);
 
 				## check if getting other specific meta for image ##
@@ -1920,8 +1913,6 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		###############
 
-
-
 		// populate values if we have items
 		if(!is_null($items)){
 			foreach($items as $item) {
@@ -1929,7 +1920,6 @@ class MarkupMenuBuilder extends WireData implements Module {
 				$values[$item->name] = array(
 					'title' => $item->title,
 					'url' => $item->url,
-
 				);
 
 				## check if getting other specific fields for page other than title and url ##
@@ -2146,9 +2136,11 @@ class MenuOptions extends WireData {
 			cached_menu// menus only - will build and subsequently fetch menu items from cache to help speed up process if required
 			cached_menu_time// menus only - how long a cached menu should exist for. Default is 1 day @note: can use everything WireCache accepts @see: https://processwire.com/api/ref/wire-cache/save/
 
-			get_total_children// ONLY for getMenuItems() @todo? amend?
+			get_total_children// ONLY for getMenuItems()
 			maximum_children_per_parent// only for include_children, i.e. natural/pw children of menu items AND applies GLOBALLY, i.e. not per menu-item-level! for getMenuItems() ONLY
 			show_more_text// the text to show for 'show more'. Used in combination with 'maximum_children_per_parent'. for getMenuItems() ONLY
+
+			extra_fields// ONLY for getMenuItems(). Expects an array. Returns the values of named fields for each menu item as applicable. Not all Fieldtypes are supported!
 		*/
 
 		$showMoreText = $this->_('View More');
