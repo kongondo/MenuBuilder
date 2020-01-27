@@ -1030,6 +1030,7 @@ GPL2
 1. In multi-lingual environments, menus and breadcrumbs can retrieved using their titles or names in any language irrespective of the current user's language.
 2. For getMenuItems() usage only, added option extra_fields to return values of some specific fields on the menu item pages. See documentation for compatible Fieldtypes.
 3. Changed menu builder GUI and process for adding Menus. Menus are now added one at a time and can have multi-lingual titles.
+4. Locked menu GUI improved.
 
 ### Version 0.2.6
 1. Added the properties numChildren, totalChildren and showMoreText for use with getMenuItems().
