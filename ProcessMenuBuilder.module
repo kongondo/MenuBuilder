@@ -217,7 +217,10 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			// add a breadcrumb that returns to our main page @todo - don't show non-superadmins breadcrumbs?
 			$this->breadcrumbs->add(new Breadcrumb('../', $this->wire('page')->title));
-			$this->headline(sprintf(__('Edit menu: %s'), $menu->title) . $editStatusNote); // headline when editing a menu
+			 // headline when editing a menu
+			 // @todo: delete this old style since now we show warning message?
+			//$this->headline(sprintf(__('Edit menu: %s'), $menu->title) . $editStatusNote);
+			$this->headline(sprintf(__('Edit menu: %s'), $menu->title));
 
 			$form->attr('id', 'MenuBuilderEdit');
 			$form->action = './';
@@ -240,12 +243,15 @@ class ProcessMenuBuilder extends Process implements Module {
 			}
 
 			############################################ - First Tab (build menu) - ############################################
-			$form->add($this->editTabBuild());
+			// @note: only shown for menu that are not locked
+			if(!$menu->is(Page::statusLocked)) $form->add($this->editTabBuild());
 			############################################ - Second Tab (menu items overview) - ####################################
 			$form->add($this->editTabOverview());
 			############################################ - Third Tab (menu settings) - ###########################################
-			$form->add($this->editTabMenuSettings($menu, $pubStatus, $editStatus));
+			// @note: only shown for menu that are not locked
+			if(!$menu->is(Page::statusLocked)) $form->add($this->editTabMenuSettings($menu, $pubStatus, $editStatus));
 			############################################ - Fourth Tab (delete) - ############################################
+			// @note: only shown for menu that are not locked
 			if(!$menu->is(Page::statusLocked)) $form->add($this->editTabDelete($menu->id));
 
 
@@ -256,19 +262,39 @@ class ProcessMenuBuilder extends Process implements Module {
 			$m->attr('value', $menuID);
 			$form->add($m);
 
-			$m = $modules->get('InputfieldSubmit');
-			$m->class .= ' head_button_clone';
-			$m->attr('id+name', 'menu_save');
-			$m->class .= " menu_save";// add a custom class to this submit button
-			$m->attr('value', $this->_('Save'));
-			$form->add($m);
+			// @note: only shown for menu that are not locked
+			if(!$menu->is(Page::statusLocked)) {
+				$m = $modules->get('InputfieldSubmit');
+				$m->class .= ' head_button_clone';
+				$m->attr('id+name', 'menu_save');
+				$m->class .= " menu_save";// add a custom class to this submit button
+				$m->attr('value', $this->_('Save'));
+				$form->add($m);
 
-			$m = $modules->get('InputfieldSubmit');
-			$m->attr('id+name', 'menu_save_exit');
-			$m->class .= " ui-priority-secondary";
-			$m->class .= " menu_save";// add a custom class to this submit button
-			$m->attr('value', $this->_('Save & Exit'));
-			$form->add($m);
+				$m = $modules->get('InputfieldSubmit');
+				$m->attr('id+name', 'menu_save_exit');
+				$m->class .= " ui-priority-secondary";
+				$m->class .= " menu_save";// add a custom class to this submit button
+				$m->attr('value', $this->_('Save & Exit'));
+				$form->add($m);
+			}
+
+			// show an exit button for locked menus
+			else {
+				$m = $modules->get('InputfieldSubmit');
+				$m->attr('id+name', 'menu_locked_exit');
+				$m->class .= " ui-priority-secondary";
+				$m->class .= " menu_save";// add a custom class to this submit button
+				$m->attr('value', $this->_('Exit'));
+				$form->add($m);
+
+
+				// show menu locked warning
+				$this->warning($this->_('Menu Builder: This menu is locked for edits.'));
+
+			}
+
+
 
 			return $form->render();
 
@@ -279,7 +305,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// if saving menu
 		elseif($post->menu_save || $post->menu_save_exit || $post->menu_delete) $this->save($form);
-		// else invalid menu ID or no ID provided (e.g. /edit/)
+		// else invalid menu ID or no ID provided (e.g. /edit/) or exiting 'view' a locked menu
 		else $this->wire('session')->redirect($this->wire('page')->url);// redirect to landing page
 
 	}
