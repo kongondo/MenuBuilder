@@ -177,7 +177,7 @@ $item = $menu->get("id=5");
 4. **numChildren(num_children)**: Shows the number of visible (in the ProcessWire sense) natural (ProcessWire pages) children that the menu item has.
 5. **totalChildren(total_children)**: Denotes the total number of child items a menu item has. This includes both natural (see **numChildren**) and any children added via the GUI (backend), both natural and non-natural. By default, this property is not included. It only applies if the option **get_total_children** (see above) is set to 1.
 6. **showMoreText(show_more_text)**: This is only applicable if the option **maximum_children_per_parent** (see above) is in effect. It will be applied to the last shown child item of a parent in case that parent has more children than the limit set in **maximum_children_per_parent**.
-7. **named_field**(e.g., *description*) specified in **extra_fields**. See notes below.
+7. **named_field** (e.g., *description*) specified in **extra_fields**. See notes below.
 
 
 ### Extra Fields
