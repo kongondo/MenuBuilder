@@ -365,7 +365,6 @@ $options = array(
 );
 ````
 
-
 ## How to Use Menu Builder
 
 * Access Menu Builder in your ProcessWire admin and create a menu.
