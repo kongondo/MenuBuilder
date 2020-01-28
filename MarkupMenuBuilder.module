@@ -135,13 +135,14 @@ class MarkupMenuBuilder extends WireData implements Module {
 	private function processRawMenu($menu) {
 
 		$menuItems = '';
+		$menuPage = null;
 
 		#### - work on the menu items - ###
 
 		// if we got a Page object
 		if ($menu instanceof Page) {
-			$menuitemsJSON = $menu->menu_items;
-			$menuItems = json_decode($menuitemsJSON, true);
+			//  we already have a menu page
+			$menuPage = $menu;// for consistency
 		}
 
 		// if we got a populated array of menu items
@@ -161,19 +162,25 @@ class MarkupMenuBuilder extends WireData implements Module {
 			$setupPage = $this->wire('pages')->get($this->config->adminRootPageID)->child("$fieldSelector=setup, include=all");
 			// get Menu Builder Page
 			$menuBuilderPage = $setupPage->child("$fieldSelector=menu-builder, include=all");
-			$menu = $menuBuilderPage->child("$fieldSelector=$menuName, include=all");
-			if ($menu) $menuItems = json_decode($menu->menu_items, true);
+			// grab the menu page
+			$menuPage = $menuBuilderPage->child("$fieldSelector=$menuName, include=all");
 		}
 
 		// if we got an id
 		elseif (is_integer($menu)) {
-			// grab the menu
-			#$menuID = (int) $menu;//@note: not needed actually, we've alreayd determined this is an integer
-			$menu = $this->wire('pages')->get($menu);
-			if ($menu) $menuItems = json_decode($menu->menu_items, true);
+			// grab the menu page
+			$menuPage = $this->wire('pages')->get($menu);
+		}
+
+		####
+
+		// if we have a menu page, check that the menu IS NOT unpublished
+		if($menuPage && !$menuPage->is(Page::statusUnpublished)) {
+			$menuItems = json_decode($menuPage->menu_items, true);
 		}
 
 		return $menuItems;
+
 	}
 
 	/**
