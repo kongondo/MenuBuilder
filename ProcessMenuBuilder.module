@@ -2680,7 +2680,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				// add PW pages (internal) menu items from the selector to our menu
 				$menuItems[$menuItemID] = array(
 					// multilingual environments
-					'title' => $title = is_null($language) ? $item->title : $item->title->getLanguageValue($language),
+					'title' => $title = is_null($language) || !method_exists(wire('pages')->$item->title, 'getLanguageValue') ? $item->title : $item->title->getLanguageValue($language),
 					'parent_id' => 0,// for new items before they are sorted in drag & drop
 					// 'url' => '',// empty since these are PW pages; no needed to copy URL here + need to make sure always have latest
 					// 'css_itemid' => ''// empty until edited
