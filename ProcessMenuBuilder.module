@@ -1,23 +1,25 @@
-<?php namespace ProcessWire;
+<?php
+
+namespace ProcessWire;
 
 /**
-* Process Menu Builder Module for ProcessWire
-* This module enables you to create custom menus for your website using drag and drop in the ProcessWire Admin Panel
-*
-* @author Francis Otieno (Kongondo)
-*
-* https://github.com/kongondo/ProcessMenuBuilder
-* Created 4 August 2013
-* Major update in March 2015
-*
-* ProcessWire 3.x
-* Copyright (C) 2016 by Ryan Cramer
-*
-* Licensed under GNU/GPL v2, see LICENSE.TXT
-*
-* http://www.processwire.com
-*
-*/
+ * Process Menu Builder Module for ProcessWire
+ * This module enables you to create custom menus for your website using drag and drop in the ProcessWire Admin Panel
+ *
+ * @author Francis Otieno (Kongondo)
+ *
+ * https://github.com/kongondo/ProcessMenuBuilder
+ * Created 4 August 2013
+ * Major update in March 2015
+ *
+ * ProcessWire 3.x
+ * Copyright (C) 2016 by Ryan Cramer
+ *
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ *
+ * http://www.processwire.com
+ *
+ */
 
 class ProcessMenuBuilder extends Process implements Module {
 
@@ -37,14 +39,13 @@ class ProcessMenuBuilder extends Process implements Module {
 			'title' => 'Menu Builder: Process',
 			'summary' => 'Easy, drag and drop menu builder',
 			'author' => 'Francis Otieno (Kongondo)',
-			'version' => '0.2.7',
+			'version' => '028',
 			'href' => 'http:// processwire.com/talk/topic/4451-module-menu-builder/',
 			'singular' => true,
 			'autoload' => false,
 			'permission' => 'menu-builder',
 			'installs' => 'MarkupMenuBuilder'
 		);
-
 	}
 
 
@@ -87,7 +88,7 @@ class ProcessMenuBuilder extends Process implements Module {
 	private $menuSettings;
 
 	// multilingual
-	private $multilingual;// bool to check if in multilingual environment
+	private $multilingual; // bool to check if in multilingual environment
 	private $menuItemsLanguages;
 
 
@@ -104,7 +105,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$user = $this->wire('user');
 
 		if ($this->wire('permissions')->get('menu-builder')->id && !$user->hasPermission('menu-builder'))
-			 throw new WirePermissionException("You have no permission to use this module");
+			throw new WirePermissionException("You have no permission to use this module");
 
 		$this->wire('modules')->get('JqueryWireTabs');
 		$config = $this->wire('config');
@@ -122,7 +123,6 @@ class ProcessMenuBuilder extends Process implements Module {
 		$this->showLimit = 10;
 
 		parent::init();
-
 	}
 
 	/* ######################### - MARKUP BUILDERS - ######################### */
@@ -155,17 +155,16 @@ class ProcessMenuBuilder extends Process implements Module {
 		// menus table/list markup
 		$w->add($this->buildMenusTableMarkup());
 		// actions markup
-		if ($this->menusTotal !=0) $w->add($this->buildMenusActionsMarkup());
+		if ($this->menusTotal != 0) $w->add($this->buildMenusActionsMarkup());
 
 		// add to form for rendering
 		$form->add($w);
 
 		// send input->post values to the Method save();
-		if($post->menus_action_btn || $post->menu_new_unpublished_btn || $post->menu_new_published_btn) $this->save($form);
+		if ($post->menus_action_btn || $post->menu_new_unpublished_btn || $post->menu_new_published_btn) $this->save($form);
 
 		// render the final form
 		return $form->render();
-
 	}
 
 	/**
@@ -186,12 +185,12 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// get the menu (page) we are editing
 		$menuID = (int) $this->wire('input')->get->id;
-		$menu = $this->wire('pages')->get("id=$menuID, parent=$this->menusParent, include=all");// only get menu pages!
+		$menu = $this->wire('pages')->get("id=$menuID, parent=$this->menusParent, include=all"); // only get menu pages!
 
 		$form = $modules->get('InputfieldForm');
 
 		// if we found a valid menu page
-		if($menu->id) {
+		if ($menu->id) {
 
 			// menu settings
 			$this->menuSettings = $menu->menu_settings ? json_decode($menu->menu_settings, true) : array();
@@ -205,7 +204,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			##############################
 
 			$this->nestedSortableConfigs();
-			$this->menuConfigs();// @note: we check if user has right permission in the method itself
+			$this->menuConfigs(); // @note: we check if user has right permission in the method itself
 
 			// check if menu is published or not
 			$menu->is(Page::statusUnpublished) ? $pubStatus = 1 : $pubStatus = '';
@@ -217,8 +216,8 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			// add a breadcrumb that returns to our main page @todo - don't show non-superadmins breadcrumbs?
 			$this->breadcrumbs->add(new Breadcrumb('../', $this->wire('page')->title));
-			 // headline when editing a menu
-			 // @todo: delete this old style since now we show warning message?
+			// headline when editing a menu
+			// @todo: delete this old style since now we show warning message?
 			//$this->headline(sprintf(__('Edit menu: %s'), $menu->title) . $editStatusNote);
 			$this->headline(sprintf(__('Edit menu: %s'), $menu->title));
 
@@ -231,28 +230,28 @@ class ProcessMenuBuilder extends Process implements Module {
 			$menuPages = $this->menuPages;
 
 			// set include children + disable items status + for users with right permission
-			if(!empty($menuPages)) {
+			if (!empty($menuPages)) {
 				// enable include children feature
-				if(isset($menuPages['children']) && $this->wire('user')->hasPermission('menu-builder-include-children')) {
+				if (isset($menuPages['children']) && $this->wire('user')->hasPermission('menu-builder-include-children')) {
 					$this->includeChildren = $menuPages['children'];
 				}
 				// enable 'enable/disable' items feature
-				if(isset($menuPages['disable_items']) && $this->wire('user')->hasPermission('menu-builder-disable-items')) {
+				if (isset($menuPages['disable_items']) && $this->wire('user')->hasPermission('menu-builder-disable-items')) {
 					$this->disableItems = $menuPages['disable_items'];
 				}
 			}
 
 			############################################ - First Tab (build menu) - ############################################
 			// @note: only shown for menu that are not locked
-			if(!$menu->is(Page::statusLocked)) $form->add($this->editTabBuild());
+			if (!$menu->is(Page::statusLocked)) $form->add($this->editTabBuild());
 			############################################ - Second Tab (menu items overview) - ####################################
 			$form->add($this->editTabOverview());
 			############################################ - Third Tab (menu settings) - ###########################################
 			// @note: only shown for menu that are not locked
-			if(!$menu->is(Page::statusLocked)) $form->add($this->editTabMenuSettings($menu, $pubStatus, $editStatus));
+			if (!$menu->is(Page::statusLocked)) $form->add($this->editTabMenuSettings($menu, $pubStatus, $editStatus));
 			############################################ - Fourth Tab (delete) - ############################################
 			// @note: only shown for menu that are not locked
-			if(!$menu->is(Page::statusLocked)) $form->add($this->editTabDelete($menu->id));
+			if (!$menu->is(Page::statusLocked)) $form->add($this->editTabDelete($menu->id));
 
 
 			/***************** Add input buttons to Fourth tab *****************/
@@ -263,18 +262,18 @@ class ProcessMenuBuilder extends Process implements Module {
 			$form->add($m);
 
 			// @note: only shown for menu that are not locked
-			if(!$menu->is(Page::statusLocked)) {
+			if (!$menu->is(Page::statusLocked)) {
 				$m = $modules->get('InputfieldSubmit');
 				$m->class .= ' head_button_clone';
 				$m->attr('id+name', 'menu_save');
-				$m->class .= " menu_save";// add a custom class to this submit button
+				$m->class .= " menu_save"; // add a custom class to this submit button
 				$m->attr('value', $this->_('Save'));
 				$form->add($m);
 
 				$m = $modules->get('InputfieldSubmit');
 				$m->attr('id+name', 'menu_save_exit');
 				$m->class .= " ui-priority-secondary";
-				$m->class .= " menu_save";// add a custom class to this submit button
+				$m->class .= " menu_save"; // add a custom class to this submit button
 				$m->attr('value', $this->_('Save & Exit'));
 				$form->add($m);
 			}
@@ -284,29 +283,27 @@ class ProcessMenuBuilder extends Process implements Module {
 				$m = $modules->get('InputfieldSubmit');
 				$m->attr('id+name', 'menu_locked_exit');
 				$m->class .= " ui-priority-secondary";
-				$m->class .= " menu_save";// add a custom class to this submit button
+				$m->class .= " menu_save"; // add a custom class to this submit button
 				$m->attr('value', $this->_('Exit'));
 				$form->add($m);
 
 
 				// show menu locked warning
 				$this->warning($this->_('Menu Builder: This menu is locked for edits.'));
-
 			}
 
 
 
 			return $form->render();
-
-		}// end if $menu
+		} // end if $menu
 
 
 		############################################ - if input->post - ############################################
 
 		// if saving menu
-		elseif($post->menu_save || $post->menu_save_exit || $post->menu_delete) $this->save($form);
+		elseif ($post->menu_save || $post->menu_save_exit || $post->menu_delete) $this->save($form);
 		// else invalid menu ID or no ID provided (e.g. /edit/) or exiting 'view' a locked menu
-		else $this->wire('session')->redirect($this->wire('page')->url);// redirect to landing page
+		else $this->wire('session')->redirect($this->wire('page')->url); // redirect to landing page
 
 	}
 
@@ -334,9 +331,9 @@ class ProcessMenuBuilder extends Process implements Module {
 		$m->label = $this->_('Add menu items');
 		$m->description = '<span id="add_menu_items"><a href="#" id="add_page_menu_items">' . $this->_('Pages') . '</a> ';
 		$m->description .= '<a href="#" id="add_custom_menu_items">' . $this->_('Custom') . '</a>';
-		if($this->user->hasPermission('menu-builder-selector')) $m->description .= '<a href="#" id="add_selector_menu_items">' . $this->_('Selector') . '</a>';
+		if ($this->user->hasPermission('menu-builder-selector')) $m->description .= '<a href="#" id="add_selector_menu_items">' . $this->_('Selector') . '</a>';
 		$m->description .= '</span>';
-		$m->textFormat = Inputfield::textFormatNone;// make sure ProcessWire renders the HTML
+		$m->textFormat = Inputfield::textFormatNone; // make sure ProcessWire renders the HTML
 
 		$tab->add($m);
 
@@ -345,14 +342,14 @@ class ProcessMenuBuilder extends Process implements Module {
 		// @note: user can override the 50 pages limit by adding their own 'limit=n' in $menuPages['sel']
 		$defaultSelector = "template!=admin, has_parent!=2, parent!=7, id!=27, limit=50";
 
-		if(isset($menuPages['sel'])) $pagesSelector = $defaultSelector . ', ' . $menuPages['sel'];
+		if (isset($menuPages['sel'])) $pagesSelector = $defaultSelector . ', ' . $menuPages['sel'];
 		else $pagesSelector = $defaultSelector;
 
 		$description = $this->_('Select Pages to add to your menu. Optionally enter a CSS ID and single/multiple Classes.');
 
 		$extraNotes = $this->includeChildren ?
-						$this->_("The setting 'Level' is for use in conjunction with 'include children' with respect to your menu, i.e. the selections 'Menu' or 'Both'. The default level (i.e. how 'deep' to fetch descendant children, granchildren, etc. is 1. If that is what you want then you do not have to enter a level.") :
-							'';
+			$this->_("The setting 'Level' is for use in conjunction with 'include children' with respect to your menu, i.e. the selections 'Menu' or 'Both'. The default level (i.e. how 'deep' to fetch descendant children, granchildren, etc. is 1. If that is what you want then you do not have to enter a level.") :
+			'';
 
 		$menuPagesInput = 1;
 
@@ -370,9 +367,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			// we'll use this variable when saving PageAutocomplete values
 			// especially important for non-superusers since the radio input 'menu_pages_select' will not be output for them
 			$menuPagesInput = 2;
-		}
-
-		elseif (isset($menuPages['input']) && $menuPages['input'] == 3) {
+		} elseif (isset($menuPages['input']) && $menuPages['input'] == 3) {
 
 			// modify PageListSelectMultiple output
 			$this->wire('page')->addHookAfter("InputfieldPageListSelectMultiple::render", $this, "customPls");
@@ -389,8 +384,8 @@ class ProcessMenuBuilder extends Process implements Module {
 		else {
 
 			$opts = $this->wire('pages')->find($pagesSelector);
-			if(empty($opts)) {
-				$this->error($this->_('Menu Builder: Your selector did not find any selectable pages for your menu! Confirm its validity.'));
+			if (empty($opts)) {
+				$this->error($this->getErrorMessage('no_match_for_selector'));
 				$description = $this->_('No pages were found to add to your menu. Rectify the specified error first.');
 			}
 
@@ -400,8 +395,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$menuAddPageItems = $modules->get('InputfieldAsmSelect');
 			$menuAddPageItems->notes = $extraNotes;
 
-			foreach($opts as $opt) $menuAddPageItems->addOption($opt->id, $opt->title);
-
+			foreach ($opts as $opt) $menuAddPageItems->addOption($opt->id, $opt->title);
 		}
 
 		// Page Select to add menu items from pages
@@ -409,14 +403,14 @@ class ProcessMenuBuilder extends Process implements Module {
 		$menuAddPageItems->attr('name+id', 'item_addpages');
 		$menuAddPageItems->description = $description;
 
-		$tab->add($menuAddPageItems);// add page asmSelect/autocomplete/page list select multiple to markup
+		$tab->add($menuAddPageItems); // add page asmSelect/autocomplete/page list select multiple to markup
 
 		// hidden field to store value if using PageAutocomplete to select menu items from pages
 		$h = $modules->get('InputfieldHidden');
 		$h->attr('name', 'menu_pages_input');
 		$h->attr('value', $menuPagesInput);
 
-		$tab->add($h);// add hidden field to markup
+		$tab->add($h); // add hidden field to markup
 
 		// Add Custom menu items
 		$t = $modules->get('MarkupAdminDataTable');
@@ -450,7 +444,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$n3->attr('class', 'new_custom');
 
 		$itemCustomNewTab = "<input type='checkbox' name='new_newtab[]' value='0' class='newtab'>";
-		$itemCustomNewTabHidden = "<input type='hidden' name='new_newtab_hidden[]' value='0' class='newtabhidden'>";// force send a value for new tabs
+		$itemCustomNewTabHidden = "<input type='hidden' name='new_newtab_hidden[]' value='0' class='newtabhidden'>"; // force send a value for new tabs
 
 		$t->row(array(
 			$n->render(),
@@ -481,13 +475,12 @@ class ProcessMenuBuilder extends Process implements Module {
 			$tx->description = $this->_('Use a ProcessWire selector to find and add menu items.');
 
 			$tab->add($tx);
-
 		}
 
 		// Drag and drop to sort + reorder menu items area
 		$m = $modules->get('InputfieldMarkup');
 		$m->label = $this->_('Drag & Drop');
-		$m->skipLabel = Inputfield::skipLabelHeader;// we don't want a label displayed here
+		$m->skipLabel = Inputfield::skipLabelHeader; // we don't want a label displayed here
 		$m->attr('id', 'dragdrop');
 
 		$m->notes = $this->_('Add items to start building your menu. You can add both Pages (internal links) and Custom (external) links. Drag and drop each item in the order you wish.') . "\n";
@@ -497,16 +490,16 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// if menu populated, create nested list
 		$markup = '<h4>' . $this->_('No items have been added to this menu yet') . '</h4>';
-		if(!empty($this->menuItems)) {
+		if (!empty($this->menuItems)) {
 			$markup = '<div id="menu_sortable_wrapper">' .
-							'<a href="#" id="remove_menus">' . $this->_('Delete All') . '</a>' .
-							$this->listMenu(0) .
-						'</div>';
+				'<a href="#" id="remove_menus">' . $this->_('Delete All') . '</a>' .
+				$this->listMenu(0) .
+				'</div>';
 
-				// add hidden markup for extra labels for all page select methods
-				$markup.= $this->buildExtraLabels();
-				// add hidden markup for extra input for page autocomplete
-				$markup.= $this->buildAsmExtraInputs();
+			// add hidden markup for extra labels for all page select methods
+			$markup .= $this->buildExtraLabels();
+			// add hidden markup for extra input for page autocomplete
+			$markup .= $this->buildAsmExtraInputs();
 		}
 
 		$m->attr('value', $markup);
@@ -514,7 +507,6 @@ class ProcessMenuBuilder extends Process implements Module {
 		$tab->add($m);
 
 		return $tab;
-
 	}
 
 	/**
@@ -546,18 +538,18 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		$t->headerRow(array(
 			// $this->_('ID'),// id of item in menu; not PW page id!!!
-			$this->_('Title'),// for PW pages, actual title saved. The title can also be edited in the add menu item settings
-			$this->_('URL'),// path to PW pages + normal url for custom menu items
-			$this->_('Parent'),// parent in this menu! NOT PW PAGE PARENT!
+			$this->_('Title'), // for PW pages, actual title saved. The title can also be edited in the add menu item settings
+			$this->_('URL'), // path to PW pages + normal url for custom menu items
+			$this->_('Parent'), // parent in this menu! NOT PW PAGE PARENT!
 			$this->_('CSS ID'),
 			$this->_('CSS Class'),
 			$this->_('New Tab'),
-			$this->_('Type'),// custom or PW page
+			$this->_('Type'), // custom or PW page
 
 		));
 
 		// fetch menu items and display their properties in the overview table
-		if(!empty($menuItems)) {
+		if (!empty($menuItems)) {
 
 			foreach ($menuItems as $menu => $menuItem) {
 
@@ -580,35 +572,34 @@ class ProcessMenuBuilder extends Process implements Module {
 				// does this menu item link open in a new window or not (i.e. target='_blank') - for custom menu items only
 				$itemNewTab = isset($menuItem['newtab']) ? $this->_('Yes') : $this->_('No');
 
-				$itemCSSID = isset($menuItem['css_itemid']) ? $menuItem['css_itemid'] :'';
+				$itemCSSID = isset($menuItem['css_itemid']) ? $menuItem['css_itemid'] : '';
 				$itemCSSClass = isset($menuItem['css_itemclass']) ? $menuItem['css_itemclass'] : '';
 
-				$t->row(array(
-					$menuItem['title'],
-					$itemURL,
-					$itemParent,
-					$itemCSSID,
-					$itemCSSClass,
-					$itemNewTab,
-					$itemType)
+				$t->row(
+					array(
+						$menuItem['title'],
+						$itemURL,
+						$itemParent,
+						$itemCSSID,
+						$itemCSSClass,
+						$itemNewTab,
+						$itemType
+					)
 				);
-
-			}// end foreach
+			} // end foreach
 
 			$m->attr('value', $t->render());
-
-		}// end if count $menuItems
+		} // end if count $menuItems
 
 		else {
 			// give user feedback that no menu items have been added to this menu
 			$m->description = '<h4>' . $this->_('No items have been added to this menu yet.') . '</h4>';
-			$m->textFormat = Inputfield::textFormatNone;// make sure ProcessWire renders the HTML
+			$m->textFormat = Inputfield::textFormatNone; // make sure ProcessWire renders the HTML
 		}
 
 		$tab->add($m);
 
 		return $tab;
-
 	}
 
 	/**
@@ -644,10 +635,9 @@ class ProcessMenuBuilder extends Process implements Module {
 		$f->attr('value', $menu->title);
 
 		// different description if in multi-lingual setting
-		if($this->multilingual) {
+		if ($this->multilingual) {
 			$description = $this->_('A menu title is required for at least the default language.');
-		}
-		else $description = $this->_('A menu title is required.');
+		} else $description = $this->_('A menu title is required.');
 
 		$f->description = $description;
 
@@ -658,10 +648,10 @@ class ProcessMenuBuilder extends Process implements Module {
 		$f->notes = rtrim($notes, ', ');
 
 		// if in multilingual site, set respective languages description values where available
-		if($this->multilingual) {
+		if ($this->multilingual) {
 			foreach ($this->wire('languages') as $language) {
 				// skip default language as already set above
-				if($language->name == 'default') continue;
+				if ($language->name == 'default') continue;
 				$langTitle = $menu->getLanguageValue($language, 'title');
 				// set title in the language
 				$f->set("value$language->id", $langTitle);
@@ -674,7 +664,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		// options for nestedSortable + ProcessWire selector for pages selectable in $menuAddPageItems AsmSelect
 
 		// if this user has permission to SPECIFY pages selectable as menu items in AsmSelect and PageAutocomplete
-		if($user->hasPermission('menu-builder-selectable')) {
+		if ($user->hasPermission('menu-builder-selectable')) {
 
 			// if selector to find pages to add to menu specified
 			$selectorValue = isset($menuPages['sel']) ? $menuPages['sel'] : '';
@@ -687,11 +677,10 @@ class ProcessMenuBuilder extends Process implements Module {
 			$tx->notes =  $this->_('Example: parent=/products/, template=product, sort=title');
 
 			$tab->add($tx);
-
-		}// end if user has permission menu-builder-selectable
+		} // end if user has permission menu-builder-selectable
 
 		// if user has permission to allow changing of page field type used to select pages to add as menu items [AsmSelect vs PageAutocomplete]
-		if($user->hasPermission('menu-builder-page-field')) {
+		if ($user->hasPermission('menu-builder-page-field')) {
 
 			// only 'PageAutocomplete' and PageListSelectMultiple options are saved in the field menu_pages (JSON): 'input'=> 2 || 3
 			// else we assume default 'input' => 1 (AsmSelect)
@@ -703,21 +692,20 @@ class ProcessMenuBuilder extends Process implements Module {
 			$r->label =  $this->_('Choose a method for selecting pages to add to your menu');
 			$r->notes = $this->_('If you will have a large selection of pages to choose from, you may want to use Page Auto Complete.');
 
-			$radioOptions = array (
+			$radioOptions = array(
 				1 => $this->_('Asm Select'),
 				2 => $this->_('Page Auto Complete'),
 				3 => $this->_('Page List Select Multiple'),
-		 	);
+			);
 
 			$r->addOptions($radioOptions);
 			$r->value = $pageSel;
 
 			$tab->add($r);
-
-		}// end if user has permision menu-builder-page-field
+		} // end if user has permision menu-builder-page-field
 
 		// if user can change and use allow markup/HTML setting
-		if($user->hasPermission('menu-builder-markup')) {
+		if ($user->hasPermission('menu-builder-markup')) {
 
 			// only 'Allow Markup' (Yes) option is saved in the field menu_pages (JSON): 'markup'=> 2. Else we assume default 'markup' => 1 (No)
 			$allowMarkup = isset($menuPages['markup']) ? 1 : 2;
@@ -728,20 +716,19 @@ class ProcessMenuBuilder extends Process implements Module {
 			$r->label =  $this->_('Allow HTML in menu items title');
 			$r->notes = $this->_('Example: <span>Home</span>. If you allow this, the HTML will be run through HTML purifier before saving. Take care not to input malformed HTML.');
 
-			$radioOptions = array (
+			$radioOptions = array(
 				1 => $this->_('Yes'),
 				2 => $this->_('No'),
-		 	);
+			);
 
 			$r->addOptions($radioOptions);
 			$r->value = $allowMarkup;
 
 			$tab->add($r);
-
-		}// end if user can change and use allow markup/HTML setting
+		} // end if user can change and use allow markup/HTML setting
 
 		// if user can edit and use 'include children' feature
-		if($user->hasPermission('menu-builder-include-children')) {
+		if ($user->hasPermission('menu-builder-include-children')) {
 
 			// only 'Allow Include Children' (Yes) option is saved in the field menu_pages (JSON): 'markup'=> 2. Else we assume default 'markup' => 1 (No)
 			$includeChildren = isset($menuPages['children']) ? 1 : 2;
@@ -752,20 +739,19 @@ class ProcessMenuBuilder extends Process implements Module {
 			$r->label =  $this->_('Use include children feature');
 			$r->notes = $this->_('This feature allows you to designate menu items that can have their natural ProcessWire pages descendants included in the menu/breadcrumbs output in the frontend without actually including those pages here in Menu Builder. Be careful when using the feature as you could potentially output a very large amount of menu items than intended.');
 
-			$radioOptions = array (
+			$radioOptions = array(
 				1 => $this->_('Yes'),
 				2 => $this->_('No'),
-		 	);
+			);
 
 			$r->addOptions($radioOptions);
 			$r->value = $includeChildren;
 
 			$tab->add($r);
-
-		}// end if user can change and use allow markup/HTML setting
+		} // end if user can change and use allow markup/HTML setting
 
 		// if user can edit and use 'disable menu items' feature
-		if($user->hasPermission('menu-builder-disable-items')) {
+		if ($user->hasPermission('menu-builder-disable-items')) {
 
 			// only 'Enable Disable Item' options
 			$disableItems = isset($menuPages['disable_items']) ? 1 : 2;
@@ -775,24 +761,23 @@ class ProcessMenuBuilder extends Process implements Module {
 			$r->label =  $this->_('Use enable/disable menu items feature');
 			$r->notes = $this->_('Allows you to set some menu items as disabled. If an item is disabled, the item together will all of its descendants will be set as disabled after you save the menu settings. Disabled items will not be output when the menu is viewed in the frontend.');
 
-			$radioOptions = array (
+			$radioOptions = array(
 				1 => $this->_('Yes'),
 				2 => $this->_('No'),
-		 	);
+			);
 
 			$r->addOptions($radioOptions);
 			$r->value = $disableItems;
 
 			$tab->add($r);
-
-		}// end if user can edit and use 'disable menu items' feature
+		} // end if user can edit and use 'disable menu items' feature
 
 		// if user can use 'multi-lingual menu items' feature
-		if($user->hasPermission('menu-builder-multi-lingual-items') && !is_null($user->language)) {
+		if ($user->hasPermission('menu-builder-multi-lingual-items') && !is_null($user->language)) {
 
 			// active languages select checkboxes
 			$menuItemsLanguages = isset($menuPages['menu_items_languages']) ? $menuPages['menu_items_languages'] : array();
-			$languages = $this->getLanguages();// @note: grabs all available languages
+			$languages = $this->getLanguages(); // @note: grabs all available languages
 
 			// active languages select checkboxes
 			$c = $modules->get('InputfieldCheckboxes');
@@ -802,19 +787,17 @@ class ProcessMenuBuilder extends Process implements Module {
 			$c->description = $this->_('Optionally, you can choose other languages other than the default for which you want to save values for your menu items.');
 			#$c->addOptions($languageOptions);
 			foreach ($languages as $langName => $langTitle) {
-				if($langName == 'default') continue;
+				if ($langName == 'default') continue;
 				$c->addOption($langName, $langTitle);
 			}
 			$c->notes = $this->_('When building the menu, you will see tabs for other active languages selected here to input titles and URLs. If a title or URL is left blank, in the frontend, the respective values for the default language will be used instead.');
 
 			$tab->add($c);
-
-
-		}// user can use 'multi-lingual menu items' feature
+		} // user can use 'multi-lingual menu items' feature
 
 
 		// if user has permission to allow editing of nestedSortable settings
-		if($user->hasPermission('menu-builder-settings')) {
+		if ($user->hasPermission('menu-builder-settings')) {
 
 			$t = $modules->get('MarkupAdminDataTable');
 			$t->setEncodeEntities(false);
@@ -823,41 +806,38 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			$t->headerRow(array(
 				$this->_('Name'),
-				$this->_('Default'),// for PW pages, actual title saved. The title can also be edited in the add menu item settings
-				$this->_('Setting'),// path to PW pages + normal url for custom menu items
-				$this->_('Notes'),// parent in this menu! NOT PW PAGE PARENT!
+				$this->_('Default'), // for PW pages, actual title saved. The title can also be edited in the add menu item settings
+				$this->_('Setting'), // path to PW pages + normal url for custom menu items
+				$this->_('Notes'), // parent in this menu! NOT PW PAGE PARENT!
 			));
 
 			// advanced/optional settings for nestedSortable
 			$mergedMenuSettings = $this->nestedSortableMenuSettings();
 
 			foreach ($mergedMenuSettings as $key => $value) {
-				if($key == 'includeChildren') continue;// setting not for nestedSortable
+				if ($key == 'includeChildren') continue; // setting not for nestedSortable
 				$t->row(array(
-					$key,// name
-					$value['default'],// default value
-					"<input type='text' name='menu_settings[" . $key . "]' value='" . $value['setting'] . "'>",// setting - saved in menu_settings as JSON
+					$key, // name
+					$value['default'], // default value
+					"<input type='text' name='menu_settings[" . $key . "]' value='" . $value['setting'] . "'>", // setting - saved in menu_settings as JSON
 					$value['notes'],
 				));
-
-			}// end foreach $menuSettings
+			} // end foreach $menuSettings
 
 			$m = $modules->get('InputfieldMarkup');
 			$m->attr('id', 'menu_settings');
 			$m->label = $this->_('Menu settings');
-			$m->textFormat = Inputfield::textFormatNone;// make sure ProcessWire renders the HTML
+			$m->textFormat = Inputfield::textFormatNone; // make sure ProcessWire renders the HTML
 			$m->description = $this->_('These are optional settings for') .  ' <a href="https:// github.com/ilikenwf/nestedSortable" target="_blank">nestedSortable</a> ' .
-			$this->_('(the Drag and Drop menu functionality in Build Menu Tab).');
+				$this->_('(the Drag and Drop menu functionality in Build Menu Tab).');
 			$m->notes = $this->_('Note: These settings do not affect how your menu is displayed in the frontend.');
 			$m->collapsed = Inputfield::collapsedYes;
 			$m->attr('value', $t->render());
 
 			$tab->add($m);
-
-		}// end if user has permission to edit nestedSortable settings
+		} // end if user has permission to edit nestedSortable settings
 
 		return $tab;
-
 	}
 
 	/**
@@ -895,7 +875,6 @@ class ProcessMenuBuilder extends Process implements Module {
 		$tab->append($f);
 
 		return $tab;
-
 	}
 
 	/**
@@ -914,7 +893,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		$menuID = (int) $this->wire('input')->get->id;
 
-		if($menuID) {
+		if ($menuID) {
 
 			/*
 				INPUTS
@@ -945,26 +924,26 @@ class ProcessMenuBuilder extends Process implements Module {
 				$this->itemID = $id;
 
 				$this->itemTitle = $item['title'];
-				$this->itemTitle2 = $this->wire('sanitizer')->entities($this->itemTitle);// for value of title input
+				$this->itemTitle2 = $this->wire('sanitizer')->entities($this->itemTitle); // for value of title input
 				$this->itemURL = isset($item['url']) ? $item['url'] : '';
 
 				// if multilingual, also set language specific titles and urls
 				// @note: format is $this->itemTitle_de; $this->itemURL_de; $this->itemTitle2_de, etc...
-				if(!is_null($this->menuItemsLanguages)) $this->setLanguageTitlesAndURLs($item);
+				if (!is_null($this->menuItemsLanguages)) $this->setLanguageTitlesAndURLs($item);
 
 				// items without parent ids are top level items
 				// we give them an ID of 0 for display purposes (we won't save the value [see wireEncodeJSON()])
 				$this->itemParentID = isset($item['parent_id']) ? $item['parent_id'] : 0;
 				$this->cssItemID = isset($item['css_itemid']) ? $item['css_itemid'] : '';
 				$this->cssItemClass = isset($item['css_itemclass']) ? $item['css_itemclass'] : '';
-				$this->itemPagesID = isset($item['pages_id']) ? $item['pages_id'] : 0;// only PW pages will have a pages_id > 0 (equal to their PW page->id)
+				$this->itemPagesID = isset($item['pages_id']) ? $item['pages_id'] : 0; // only PW pages will have a pages_id > 0 (equal to their PW page->id)
 				$this->newTab = isset($item['newtab']) ? $item['newtab'] : 0;
 				$this->itemIncludeChildren = isset($item['include_children']) ? $item['include_children'] : '';
 				$this->itemMenuMaxLevel = isset($item['m_max_level']) ? $item['m_max_level'] : '';
 				$this->disabledItem = isset($item['disabled_item']) ? $item['disabled_item'] : '';
 
 				// custom menu items
-				if(!$this->itemPagesID) {
+				if (!$this->itemPagesID) {
 					$this->itemType = $this->_('Custom');
 					$this->readOnly = '';
 				}
@@ -982,12 +961,11 @@ class ProcessMenuBuilder extends Process implements Module {
 				if ($this->itemParentID == $parent) {
 					// if this is the first child output '<ol>' with the class 'sortable'
 					if ($has_child === false) {
-						$has_child = true;// This is a parent
-						if ($first == 0){
+						$has_child = true; // This is a parent
+						if ($first == 0) {
 							$out .= "<ol id='sortable_main' class='sortable'>\n";
 							$first = 1;
-						}
-						else $out .= "\n<ol>\n";
+						} else $out .= "\n<ol>\n";
 					}
 
 					######################### menu item drag n drop handle #########################
@@ -999,15 +977,14 @@ class ProcessMenuBuilder extends Process implements Module {
 					$out .= $this->listMenu($id, $first);
 					// close the <li>
 					$out .= "</li>\n";
-				}// end if parent
+				} // end if parent
 
-			}// end foreach $this->menuItems as $id => $item
+			} // end foreach $this->menuItems as $id => $item
 
 			if ($has_child === true) $out .= "</ol>\n";
 
 			return $out;
-
-		}// end if menuID
+		} // end if menuID
 
 	}
 
@@ -1035,11 +1012,9 @@ class ProcessMenuBuilder extends Process implements Module {
 		$f->useLanguages = true;
 
 		// different description if in multi-lingual setting
-		if($this->multilingual) {
+		if ($this->multilingual) {
 			$description = $this->_('A menu title is required for at least the default language.');
-		}
-
-		else $description = $this->_('A menu title is required.');
+		} else $description = $this->_('A menu title is required.');
 
 		$f->description = $description;
 
@@ -1049,7 +1024,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$f = $modules->get('InputfieldSubmit');
 		$f->attr('id+name', 'menu_new_unpublished_btn');
 		$f->attr('value', $this->_('Save Unpublished'));
-		$f->class .= " menu_new_unpublished";// add a custom class to this submit button
+		$f->class .= " menu_new_unpublished"; // add a custom class to this submit button
 
 		$m->add($f);
 
@@ -1057,12 +1032,11 @@ class ProcessMenuBuilder extends Process implements Module {
 		$f = $modules->get('InputfieldSubmit');
 		$f->attr('id+name', 'menu_new_published_btn');
 		$f->attr('value', $this->_('Publish'));
-		$f->class .= " menu_new_publish";// add a custom class to this submit button
+		$f->class .= " menu_new_publish"; // add a custom class to this submit button
 
 		$m->add($f);
 
 		return $m;
-
 	}
 
 	/**
@@ -1089,11 +1063,10 @@ class ProcessMenuBuilder extends Process implements Module {
 		// pagination
 		$pagination = $this->buildPagination($menus);
 		// add to markup
-		$m->attr('value', $pagination . $table . $pagination);// wrap our table with pagination
-		$m->textFormat = Inputfield::textFormatNone;// make sure ProcessWire renders the HTML
+		$m->attr('value', $pagination . $table . $pagination); // wrap our table with pagination
+		$m->textFormat = Inputfield::textFormatNone; // make sure ProcessWire renders the HTML
 
 		return $m;
-
 	}
 
 	/**
@@ -1105,13 +1078,13 @@ class ProcessMenuBuilder extends Process implements Module {
 	 */
 	private function buildLimitSelect() {
 		$out = '<span class="limit-select">' . $this->_('Show ') . '<select id="limit" name="show_limit">';
-		$limits = array( '', 5, 10, 15, 25, 50, 75, 100);
+		$limits = array('', 5, 10, 15, 25, 50, 75, 100);
 		foreach ($limits as $limit) {
-					$out .='<option value="' . $limit . '"' . ($this->showLimit == $limit ? 'selected="selected"':'') . '>' .
-								$limit .
-							'</option>';
+			$out .= '<option value="' . $limit . '"' . ($this->showLimit == $limit ? 'selected="selected"' : '') . '>' .
+				$limit .
+				'</option>';
 		}
-		$out .= '</select>'. $this->_(' Items') . '</span>';
+		$out .= '</select>' . $this->_(' Items') . '</span>';
 		return $out;
 	}
 
@@ -1123,8 +1096,8 @@ class ProcessMenuBuilder extends Process implements Module {
 	 *
 	 */
 	private function buildPagination($menus) {
-		$currentUrl = $this->wire('page')->url . $this->wire('input')->urlSegmentsStr."/";// get the url segment string.
-		$out = $menus->renderPager(array('baseUrl' => $currentUrl));// just foolproofing
+		$currentUrl = $this->wire('page')->url . $this->wire('input')->urlSegmentsStr . "/"; // get the url segment string.
+		$out = $menus->renderPager(array('baseUrl' => $currentUrl)); // just foolproofing
 		return $out;
 	}
 
@@ -1141,19 +1114,16 @@ class ProcessMenuBuilder extends Process implements Module {
 	private function buildMenusCountHeadline($menus) {
 
 		// display a headline indicating quantities. We'll add this to menus tab
-		$start = $menus->getStart()+1;
-		$end = $start + count($menus)-1;
+		$start = $menus->getStart() + 1;
+		$end = $start + count($menus) - 1;
 		$total = $this->menusTotal = $menus->getTotal();
 
-		if($total) {
+		if ($total) {
 			$out = '<h4>' . sprintf(__('Menus %1$d to %2$d of %3$d'), $start, $end, $total) . '</h4>';
 			$out .= $this->_('Click on a title to edit the menu.') . $this->buildLimitSelect();
-		}
-
-		else $out = $this->_('No menus found.');
+		} else $out = $this->_('No menus found.');
 
 		return $out;
-
 	}
 
 	/**
@@ -1188,7 +1158,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			// count number of menu items in each menu
 			$menuItemsJSON = $menu->menu_items;
 			$menuItemsArray = json_decode($menuItemsJSON, true);
-			$menuItemsCnt = !empty($menuItemsArray) ? count($menuItemsArray): 0;
+			$menuItemsCnt = !empty($menuItemsArray) ? count($menuItemsArray) : 0;
 			// check if menu is published or not
 			$menu->is(Page::statusUnpublished) ? $pubStatus = '<span class="unpublished">' . $this->_('No') . '</span>' : $pubStatus = $this->_('Yes');
 			// check if menu is locked for editing
@@ -1201,20 +1171,18 @@ class ProcessMenuBuilder extends Process implements Module {
 				'<input type="checkbox" name="menus_action[]" value="' . $menu->id . '" class="toggle">',
 				'<a href="' . $this->menusParent->url . 'edit/?id=' . $menu->id . '">' . $menu->title . '</a>',
 				$menuItemsCnt,
-				$pubStatus,// menu published status
-				$editStatus,// menu locked status
-				$modified,// last modified status
+				$pubStatus, // menu published status
+				$editStatus, // menu locked status
+				$modified, // last modified status
 			);
 
 			// render the table rows with variables set above
 			$t->row($menusTable);
-
-		}// end foreach $menus as $menu
+		} // end foreach $menus as $menu
 
 		$out = $t->render();
 
 		return $out;
-
 	}
 
 	/**
@@ -1267,13 +1235,12 @@ class ProcessMenuBuilder extends Process implements Module {
 		// apply button
 		$f = $modules->get('InputfieldSubmit');
 		$f->attr('id+name', 'menus_action_btn');
-		$f->class .= " posts_action";// add a custom class to this submit button
+		$f->class .= " posts_action"; // add a custom class to this submit button
 		$f->attr('value', $this->_('Apply'));
 
 		$m->add($f);
 
 		return $m;
-
 	}
 
 	/**
@@ -1289,20 +1256,19 @@ class ProcessMenuBuilder extends Process implements Module {
 		$disabledClass = $this->disabledItem ? ' menu_item_disabled' : '';
 
 		$out =	'<li id="item_' . $id . '" class="menu_item">' .
-					'<div class="handle">' .
-						'<a href="#" data-id="' . $id . '" class="item_expand_settings">' .
-							'<i data-id="' . $id . '" class="fa fa-caret-down"></i>' .
-						'</a>' .
-						'<span class="item_title_main' . $disabledClass . '" data-id="' . $id . '">' . $this->itemTitle . '</span>' .
-						'<span class="item_type_wrapper">' .
-							'<span class="item_type">' . $this->itemType . '</span>' .
-							'<a href="#" class="remove_menu"><i class="fa fa-trash"></i></a>' .
-						'</span>' .
-					'</div>' .
-					"\n";
+			'<div class="handle">' .
+			'<a href="#" data-id="' . $id . '" class="item_expand_settings">' .
+			'<i data-id="' . $id . '" class="fa fa-caret-down"></i>' .
+			'</a>' .
+			'<span class="item_title_main' . $disabledClass . '" data-id="' . $id . '">' . $this->itemTitle . '</span>' .
+			'<span class="item_type_wrapper">' .
+			'<span class="item_type">' . $this->itemType . '</span>' .
+			'<a href="#" class="remove_menu"><i class="fa fa-trash"></i></a>' .
+			'</span>' .
+			'</div>' .
+			"\n";
 
 		return $out;
-
 	}
 
 	/**
@@ -1318,32 +1284,31 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// build title and url inputs in the context of single or multi-lingual sites
 		// also  for use in either context
-		if(is_null($this->menuItemsLanguages)) $out .= $this->buildSingleLanguageTitleURLMarkup();
+		if (is_null($this->menuItemsLanguages)) $out .= $this->buildSingleLanguageTitleURLMarkup();
 		else $out .= $this->buildMultiLanguageTitleURLMarkup();
 
 		## - OTHER INPUTS - ##
-		$out .='<div class="menu_edit_item_other_wrapper">';
+		$out .= '<div class="menu_edit_item_other_wrapper">';
 
 		######################### add CSS ID and CSS Classes inputs #########################
 		$out .= $this->buildCSSMarkup();
 		######################### include children markup #########################
-		if($this->includeChildren == 1 && $this->itemPagesID != 0 && $this->itemPagesID != 1) $out .= $this->buildMenuItemIncludeChildrenMarkup();
+		if ($this->includeChildren == 1 && $this->itemPagesID != 0 && $this->itemPagesID != 1) $out .= $this->buildMenuItemIncludeChildrenMarkup();
 		######################### item disabled markup #########################
-		if($this->disableItems == 1) $out .= $this->buildMenuItemDisabledMarkup();
+		if ($this->disableItems == 1) $out .= $this->buildMenuItemDisabledMarkup();
 		######################### custom menu item new tab markup #########################
-		if(0 == $this->itemPagesID) $out .= $this->buildMenuItemNewTabMarkup();
+		if (0 == $this->itemPagesID) $out .= $this->buildMenuItemNewTabMarkup();
 		######################### item hidden inputs markup #########################
 		$out .= $this->buildMenuItemHiddenInputs();
 
-		$out .='</div>';// end div.menu_edit_item_other_wrapper
+		$out .= '</div>'; // end div.menu_edit_item_other_wrapper
 		## - END OTHER INPOUTS - ##
 
 		// wrap it all up
 		$out = '<div id="menu_edit' . $this->itemID . '" class="settings">' . $out . '</div>' .
-				"\n";
+			"\n";
 
 		return $out;
-
 	}
 
 	/**
@@ -1363,13 +1328,12 @@ class ProcessMenuBuilder extends Process implements Module {
 		$labelsAndInputs = $this->getMenuSettingsPanelTitleURLInputs();
 
 		foreach ($labelsAndInputs as $key => $value) {
-			$r = $key == 'item_url' ? $this->readOnly : '';// read only
+			$r = $key == 'item_url' ? $this->readOnly : ''; // read only
 			$out .= '<label for="' . $key . $id . '">' . $value[0] . '</label>' .
-					'<input type="text" value="' . $value[1] . '" name="' . $key .'[' . $id . ']" class="menu_settings' . $r . '" id="' . $key . $id . '"' . $r . '>';
+				'<input type="text" value="' . $value[1] . '" name="' . $key . '[' . $id . ']" class="menu_settings' . $r . '" id="' . $key . $id . '"' . $r . '>';
 		}
 
 		return $out;
-
 	}
 
 	/**
@@ -1386,18 +1350,16 @@ class ProcessMenuBuilder extends Process implements Module {
 		$out = '';
 		$id = $this->itemID;
 		$r = $this->readOnly;
-		$languageSelector = '';// for language selector '<span>'s
-		$languageInputs = '';// fro language title and url <input>s
+		$languageSelector = ''; // for language selector '<span>'s
+		$languageInputs = ''; // fro language title and url <input>s
 
 		// get MB active languages (minus default)
-		foreach($this->getLanguages(1) as $langName => $langTitle) {// @note: 1 means skip non-active languages
-			if($langName == 'default') {
+		foreach ($this->getLanguages(1) as $langName => $langTitle) { // @note: 1 means skip non-active languages
+			if ($langName == 'default') {
 				$suffix = '';
 				$title2 = $this->itemTitle2;
 				$url = $this->itemURL;
-			}
-
-			else  {
+			} else {
 				$suffix = '_' . $langName;
 				$title2 = $this->{"itemTitle2_{$langName}"};
 				$url = $this->{"itemURL_{$langName}"};
@@ -1407,7 +1369,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$active = $this->wire('user')->language->name == $langName ? ' menu_language_active' : ''; // @note: active language
 			$languageSelector .=
 				'<span class="menu_language_selector' . $active . '" data-language="menu_edit' . $suffix . $id . '">' .
-					$langTitle .
+				$langTitle .
 				'</span>';
 
 			// wrapper for individual language inputs
@@ -1416,16 +1378,16 @@ class ProcessMenuBuilder extends Process implements Module {
 			// item titles
 			$languageInputs .=
 				'<label for="item_title' . $suffix . $id . '">' . $this->_('Title') . '</label>' .
-				'<input type="text" value="' . $title2 . '" name="item_title' . $suffix .'[' . $id . ']" class="menu_settings" id="item_title' . $suffix . $id . '">';
+				'<input type="text" value="' . $title2 . '" name="item_title' . $suffix . '[' . $id . ']" class="menu_settings" id="item_title' . $suffix . $id . '">';
 			// item urls
 			$languageInputs .=
 				'<label for="item_url' . $suffix . $id . '">' . $this->_('URL') . '</label>' .
-				'<input type="text" value="' . $url . '" name="item_url' . $suffix .'[' . $id . ']" class="menu_settings' . $r . '" id="item_url' . $suffix . $id . '"' . $r . '>';
+				'<input type="text" value="' . $url . '" name="item_url' . $suffix . '[' . $id . ']" class="menu_settings' . $r . '" id="item_url' . $suffix . $id . '"' . $r . '>';
 
-			$languageInputs .= '</div>';// end div.menu_language
+			$languageInputs .= '</div>'; // end div.menu_language
 
 
-		}// end foreach
+		} // end foreach
 
 		// language selector <span>s wrapper
 		$languageSelector = '<div class="menu_edit_language_selector">' . $languageSelector . '</div>';
@@ -1435,7 +1397,6 @@ class ProcessMenuBuilder extends Process implements Module {
 		$out = $languageSelector . $languageInputs;
 
 		return $out;
-
 	}
 
 	/**
@@ -1454,11 +1415,10 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		foreach ($labelsAndInputs as $key => $value) {
 			$out .= '<label for="' . $key . $id . '">' . $value[0] . '</label>' .
-					'<input type="text" value="' . $value[1] . '" name="' . $key .'[' . $id . ']" class="menu_settings" id="' . $key . $id . '">';
+				'<input type="text" value="' . $value[1] . '" name="' . $key . '[' . $id . ']" class="menu_settings" id="' . $key . $id . '">';
 		}
 
 		return $out;
-
 	}
 
 	/**
@@ -1486,15 +1446,14 @@ class ProcessMenuBuilder extends Process implements Module {
 		}
 
 		$out =	'<span class="include_children">' . $this->_('Include natural children') . '</span>' .
-				'<select name="include_children[' . $this->itemID . ']" class="include_children">' .
-					$opts .
-				'</select>' .
-				'<label class="include_children">' . $this->_('Level') .
-					'<input type="text" value="' . $this->itemMenuMaxLevel . '" name="mb_max_level[' . $this->itemID . ']">' .
-				'</label>';
+			'<select name="include_children[' . $this->itemID . ']" class="include_children">' .
+			$opts .
+			'</select>' .
+			'<label class="include_children">' . $this->_('Level') .
+			'<input type="text" value="' . $this->itemMenuMaxLevel . '" name="mb_max_level[' . $this->itemID . ']">' .
+			'</label>';
 
 		return $out;
-
 	}
 
 	/**
@@ -1508,9 +1467,9 @@ class ProcessMenuBuilder extends Process implements Module {
 		$id = $this->itemID;
 		$checked = $this->disabledItem ? ' checked' : '';
 		$out = '<label for="disabled_item' . $id . '">' .
-				'<input type="checkbox" name="disabled_item[' . $id . ']" value="' . $id . '" class="menu_disabled" id="disabled_item' . $id . '"' . $checked . '>' .
-					$this->_('Disabled') .
-				'</label>';
+			'<input type="checkbox" name="disabled_item[' . $id . ']" value="' . $id . '" class="menu_disabled" id="disabled_item' . $id . '"' . $checked . '>' .
+			$this->_('Disabled') .
+			'</label>';
 		return $out;
 	}
 
@@ -1527,9 +1486,9 @@ class ProcessMenuBuilder extends Process implements Module {
 		$id = $this->itemID;
 		$checked = $this->newTab ? ' checked' : '';
 		$out = '<label for="newtab' . $id . '">' .
-					'<input type="checkbox" name="newtab[' . $id . ']" value="' . $id . '" class="menu_settings" id="newtab' . $id . '"' . $checked . '>' .
-					$this->_('Open link in a new tab/window') .
-				'</label>';
+			'<input type="checkbox" name="newtab[' . $id . ']" value="' . $id . '" class="menu_settings" id="newtab' . $id . '"' . $checked . '>' .
+			$this->_('Open link in a new tab/window') .
+			'</label>';
 		return $out;
 	}
 
@@ -1565,24 +1524,23 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		$out =
 			'<div id="menu_items_headers_template" class="hide">' .
-				'<div id="menu_items_headers">' .
-				'<span id="ac_title">' . $this->_('Title') . '</span>' .
-				'<span id="ac_css_id">' . $this->_('CSS ID') . '</span>' .
-				'<span id="ac_css_class">' . $this->_('CSS Class') . '</span>';
-			// check for include children
-			if(isset($this->menuPages['children'])) {
-				if(1 == $this->menuPages['children'] && $this->wire('user')->hasPermission('menu-builder-include-children')) {
-					$out .=
-						'<span id="ac_children">' . $this->_('Children'). '</span>' .
-						'<span id="ac_level">' . $this->_('Level') . '</span>';
-				}
+			'<div id="menu_items_headers">' .
+			'<span id="ac_title">' . $this->_('Title') . '</span>' .
+			'<span id="ac_css_id">' . $this->_('CSS ID') . '</span>' .
+			'<span id="ac_css_class">' . $this->_('CSS Class') . '</span>';
+		// check for include children
+		if (isset($this->menuPages['children'])) {
+			if (1 == $this->menuPages['children'] && $this->wire('user')->hasPermission('menu-builder-include-children')) {
+				$out .=
+					'<span id="ac_children">' . $this->_('Children') . '</span>' .
+					'<span id="ac_level">' . $this->_('Level') . '</span>';
 			}
+		}
 		$out .=
-				'</div>' .
+			'</div>' .
 			'</div>';
 
 		return $out;
-
 	}
 
 	/**
@@ -1598,33 +1556,32 @@ class ProcessMenuBuilder extends Process implements Module {
 		$out = '';
 
 		// build only if using Asm Select (i.e. nothing set for input, hence defaults to Asm)
-		if(!isset($this->menuPages['input'])) {
+		if (!isset($this->menuPages['input'])) {
 
 			$out .=
 				'<div id="menu_items_new_asm_extra_inputs_template" class="hide">' .
-					'<span class="asmMB">' .
-						'<input name="new_page_css_itemid[]" type="text" class="asm_itemid">' .
-						'<input name="new_page_css_itemclass[]" type="text" class="asm_itemclass">';
-				// check for include children
-				if(isset($this->menuPages['children'])) {
-					if(1 == $this->menuPages['children'] && $this->wire('user')->hasPermission('menu-builder-include-children')) {
-						$out .=
-							'<select name="new_page_include_children[]" class="asm_include_children">' .
-								'<option value="4">' . $this->_('No') . '</option>' .
-								'<option value="1">' . $this->_('Menu') . '</option>' .
-								'<option value="2">' . $this->_('Breadcrumbs') . '</option>' .
-								'<option value="3">' . $this->_('Both') . '</option>' .
-								'<option value="5">' . $this->_('Never') . '</option>' .
-							'</select>' .
-							'<input type="text" name="new_page_mb_max_level[]" class="asm_mb_max_level">';
-					}
+				'<span class="asmMB">' .
+				'<input name="new_page_css_itemid[]" type="text" class="asm_itemid">' .
+				'<input name="new_page_css_itemclass[]" type="text" class="asm_itemclass">';
+			// check for include children
+			if (isset($this->menuPages['children'])) {
+				if (1 == $this->menuPages['children'] && $this->wire('user')->hasPermission('menu-builder-include-children')) {
+					$out .=
+						'<select name="new_page_include_children[]" class="asm_include_children">' .
+						'<option value="4">' . $this->_('No') . '</option>' .
+						'<option value="1">' . $this->_('Menu') . '</option>' .
+						'<option value="2">' . $this->_('Breadcrumbs') . '</option>' .
+						'<option value="3">' . $this->_('Both') . '</option>' .
+						'<option value="5">' . $this->_('Never') . '</option>' .
+						'</select>' .
+						'<input type="text" name="new_page_mb_max_level[]" class="asm_mb_max_level">';
 				}
+			}
 			$out .= '</span>' .
 				'</div>';
 		}
 
 		return $out;
-
 	}
 
 
@@ -1638,13 +1595,13 @@ class ProcessMenuBuilder extends Process implements Module {
 	 * @return array $languages Array of language-name => language-title pairs.
 	 *
 	 */
-	private function getLanguages($mode='') {
+	private function getLanguages($mode = '') {
 		$languages = array();
-		if($this->multilingual) {
+		if ($this->multilingual) {
 			foreach ($this->wire('languages') as $language) {
-				if(1 == $mode && is_array($this->menuItemsLanguages)) {
+				if (1 == $mode && is_array($this->menuItemsLanguages)) {
 					// skip non-active languages (in respect of MB)
-					if($language->name!='default' && !in_array($language->name, $this->menuItemsLanguages))	continue;
+					if ($language->name != 'default' && !in_array($language->name, $this->menuItemsLanguages))	continue;
 				}
 				$languages[(string) $language->name] = (string) $language->title;
 			}
@@ -1701,14 +1658,13 @@ class ProcessMenuBuilder extends Process implements Module {
 		// if user selects a limit ($input->post->show_limit) we set that as the limit and set a cookie {see $this->cookieName} with that value to save state for session.
 		if ($post->show_limit) {
 			$this->showLimit = $post->show_limit;
-			setcookie($this->cookieName, $this->showLimit , 0, '/');
+			setcookie($this->cookieName, $this->showLimit, 0, '/');
 		}
 
 		// if no custom limit selected but there is a cookie set, we use the cookie value
 		elseif ($cookie[$this->cookieName]) {
 			$this->showLimit = (int) $cookie[$this->cookieName];
 		}
-
 	}
 
 	/**
@@ -1721,12 +1677,12 @@ class ProcessMenuBuilder extends Process implements Module {
 	private function setLanguageTitlesAndURLs($item) {
 
 		// set values to required class properties
-		foreach($this->getLanguages(1) as $langName => $langTitle) {// @note: 1 means skip non-active languages
+		foreach ($this->getLanguages(1) as $langName => $langTitle) { // @note: 1 means skip non-active languages
 
-			if($langName == 'default') continue;
+			if ($langName == 'default') continue;
 
 			// pw page is menu item
-			if(isset($item['pages_id'])) {
+			if (isset($item['pages_id'])) {
 				$p = $this->wire('pages')->get($item['pages_id']);
 				$title =  isset($item['title_' . $langName]) ? $item['title_' . $langName] : $p->title->getLanguageValue($langName);
 				$url = $p->getLanguageValue($langName, 'url');
@@ -1739,14 +1695,12 @@ class ProcessMenuBuilder extends Process implements Module {
 				$url = isset($item['url_' . $langName]) ? $item['url_' . $langName] : '';
 			}
 
-			$title2 = $this->wire('sanitizer')->entities($title);// if using <html> in title
+			$title2 = $this->wire('sanitizer')->entities($title); // if using <html> in title
 
 			$this->{"itemTitle_{$langName}"} = $title;
 			$this->{"itemTitle2_{$langName}"} = $title2;
 			$this->{"itemURL_{$langName}"} = $url;
-
 		}
-
 	}
 
 	/**
@@ -1767,29 +1721,27 @@ class ProcessMenuBuilder extends Process implements Module {
 		$menuPagesInput = (int) $post->menu_pages_input;
 
 		// if using PageAutocomplete OR PageListSelectMultiple in the 'add pages to menu select'
-		if($menuPagesInput == 2 || $menuPagesInput == 3) {
+		if ($menuPagesInput == 2 || $menuPagesInput == 3) {
 
 			// In the PageAutocomplete select array, there is only one index with a string of numbers, e.g. ,1087,1364,7895 as a value
 			// It is similar in PageListSelectMultiple except it has no first empty string, e.g. 1087,1364,7895 as a value
 			$addPages = explode(",", $addPages[0]);
 
 			// if PageAutocomplete, we remove the first item in the array since it will be an empty string.
-			if($menuPagesInput == 2) array_splice($addPages, 0, 1);
+			if ($menuPagesInput == 2) array_splice($addPages, 0, 1);
 			// @TODO..PROBLEM HERE! SEE TRACY DIFFICULT TO REPLICATE CONSISTENTLY! NOT SURE IF ASM SELECT OR NOT?! SO, MAYBE CHECK IF $pagesCSSClass etc exist?
 			// we also remove the other corresponding first item values in the array since they will be empty strings.
 			array_splice($pagesCSSID, 0, 1);
 			array_splice($pagesCSSClass, 0, 1);
 			array_splice($pagesIncludeChildren, 0, 1);
 			array_splice($pagesMBMaxLevel, 0, 1);
-
 		}
 
-		$this->addPages = $addPages ;
+		$this->addPages = $addPages;
 		$this->pagesCSSID = $pagesCSSID;
 		$this->pagesCSSClass = $pagesCSSClass;
 		$this->pagesIncludeChildren = $pagesIncludeChildren;
 		$this->pagesMBMaxLevel = $pagesMBMaxLevel;
-
 	}
 
 	/**
@@ -1802,8 +1754,8 @@ class ProcessMenuBuilder extends Process implements Module {
 	private function getLanguageSuffixes() {
 		$languageNames = array();
 		$language = $this->wire('user')->language ? true : false;
-		if($language) {
-			foreach($this->wire('languages') as $language) $languageNames[] = $language->name;
+		if ($language) {
+			foreach ($this->wire('languages') as $language) $languageNames[] = $language->name;
 		}
 		return $languageNames;
 	}
@@ -1851,9 +1803,9 @@ class ProcessMenuBuilder extends Process implements Module {
 			- renderListItem($label, $value, $class = '')
 		 */
 
-		$class = " " . $event->arguments('class');// note the space! This will be appended to other CSS classes
-		$label = $event->arguments('label');// label () to display for the sortable li
-		$value = $event->arguments('value');// selected items values (typically page->id)
+		$class = " " . $event->arguments('class'); // note the space! This will be appended to other CSS classes
+		$label = $event->arguments('label'); // label () to display for the sortable li
+		$value = $event->arguments('value'); // selected items values (typically page->id)
 
 		// here we just add the <span><input></span> to the default renderListItem() Markup
 		$extraInput =
@@ -1861,7 +1813,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				<input name="new_page_css_itemclass[]" type="text" class="ac_itemclass">';
 
 		// output 'include children' extras only if specified and for users with right credentials
-		if($this->includeChildren == 1) {
+		if ($this->includeChildren == 1) {
 
 			$extraInput .=
 				'<select name="new_page_include_children[]" class="ac_include_children">
@@ -1877,9 +1829,9 @@ class ProcessMenuBuilder extends Process implements Module {
 		$extraInput .= '</span>';
 
 		// we don't want extra input in the default template (one with $label='Label', $class='itemTemplate', $value='1')
-		if($label =='Label' && $class == 'itemTemplate') $extraInput = '';
+		if ($label == 'Label' && $class == 'itemTemplate') $extraInput = '';
 
-		$event->replace = true;// we want to entirely replace the method
+		$event->replace = true; // we want to entirely replace the method
 
 		$out =
 			"\n<li class='ui-state-default" . $class . "'>" .
@@ -1891,7 +1843,6 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// set the modified value back to the return value
 		$event->return = $out;
-
 	}
 
 	/**
@@ -1923,7 +1874,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			"<input name='new_page_css_itemclass[]' type='text' class='pls_itemclass'>";
 
 		// output 'include children' extras only if specified and for users with right credentials
-		if($this->includeChildren == 1) {
+		if ($this->includeChildren == 1) {
 
 			$extraInput .=
 				'<select name="new_page_include_children[]" class="pls_include_children">
@@ -1949,7 +1900,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			$extraInput .
 			"</li>"; */
 
-			// @note: PW CHANGED FROM 'fa-sort' to 'fa-arrows' somewhere in PW3.x; we have now simplified the replacement
+		// @note: PW CHANGED FROM 'fa-sort' to 'fa-arrows' somewhere in PW3.x; we have now simplified the replacement
 		$replacementStr =
 			"</i></a>" .
 			$extraInput .
@@ -1959,7 +1910,6 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// set the modified value back to the return value
 		$event->return = $value;
-
 	}
 
 	/* ######################### - OTHER - ######################### */
@@ -1981,7 +1931,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				'expandOnHover' => 700,
 				'protectRoot' => 'false',
 				'rtl' => 'false',
-				'startCollapsed'=>'false',
+				'startCollapsed' => 'false',
 				'tabSize' => 20,
 				'doNotClear' => 'false',
 				'isTree' => 'true',
@@ -1989,14 +1939,13 @@ class ProcessMenuBuilder extends Process implements Module {
 		);
 
 		// if custom settings found, we overwrite default ones
-		if(!empty($this->menuSettings)) {
+		if (!empty($this->menuSettings)) {
 			foreach ($this->menuSettings as $key => $value) $nestedSortableOptions['config'][$key] = $value['setting'];
 		}
 		// ProcessMenuBuilderNestedSortable
 		$scripts = $this->wire('config')->js($this->className() . 'NestedSortable', $nestedSortableOptions);
 
 		return $scripts;
-
 	}
 
 	/**
@@ -2009,13 +1958,13 @@ class ProcessMenuBuilder extends Process implements Module {
 	protected function menuConfigs() {
 
 		// our default include children setting
-		$options = array('config' => array('children' => 0));// do not include children
+		$options = array('config' => array('children' => 0)); // do not include children
 
 		// @todo: this could be refactored!
-		if(!empty($this->menuPages)) {
+		if (!empty($this->menuPages)) {
 			// if a custom 'include children' setting found, we overwrite the default one
 			foreach ($this->menuPages as $key => $value) {
-				if($key == 'children' && $this->wire('user')->hasPermission('menu-builder-include-children')) {
+				if ($key == 'children' && $this->wire('user')->hasPermission('menu-builder-include-children')) {
 					$options['config'][$key] = $value;
 					break;
 				}
@@ -2028,7 +1977,6 @@ class ProcessMenuBuilder extends Process implements Module {
 		$scripts = $this->wire('config')->js($this->className(), $options);
 
 		return $scripts;
-
 	}
 
 	/**
@@ -2058,21 +2006,20 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// default menu settings array to be merged and displayed in menu settings table in 'Settings' Tab
 		$defaultMenuSettings = array(
-			'maxLevels' => array('default'=>0, 'setting'=>'', 'notes'=> $mlNote),
-			'disableParentChange' => array('default'=>'false', 'setting'=>'', 'notes'=> $dpcNote),
-			'expandOnHover' => array('default'=>700, 'setting'=>'', 'notes'=> $eonNote),
-			'protectRoot' => array('default'=>'false', 'setting'=>'', 'notes'=> $prNote),
-			'rtl' => array('default'=>'false', 'setting'=>'', 'notes'=> $rltNote),
-			'startCollapsed' => array('default'=>'false', 'setting'=>'', 'notes'=> $scNote),
-			'tabSize' => array('default'=>20, 'setting'=>'', 'notes'=> $tsNote),
-			'doNotClear' => array('default'=>'false', 'setting'=>'', 'notes'=> $dncNote),
-			'isTree' => array('default' =>'true', 'setting'=>'', 'notes'=> $treeNote),
+			'maxLevels' => array('default' => 0, 'setting' => '', 'notes' => $mlNote),
+			'disableParentChange' => array('default' => 'false', 'setting' => '', 'notes' => $dpcNote),
+			'expandOnHover' => array('default' => 700, 'setting' => '', 'notes' => $eonNote),
+			'protectRoot' => array('default' => 'false', 'setting' => '', 'notes' => $prNote),
+			'rtl' => array('default' => 'false', 'setting' => '', 'notes' => $rltNote),
+			'startCollapsed' => array('default' => 'false', 'setting' => '', 'notes' => $scNote),
+			'tabSize' => array('default' => 20, 'setting' => '', 'notes' => $tsNote),
+			'doNotClear' => array('default' => 'false', 'setting' => '', 'notes' => $dncNote),
+			'isTree' => array('default' => 'true', 'setting' => '', 'notes' => $treeNote),
 		);
 
 		$mergedMenuSettings = array_replace_recursive($defaultMenuSettings, $this->menuSettings);
 
 		return $mergedMenuSettings;
-
 	}
 
 
@@ -2095,17 +2042,16 @@ class ProcessMenuBuilder extends Process implements Module {
 		$form->processInput($post);
 
 		$menuID = (int) $post->menu_id;
-		$menuDeleteConfirm = (int) $post->menu_delete_confirm;// checkbox to confirm trash
+		$menuDeleteConfirm = (int) $post->menu_delete_confirm; // checkbox to confirm trash
 
 		// save new menu(s)
-		if ($post->menu_new_unpublished_btn || $post->menu_new_published_btn)$this->saveNewMenu($post);
+		if ($post->menu_new_unpublished_btn || $post->menu_new_published_btn) $this->saveNewMenu($post);
 		// menus bulk actions: lock/unlock and trash/delete are controlled by permissions
-		elseif($post->menus_action_btn) $this->bulkActionsMenu($post);
+		elseif ($post->menus_action_btn) $this->bulkActionsMenu($post);
 		// save single specified menu
-		elseif($post->menu_save || $post->menu_save_exit) $this->saveSingleMenu($menuID, $post);
+		elseif ($post->menu_save || $post->menu_save_exit) $this->saveSingleMenu($menuID, $post);
 		// delete menu
 		elseif ($post->menu_delete) $this->menuDelete($menuDeleteConfirm);
-
 	}
 
 	/**
@@ -2117,39 +2063,35 @@ class ProcessMenuBuilder extends Process implements Module {
 	 */
 	private function menuDelete($menuID) {
 
-		if($menuID) {
+		if ($menuID) {
 
 			$page = $this->wire('page');
 			$pages = $this->wire('pages');
 
 			// if user does not have permission to trash/delete a menu, exit with an error
 			if ($this->wire('permissions')->get('menu-builder-delete')->id && !$this->wire('user')->hasPermission('menu-builder-delete')) {
-				$this->error($this->_('Menu Builder: You have no permission to delete menus.'));
-				$this->session->redirect($page->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+				$this->error($this->getErrorMessage('no_permission_to_delete_menus'));
+				$this->session->redirect($page->url . 'edit/?id=' . $menuID); // redirect back to the menu we were editing
 			}
 
 			$menu = $pages->get("id=$menuID, parent=$this->menusParent, include=all");
 
 			// if menu is locked for editing, exit with an error
-			if($menu->is(Page::statusLocked)) {
-				$this->error($this->_('Menu Builder: This menu is locked for edits.'));
-				$this->session->redirect($page->url. 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+			if ($menu->is(Page::statusLocked)) {
+				$this->error($this->getErrorMessage('menu_locked_for_edits'));
+				$this->session->redirect($page->url . 'edit/?id=' . $menuID); // redirect back to the menu we were editing
 			}
 
-			if($pages->trash($menu)) {
+			if ($pages->trash($menu)) {
 				// also delete cache of menu if present
 				$this->deleteMenuCache($menu->id);
-				$this->message(sprintf($this->_('Menu Builder: Moved menu %1$s to trash: %2$s'), $menu->title, $menu->url));// tell user menu trashed
+				$this->message(sprintf($this->_('Menu Builder: Moved menu %1$s to trash: %2$s'), $menu->title, $menu->url)); // tell user menu trashed
 				$this->session->redirect($page->url);
-			}
-
-			else {
-				$this->error($this->_('Menu Builder: Unable to move menu to trash'));// menu can't be moved to the trash error
+			} else {
+				$this->error($this->getErrorMessage('cannot_trash_single_menu')); // menu can't be moved to the trash error
 				return false;
 			}
-
 		}
-
 	}
 
 	/**
@@ -2173,16 +2115,16 @@ class ProcessMenuBuilder extends Process implements Module {
 		$menu = $pages->get($menuID);
 
 		// if we didn't get a menu, exit with an error
-		if(!$menu->id) {
-			$this->error($this->_('Menu Builder: Error saving Menu.'));
+		if (!$menu->id) {
+			$this->error($this->getErrorMessage('cannot_save_single_menu'));
 			return false;
 		}
 
 		// @todo: if locked, maybe hide link or hide save buttons!
 		// if menu is locked for editing, exit with an error
-		if($menu->is(Page::statusLocked)) {
-			$this->error($this->_('Menu Builder: This menu is locked for edits.'));
-			$this->wire('session')->redirect($page->url . 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+		if ($menu->is(Page::statusLocked)) {
+			$this->error($this->getErrorMessage('menu_locked_for_edits'));
+			$this->wire('session')->redirect($page->url . 'edit/?id=' . $menuID); // redirect back to the menu we were editing
 		}
 
 		################# process menu #################
@@ -2191,19 +2133,24 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// if no title provided, halt proceedings and show error message
 		if (!$menuTitle) {
-			$this->error($this->_('Menu Builder: A title is required.'));
-			return false;
+			$this->error($this->getErrorMessage('title_is_required_single_menu'));
+			// return false;
+			$this->wire('session')->redirect($page->url . 'edit/?id=' . $menuID); // redirect back to the menu we were editing
 		}
 
-		$menu->title = $menuTitle;
-		$menu->name = $sanitizer->pageName($menuTitle);
+		// $menu->title = $menuTitle;
+		// $menu->name = $sanitizer->pageName($menuTitle);
+		// $menu->title = $menuTitle;
+		$name = $sanitizer->pageName($menuTitle);
 
 		// check if name already taken
 		// @note: we use ID since if we checked name, we might just be checking the name of the menu we are editing!
-		$child = $menu->parent->child("name={$menu->name}, include=all");
+		// $child = $menu->parent->child("name={$menu->name}, include=all");
+		$child = $menu->parent->child("name={$name}, include=all");
 		// if different ID, it means there is a menu sibling; abort!
-		if($child->id && $child->id !== $menuID) {
-			$this->error($this->_("Menu Builder: A menu with that title already exists."));
+		if ($child->id && $child->id !== $menuID) {
+			$errorType = $this->multilingual ? 'menu_already_exists_multilingual' : 'menu_already_exists';
+			$this->error($this->getErrorMessage($errorType));
 			// redirect back to the menu we were editing
 			$session->redirect($page->url . 'edit/?id=' . $menuID);
 		}
@@ -2214,25 +2161,42 @@ class ProcessMenuBuilder extends Process implements Module {
 			// save other languages' titles if in multi-lingual environment
 
 			if ($this->multilingual) {
+				// MULTI LANGUAGE SITE
 				foreach ($this->wire('languages') as $language) {
 
-				// skip default language as already set above
-					if($language->name == 'default') continue;
+					// skip default language as already set above
+					if ($language->name == 'default') {
+						$title = $sanitizer->text($post->menu_title);
+						// sanitize and convert to a URL friendly page name
+						$name = $sanitizer->pageName($title);
+						$nameField = "name";
+					}
 
 					// set values for other languages
 					else {
 
 						$id = $language->id;
-						$title = $sanitizer->text($post->{"menu_title__$id"});
-						$name = $sanitizer->pageName($title);
+						$menuTitle = $sanitizer->text($post->{"menu_title__$id"});
+						// sanitize and convert to a URL friendly page name
+						$name = $sanitizer->pageName($menuTitle);
+						$nameField = "name$language";
 						// set language page title
-						$menu->title->setLanguageValue($language, $title);
-						// @note: name is not a field, so we set this way
-						$menu->set("name$language", $name);
+						// $menu->title->setLanguageValue($language, $title);
+						// // @note: name is not a field, so we set this way
+						// $menu->set("name$language", $name);
 					}
+					// set language page title
+					// $page->title->setLanguageValue($language, $title);
+					$menu->setLanguageValue($language, 'title', $menuTitle);
+					// @note: name is not a field, so we set this way
+					$menu->set("$nameField", $name);
 				}
 			} // end if languages
-
+			else {
+				// SINGLE LANGUAGE SITE
+				$menu->title = $menuTitle;
+				$menu->name = $name;
+			}
 
 
 			#################	01. Process menu 'pages'	#################
@@ -2240,7 +2204,7 @@ class ProcessMenuBuilder extends Process implements Module {
 			#################	02. Process EXISTING menu items 	#################
 			$menu->menu_items = $this->saveSingleMenuItems($post);
 			#################	03. Process menu settings 	#################
-			if($user->hasPermission('menu-builder-settings')) $menu->menu_settings = $this->saveSingleMenuSettings($post);// only save for users with right permission
+			if ($user->hasPermission('menu-builder-settings')) $menu->menu_settings = $this->saveSingleMenuSettings($post); // only save for users with right permission
 
 			#################	Save menu 	#################
 			$menu->save();
@@ -2248,11 +2212,10 @@ class ProcessMenuBuilder extends Process implements Module {
 			// also delete cache of menu if present so that can be refreshed
 			$this->deleteMenuCache($menu->id);
 
-			$this->message($this->_('Menu Builder: Saved Menu '. $menu->title));
-			if($post->menu_save_exit) $session->redirect($page->url);
-			else $session->redirect($page->url . 'edit/?id=' . $menuID);// redirect back to the menu we were editing
+			$this->message($this->_('Menu Builder: Saved Menu ' . $menu->title));
+			if ($post->menu_save_exit) $session->redirect($page->url);
+			else $session->redirect($page->url . 'edit/?id=' . $menuID); // redirect back to the menu we were editing
 		}
-
 	}
 
 	/**
@@ -2279,24 +2242,24 @@ class ProcessMenuBuilder extends Process implements Module {
 		// ensures their settings are not overwritten (although hidden for other users)
 
 		// if this user has permission to SPECIFY pages selectable as menu items in AsmSelect and PageAutocomplete
-		if($user->hasPermission('menu-builder-selectable')) {
+		if ($user->hasPermission('menu-builder-selectable')) {
 			// selector for finding pages that can be added to the menu (for AsmSelect/Autocomplete)
 			$menuPagesNew['sel'] = $sanitizer->text($post->menu_pages);
 		}
 
 		// if user has permission to allow changing of page field type used to select pages to add as menu items [AsmSelect vs PageAutocomplete]
-		if($user->hasPermission('menu-builder-page-field')) {
+		if ($user->hasPermission('menu-builder-page-field')) {
 			// page inputfield type for finding pages that can be added to the menu (AsmSelect vs. Autocomplete)
 			// we only save this if user selects Autocomplete; otherwise defaults to AsmSelect
 			//$menuPagesNew['input'] = (int) $post->menu_pages_select == 2 ? 2 : '';
 			$menuPagesNew['input'] = '';
 			$selPageField = (int) $post->menu_pages_select;
-			if($selPageField == 2) $menuPagesNew['input'] = 2;
-			elseif($selPageField == 3) $menuPagesNew['input'] = 3;
+			if ($selPageField == 2) $menuPagesNew['input'] = 2;
+			elseif ($selPageField == 3) $menuPagesNew['input'] = 3;
 		}
 
 		// if user can change and use allow markup/HTML setting
-		if($user->hasPermission('menu-builder-markup')) {
+		if ($user->hasPermission('menu-builder-markup')) {
 			// whether to allow HTML markup in menu item titles/lables -> e.g. <span>Home</span>
 			// we only save this if user selects Yes; otherwise defaults to No (don't allow markup)
 			// we'll then use the correct sanitizer below
@@ -2304,33 +2267,32 @@ class ProcessMenuBuilder extends Process implements Module {
 		}
 
 		// if user can change and use include children setting
-		if($user->hasPermission('menu-builder-include-children')) {
+		if ($user->hasPermission('menu-builder-include-children')) {
 			// we only save this if user selects Yes; otherwise defaults to No (don't allow inclusion of children)
 			// we'll then use the correct sanitizer below
 			$this->includeChildren = $menuPagesNew['children'] = (int) $post->menu_item_include_children == 1 ? 1 : '';
 		}
 
 		// if user can change and use disable items setting
-		if($user->hasPermission('menu-builder-disable-items')) {
+		if ($user->hasPermission('menu-builder-disable-items')) {
 			// we only save this if user selects Yes; otherwise defaults to No (don't allow disabling of menu items)
 			$this->disableItems = $menuPagesNew['disable_items'] = (int) $post->menu_item_disable_items == 1 ? 1 : '';
 		}
 
 		// if user can change and use multi-lingual menu items feature
-		if($user->hasPermission('menu-builder-multi-lingual-items')) {
+		if ($user->hasPermission('menu-builder-multi-lingual-items')) {
 			$this->menuItemsLanguages = $menuPagesNew['menu_items_languages'] = is_array($post->menu_items_languages) && !empty($post->menu_items_languages) ? $post->menu_items_languages : '';
 		}
 
 		// merge newly set menuPages values with (any) existing ones
 		$menuPagesSaved = json_decode($menu->menu_pages, true);
-		if(!is_array($menuPagesSaved)) $menuPagesSaved = array();
+		if (!is_array($menuPagesSaved)) $menuPagesSaved = array();
 		$menuPages = array_merge($menuPagesSaved, $menuPagesNew);
 
 		// JSON string of menu pages and menu items to save
-		$menuPagesJSON = !empty($menuPages) ? wireEncodeJSON($menuPages) : '';// using wireEncodeJSON ensures we only save non-empty values
+		$menuPagesJSON = !empty($menuPages) ? wireEncodeJSON($menuPages) : ''; // using wireEncodeJSON ensures we only save non-empty values
 
 		return $menuPagesJSON;
-
 	}
 
 	/**
@@ -2346,7 +2308,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		#################	01. Process existing menu items 	#################
 		$menuItems = $this->saveSingleMenuItemsExisting($post);
 		// we'll need this to auto-increment menu IDs for new menu items (to ensure uniqueness)
-		$lastID = !empty($menuItems) ? max(array_keys($menuItems)) : 0;// will give us the highest numbered array key (the itemID)
+		$lastID = !empty($menuItems) ? max(array_keys($menuItems)) : 0; // will give us the highest numbered array key (the itemID)
 
 		$this->menuItemID = $lastID + 1;
 
@@ -2361,7 +2323,6 @@ class ProcessMenuBuilder extends Process implements Module {
 		$menuitemsJSON = !empty($menuItems) ? wireEncodeJSON($menuItems) : '';
 
 		return $menuitemsJSON;
-
 	}
 
 	/**
@@ -2387,7 +2348,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// loop through the existing, updated menu items sent from nestedSortable
 		// only loop if we have existing menu times. we check the hidden field with IDs of menu items
-		if(!empty($post->item_id)) {
+		if (!empty($post->item_id)) {
 
 			//$ml = $this->multiLingual ? true : false;
 			$ml = !is_null($this->menuItemsLanguages) ? true : false;
@@ -2395,39 +2356,39 @@ class ProcessMenuBuilder extends Process implements Module {
 			//$itemIncludeChildren = '';
 			//$itemMMaxLevel = '';
 
-			if($this->allowMarkup) $purifier = $this->wire('modules')->get('MarkupHTMLPurifier');
+			if ($this->allowMarkup) $purifier = $this->wire('modules')->get('MarkupHTMLPurifier');
 
-			foreach($post->item_id as $itemID) {
+			foreach ($post->item_id as $itemID) {
 
 				$itemMMaxLevel = '';
 
 				$itemID = (int) $itemID;
-				if(!$itemID) continue;
+				if (!$itemID) continue;
 
 				// if menu items titles allow HTML (markup) && user has correct permission, we run them though HTML purifier
-				if($this->allowMarkup && $user->hasPermission('menu-builder-markup')) $itemTitle = $purifier->purify($post->item_title[$itemID]);
+				if ($this->allowMarkup && $user->hasPermission('menu-builder-markup')) $itemTitle = $purifier->purify($post->item_title[$itemID]);
 				// else we sanitize menu item titles as text
 				else $itemTitle =  $sanitizer->text($post->item_title[$itemID]);
 
-				if(!$itemTitle) continue;
+				if (!$itemTitle) continue;
 
 				$itemURL = $sanitizer->url($post->item_url[$itemID]);
-				if(!$itemURL) continue;
+				if (!$itemURL) continue;
 
-				$itemParent = (int) $post->item_parent[$itemID];// the item's parent in relation to the menu (not PW page menu!)
+				$itemParent = (int) $post->item_parent[$itemID]; // the item's parent in relation to the menu (not PW page menu!)
 				$itemPagesID = (int) $post->pages_id[$itemID];
-				$itemURL = $itemPagesID == 0 ? $itemURL : '';// only save custom (external to PW) items links
+				$itemURL = $itemPagesID == 0 ? $itemURL : ''; // only save custom (external to PW) items links
 
 				// add multilingual titles and URLs (for custom menu items only)
-				if($ml) $menuItemsLanguage = $this->saveSingleMenuItemsExistingLanguagesTitleURL($itemID, $itemPagesID, $post, $menuItemsLanguage);
+				if ($ml) $menuItemsLanguage = $this->saveSingleMenuItemsExistingLanguagesTitleURL($itemID, $itemPagesID, $post, $menuItemsLanguage);
 
-				$itemCSSID = $sanitizer->name($post->css_itemid[$itemID]);// single value
-				$itemCSSClass = $sanitizer->text($post->css_itemclass[$itemID]);// sanitizer->text to accept multiple classes
-				$itemNewTab = isset($post->newtab[$itemID]) ? 1 : '';// only save for custom menu items with target='_blank'
+				$itemCSSID = $sanitizer->name($post->css_itemid[$itemID]); // single value
+				$itemCSSClass = $sanitizer->text($post->css_itemclass[$itemID]); // sanitizer->text to accept multiple classes
+				$itemNewTab = isset($post->newtab[$itemID]) ? 1 : ''; // only save for custom menu items with target='_blank'
 
 				// if current user can edit include children values + change include children setting
 				$itemIncludeChildren = '';
-				if( $this->includeChildren && isset($post->include_children[$itemID]) ) {
+				if ($this->includeChildren && isset($post->include_children[$itemID])) {
 					// no need to save default value '4'
 					$itemIncludeChildren =  (int) $post->include_children[$itemID] == 4 ? '' : (int) $post->include_children[$itemID];
 					// @todo: For now, only m_max_level can be individually set
@@ -2438,7 +2399,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				$itemDisabled = $this->disableItems && isset($post->disabled_item[$itemID]) ? 1 : '';
 
 				// if parent is disabled, then disable all descendants as well
-				if(in_array($itemParent, $disabledItemsIDs)) $itemDisabled = 1;
+				if (in_array($itemParent, $disabledItemsIDs)) $itemDisabled = 1;
 
 				$menuItems[$itemID] = array(
 					'title' => $itemTitle,
@@ -2454,17 +2415,14 @@ class ProcessMenuBuilder extends Process implements Module {
 				);
 
 				// add disabled item to array to check if to apply same status to descendants
-				if($itemDisabled) $disabledItemsIDs[] = $itemID;
-
-			}// end foreach loop for existing menu items
+				if ($itemDisabled) $disabledItemsIDs[] = $itemID;
+			} // end foreach loop for existing menu items
 
 			// merge menu items with multilingual titles and custom URLs if applicable
-			if(!empty($menuItemsLanguage)) $menuItems = array_replace_recursive($menuItems, $menuItemsLanguage);
-
-		}// end if !empty $post->item_id
+			if (!empty($menuItemsLanguage)) $menuItems = array_replace_recursive($menuItems, $menuItemsLanguage);
+		} // end if !empty $post->item_id
 
 		return $menuItems;
-
 	}
 
 	/**
@@ -2478,41 +2436,44 @@ class ProcessMenuBuilder extends Process implements Module {
 	 * @return array $menuItemsLanguage Updated array with data for existing menu items multi-lingual titles and URLs for menu being saved.
 	 *
 	 */
-	 private function saveSingleMenuItemsExistingLanguagesTitleURL($itemID, $itemPagesID, $post, $menuItemsLanguage) {
+	private function saveSingleMenuItemsExistingLanguagesTitleURL($itemID, $itemPagesID, $post, $menuItemsLanguage) {
 
-		 $user = $this->wire('user');
-		 $sanitizer = $this->wire('sanitizer');
-		 if($this->allowMarkup) $purifier = $this->wire('modules')->get('MarkupHTMLPurifier');
+		$user = $this->wire('user');
+		$sanitizer = $this->wire('sanitizer');
+		if ($this->allowMarkup) $purifier = $this->wire('modules')->get('MarkupHTMLPurifier');
 
-		 foreach($this->getLanguages(1) as $langName => $langTitle) {// @note: 1 means skip non-active languages
+		foreach ($this->getLanguages(1) as $langName => $langTitle) { // @note: 1 means skip non-active languages
 
-		 	if($langName == 'default') continue;
+			if ($langName == 'default') continue;
 
-		 	$suffix = '_' . $langName;
+			$suffix = '_' . $langName;
 
-		 	## language title ##
-		 	// if menu items titles allow HTML (markup) && user has correct permission, we run them though HTML purifier
-			if($this->allowMarkup && $user->hasPermission('menu-builder-markup')){
+			## language title ##
+			// if menu items titles allow HTML (markup) && user has correct permission, we run them though HTML purifier
+			if ($this->allowMarkup && $user->hasPermission('menu-builder-markup')) {
 				$itemLanguageTitle = $purifier->purify($post->{"item_title{$suffix}"}[$itemID]);
 			}
 			// else we sanitize menu item title as text
-			else $itemLanguageTitle = $sanitizer->text($post->{"item_title{$suffix}"}[$itemID]);
+			else {
+				$itemLanguageTitle = "";
+				if (!empty($post->{"item_title{$suffix}"}[$itemID])) {
+					$itemLanguageTitle = $sanitizer->text($post->{"item_title{$suffix}"}[$itemID]);
+				}
+			}
 
 			## language url ##
-			$itemLanguageURL = $itemPagesID == 0 ? $sanitizer->url($post->{"item_url{$suffix}"}[$itemID]) : '';// only save custom (external to PW) items links
+			$itemLanguageURL = $itemPagesID == 0 ? $sanitizer->url($post->{"item_url{$suffix}"}[$itemID]) : ''; // only save custom (external to PW) items links
 
 			##################
 
-		 	$titleIndex = 'title' . $suffix;
-		 	$urlIndex = 'url' . $suffix;
+			$titleIndex = 'title' . $suffix;
+			$urlIndex = 'url' . $suffix;
 
-		 	$menuItemsLanguage[$itemID][$titleIndex] = $itemLanguageTitle;
-		 	$menuItemsLanguage[$itemID][$urlIndex] = $itemLanguageURL;
+			$menuItemsLanguage[$itemID][$titleIndex] = $itemLanguageTitle;
+			$menuItemsLanguage[$itemID][$urlIndex] = $itemLanguageURL;
+		} // end foreach
 
-		 }// end foreach
-
-		 return $menuItemsLanguage;
-
+		return $menuItemsLanguage;
 	}
 
 	/**
@@ -2547,17 +2508,17 @@ class ProcessMenuBuilder extends Process implements Module {
 			// @TODO..MAKE URL A REQUIRED INPUT! + DON'T SUBMIT (JS) UNTIL COMPLETED!?
 			// $newpages_id = '';// not needed. New items, hence new $ids will be auto-created
 			$itemURL = $sanitizer->url($post->new_item_custom_url[$i]);
-			if (!$itemURL) continue;// only accept new menu items with URLs. @todo - should this be the case? What if they want a divider-like item?
+			if (!$itemURL) continue; // only accept new menu items with URLs. @todo - should this be the case? What if they want a divider-like item?
 
 			$itemCSSID = $sanitizer->name($post->new_css_itemid[$i]);
 			$itemCSSClass = $sanitizer->name($post->new_css_itemclass[$i]);
 			//$itemNewTab = (!isset($post->new_newtab[$i])) ? '' : 1;// using checkbox unreliable; use hidden input instead (below)
-			$itemNewTab = (int) $post->new_newtab_hidden[$i] ? 1 : '';// hidden input to resolve above
+			$itemNewTab = (int) $post->new_newtab_hidden[$i] ? 1 : ''; // hidden input to resolve above
 
 			// add custom (external) menu items to our menu
 			$menuItems[$menuItemID] = array(
 				'title' => $itemTitle,
-				'parent_id' => 0,// for new items (before potentially moved to other tiers in drag & drop)
+				'parent_id' => 0, // for new items (before potentially moved to other tiers in drag & drop)
 				'url' => $itemURL,
 				'css_itemid' => $itemCSSID,
 				'css_itemclass' => $itemCSSClass,
@@ -2566,13 +2527,11 @@ class ProcessMenuBuilder extends Process implements Module {
 			);
 
 			$menuItemID++;
-
-		}// end for loop for new custom items
+		} // end for loop for new custom items
 
 		$this->menuItemID = $menuItemID;
 
 		return $menuItems;
-
 	}
 
 	/**
@@ -2596,19 +2555,19 @@ class ProcessMenuBuilder extends Process implements Module {
 		for ($i = 0; $i < $count; $i++) {
 
 			// if there are menu items added from the AsmSelect, add them to the menu
-			$itemID = (int) $this->addPages[$i];// sanitize: we need this to be an integer
+			$itemID = (int) $this->addPages[$i]; // sanitize: we need this to be an integer
 
 			// multilingual environments
-			if($language != null && method_exists($pages->get($itemID)->title, 'getLanguageValue')) $itemTitle = $pages->get($itemID)->title->getLanguageValue($language);// title of each PW page in this array
-			else $itemTitle = $pages->get($itemID)->title;// title of each PW page in this array
-			if(!$itemTitle) continue;// if no new pages posted, move on...[otherwise one iteration with empty strings is added to array!]
+			if ($language != null && method_exists($pages->get($itemID)->title, 'getLanguageValue')) $itemTitle = $pages->get($itemID)->title->getLanguageValue($language); // title of each PW page in this array
+			else $itemTitle = $pages->get($itemID)->title; // title of each PW page in this array
+			if (!$itemTitle) continue; // if no new pages posted, move on...[otherwise one iteration with empty strings is added to array!]
 
 			$itemCSSID = isset($this->pagesCSSID[$i]) ? $sanitizer->name($this->pagesCSSID[$i]) : '';
 			$itemCSSClass = isset($this->pagesCSSClass[$i]) ? $sanitizer->text($this->pagesCSSClass[$i]) : '';
 
 			// include children (but not for custom menu items or 'Home')
 			$itemIncludeChildren = '';
-			if(isset($this->pagesIncludeChildren[$i])) {
+			if (isset($this->pagesIncludeChildren[$i])) {
 				$itemIncludeChildren = (int) $this->pagesIncludeChildren[$i] == 4 || $itemID == 1 ? '' : (int) $this->pagesIncludeChildren[$i];
 			}
 
@@ -2627,11 +2586,11 @@ class ProcessMenuBuilder extends Process implements Module {
 			// add PW pages (internal) menu items to our menu
 			$menuItems[$menuItemID] = array(
 				'title' => $itemTitle,
-				'parent_id' => 0,// for new items before they are sorted in drag & drop
+				'parent_id' => 0, // for new items before they are sorted in drag & drop
 				// 'url' => '',// empty since these are PW pages; no needed to copy URL here + need to make sure always have latest
 				'css_itemid' => $itemCSSID,
 				'css_itemclass' => $itemCSSClass,
-				'pages_id' => $itemID,// the PW page ID
+				'pages_id' => $itemID, // the PW page ID
 				// 'newtab' => '',// NOT necessary for PW pages
 				'include_children' => $itemIncludeChildren,
 				'm_max_level' => $itemMMaxLevel,
@@ -2639,14 +2598,12 @@ class ProcessMenuBuilder extends Process implements Module {
 			);
 
 			$menuItemID++;
-
-		}// end for loop for new page items
+		} // end for loop for new page items
 
 
 		$this->menuItemID = $menuItemID;
 
 		return $menuItems;
-
 	}
 
 	/**
@@ -2668,8 +2625,8 @@ class ProcessMenuBuilder extends Process implements Module {
 		$items = array();
 
 		$selectorPages = $sanitizer->text($post->item_addselector);
-		if($selectorPages) {
-			$sel = ", template!=admin, has_parent!=2, parent!=7, id!=27";// prevent accidental addition of admin|trash|404 pages
+		if ($selectorPages) {
+			$sel = ", template!=admin, has_parent!=2, parent!=7, id!=27"; // prevent accidental addition of admin|trash|404 pages
 			$items = $pages->find($selectorPages . $sel);
 		}
 
@@ -2681,22 +2638,20 @@ class ProcessMenuBuilder extends Process implements Module {
 				$menuItems[$menuItemID] = array(
 					// multilingual environments
 					'title' => $title = is_null($language) ? $item->title : $item->title->getLanguageValue($language),
-					'parent_id' => 0,// for new items before they are sorted in drag & drop
+					'parent_id' => 0, // for new items before they are sorted in drag & drop
 					// 'url' => '',// empty since these are PW pages; no needed to copy URL here + need to make sure always have latest
 					// 'css_itemid' => ''// empty until edited
 					// 'css_itemclass' => ''// empty until edited
-					'pages_id' => $item->id,// the PW page ID
+					'pages_id' => $item->id, // the PW page ID
 					// 'newtab' => ''// NOT necessary for PW pages
 				);
 
 				$menuItemID++;
+			} // end foreach $items as $item
 
-			}// end foreach $items as $item
-
-		}// end if !empty($items)
+		} // end if !empty($items)
 
 		return $menuItems;
-
 	}
 
 	/**
@@ -2713,25 +2668,24 @@ class ProcessMenuBuilder extends Process implements Module {
 		$sanitizer = $this->wire('sanitizer');
 
 		// if user has permission to edit nestedSortable settings
-		if($user->hasPermission('menu-builder-settings')) {
+		if ($user->hasPermission('menu-builder-settings')) {
 			// nestedSortable settings for this menu. we'll save this as JSON in menu_settings field
 			$menuSettings = array();
 			// nestedSortable settings
 			foreach ($post->menu_settings as $key => $value) {
 				// only save non-empty $key => $values
-				if($value) {
-					if($key == 'maxLevels' || $key == 'expandOnHover' || $key == 'tabSize') $value = (int) $value;
+				if ($value) {
+					if ($key == 'maxLevels' || $key == 'expandOnHover' || $key == 'tabSize') $value = (int) $value;
 					else $value = $sanitizer->text($value);
 					$menuSettings[$key]['setting'] = $value;
 				}
-			}// end foreach
-		}// end if user has menu-builder-settings permission
+			} // end foreach
+		} // end if user has menu-builder-settings permission
 
 		// JSON string of menu settings to save
 		$menuSettingsJSON = !empty($menuSettings) ? json_encode($menuSettings) : '';
 
 		return $menuSettingsJSON;
-
 	}
 
 	/**
@@ -2747,20 +2701,22 @@ class ProcessMenuBuilder extends Process implements Module {
 		$action = $this->wire('sanitizer')->fieldName($post->menus_action_select);
 
 		if (!$action) {
-			$this->error($this->_("Menu Builder: You need to select an action."));
+			$this->error($this->getErrorMessage('no_action_selected'));
 			return false;
 		}
 
-		$actionMenus = $post->menus_action;// checkbox array name
+		$actionMenus = $post->menus_action; // checkbox array name
 
 		// check if menus were selected.
 		if (!empty($actionMenus)) {
 
 			// prepare sent menu IDs to find and TRASH the menu pages
-			$menuIds = implode('|', $actionMenus);// split array elements, joining them with pipe (I) to use in selector
+			$menuIds = implode('|', $actionMenus); // split array elements, joining them with pipe (I) to use in selector
 			$menus = $this->wire('pages')->find("id={$menuIds}, include=all");
 
 			$i = 0;
+			$j = 0;
+			$lockedItemsMsg = '';
 			# publish
 			if ($action == 'publish') {
 				foreach ($menus as $m) {
@@ -2770,8 +2726,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 
 				$msg = sprintf(_n("Published %d menu.", "Published %d menus.", $i), $i);
-
-			}// end publish menus
+			} // end publish menus
 
 			# unpublish
 			elseif ($action == 'unpublish') {
@@ -2782,8 +2737,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 
 				$msg = sprintf(_n("Unpublished %d menu.", "Unpublished %d menus.", $i), $i);
-
-			}// end unpublish menus
+			} // end unpublish menus
 
 			# lock
 			elseif ($action == 'lock') {
@@ -2794,8 +2748,7 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 
 				$msg = sprintf(_n("Locked %d menu.", "Locked %d menus.", $i), $i);
-
-			}// end lock menus
+			} // end lock menus
 
 			# unlock
 			elseif ($action == 'unlock') {
@@ -2806,12 +2759,17 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 
 				$msg = sprintf(_n("Unlocked %d menu.", "Unlocked %d menus.", $i), $i);
-
-			}// end unlock menus
+			} // end unlock menus
 
 			# trash
 			elseif ($action == 'trash') {
 				foreach ($menus as $m) {
+					// skip locked menu
+					if ($m->is(Page::statusLocked)) {
+						$j++;
+						continue;
+					}
+					// ----
 					$m->trash();
 					$i++;
 					// also delete cache of menu if present
@@ -2819,12 +2777,20 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 
 				$msg = sprintf(_n("Trashed %d menu.", "Trashed %d menus.", $i), $i);
-
-			}// end trash menus
+				if ($j) {
+					$lockedItemsMsg = sprintf(_n("%d item locked and could not be trashed.", "%d items locked and could not be trashed.", $j), $j);
+				}
+			} // end trash menus
 
 			# delete
 			elseif ($action == 'delete') {
 				foreach ($menus as $m) {
+					// skip locked menu
+					if ($m->is(Page::statusLocked)) {
+						$j++;
+						continue;
+					}
+					// ----
 					$m->delete();
 					$i++;
 					// also delete cache of menu if present
@@ -2832,24 +2798,32 @@ class ProcessMenuBuilder extends Process implements Module {
 				}
 
 				$msg = sprintf(_n("Deleted %d menu.", "Deleted %d menus.", $i), $i);
-
-			}// end delete menus
+				if ($j) {
+					$lockedItemsMsg = sprintf(_n("%d item locked and could not be deleted.", "%d items locked and could not be deleted.", $j), $j);
+				}
+			} // end delete menus
 
 			// messages
 			$msg = $this->_('Menu Builder') . ': ' . $msg;
+			// add messages about not actioning locked items
+			if ($lockedItemsMsg) {
+				$msg .= " " . $lockedItemsMsg;
+				// bd($lockedItemsMsg, __METHOD__ . ': $lockedItemsMsg IS AVAILABLE at line #' . __LINE__);
+			}
 
-			$this->message($msg);// tell user how many menus were 'actioned'
-			$this->session->redirect($this->wire('page')->url);// redirect to page where we were
+			// bd($lockedItemsMsg, __METHOD__ . ': $lockedItemsMsg at line #' . __LINE__);
+			// bd($j, __METHOD__ . ': $j at line #' . __LINE__);
+			$this->message($msg); // tell user how many menus were 'actioned'
+			$this->session->redirect($this->wire('page')->url); // redirect to page where we were
 
 		}
 
 		// error
 		else {
 			// show error message if apply action button clicked without first selecting menus
-			$this->error($this->_('Menu Builder: You need to select at least one menu before applying an action.'));
+			$this->error($this->getErrorMessage('no_menu_item_selected_to_action'));
 			return false;
 		}
-
 	}
 
 	/**
@@ -2868,40 +2842,60 @@ class ProcessMenuBuilder extends Process implements Module {
 		$title = $sanitizer->text($post->menus_add_title);
 		$newUnpublishedBtn = $post->menu_new_unpublished_btn;
 
-		if($title) {
+		if ($title) {
 
 			$page = new Page();
 			$page->parent = $this->menusParent;
 			$page->template = $this->wire('templates')->get("menus");
-			$page->title = $title;
+			// $page->title = $title;
+			// $page->title = $title;
 			// sanitize and convert to a URL friendly page name
-			$page->name = $sanitizer->pageName($page->title);
+			// $page->name = $sanitizer->pageName($page->title);
+			$name = $sanitizer->pageName($title);
+			// bd($title, __METHOD__ . ': $title at line #' . __LINE__);
+			// bd($name, __METHOD__ . ': $name at line #' . __LINE__);
+			// @TODO BUG HERE: FOR MULTILINGUAL; NEED TO CHECK ALL LANGUAGES OTHERWISE WILL GET SQL INTEGRITY VIOLATION FOR THAT OTHER LANGUAGE! SO WE NEED TO EITHER GET FOR OTHER LANGUAGES OR USE TRY/CATCH BLOCK => SEEMS WHILST PW WILL AUTO RENAME FOR DEFAULT LANGUAGE IT WON'T DO SO FOR OTHE LANGUAGES. SO, HOW DO WE CHECK ALL LANGUAGES?
 			// check if name already taken
-			if($page->parent->child("name={$page->name}, include=all")->id) {
-				$this->error($this->_("Menu Builder: A menu with that title already exists."));
+			if ($this->isMenuAlreadyExists($post)) {
+				$errorType = $this->multilingual ? 'menu_already_exists_multilingual' : 'menu_already_exists';
+				$this->error($this->getErrorMessage($errorType));
 			}
 			// save new menu  + also check multi-lingual
 			else {
 				if ($this->multilingual) {
+					// MULTI LANGUAGE SITE
 					foreach ($this->wire('languages') as $language) {
 
-					// skip default language as already set above
-						if($language->name == 'default') continue;
-
-						// set values for other languages
-						else {
+						if ($language->name == 'default') {
+							$title = $sanitizer->text($post->menus_add_title);
+							// sanitize and convert to a URL friendly page name
+							$name = $sanitizer->pageName($title);
+							$nameField = "name";
+						} else {
 							// @note: we set language as active
 							$page->set("status$language", 1);
 							$id = $language->id;
 							$title = $sanitizer->text($post->{"menus_add_title__$id"});
+							// sanitize and convert to a URL friendly page name
 							$name = $sanitizer->pageName($title);
-							// set language page title
-							$page->title->setLanguageValue($language, $title);
-							// @note: name is not a field, so we set this way
-							$page->set("name$language", $name);
+							$nameField = "name$language";
 						}
+
+						// set language page title
+						// $page->title->setLanguageValue($language, $title);
+						$page->setLanguageValue($language, 'title', $title);
+						// @note: name is not a field, so we set this way
+						$page->set("$nameField", $name);
 					}
 				} // end if languages
+				else {
+					// SINGLE LANGUAGE SITE
+					$page->title = $title;
+					$page->name = $name;
+				}
+
+				// bd($post, __METHOD__ . ': $post at line #' . __LINE__);
+				// bd($page, __METHOD__ . ': $page at line #' . __LINE__);
 
 				// if user pressed 'save unpublished', we save new menus unpublished
 				if ($newUnpublishedBtn) $page->addStatus(Page::statusUnpublished);
@@ -2914,15 +2908,104 @@ class ProcessMenuBuilder extends Process implements Module {
 
 				// redirect to landing page
 				$this->session->redirect($this->wire('page')->url);
-
 			}
-
-		}// end if menu title provided
+		} // end if menu title provided
 
 		// show error message if add button clicked without first entering a menu title
-		else $this->error($this->_("Menu Builder: You need to specify a menu title."));
-
+		else $this->error($this->getErrorMessage('no_menu_title'));
 	}
+
+	private function isMenuAlreadyExists($post) {
+		$sanitizer = $this->wire('sanitizer');
+		$pages = $this->wire('pages');
+		$parent = $this->menusParent;
+
+		if ($this->multilingual) {
+			// MULTI LANGUAGE SITE
+			// check names in all languages
+			$selector = $this->getMultiLingualCheckNamesSelector($post);
+			// bd($selector, __METHOD__ . ': $selector OR GROUPS FOR NAMES at line #' . __LINE__);
+			if (!empty($selector)) {
+				$selector .= ", parent={$parent}, include=all";
+				// bd($selector, __METHOD__ . ': $selector FINAL FOR OR GROUPS FOR NAMES at line #' . __LINE__);
+			}
+		} else {
+			$title = $sanitizer->text($post->menus_add_title);
+			$name = $sanitizer->pageName($title);
+			// SINGLE LANGUAGE SITE
+			$selector = "name={$name}, parent={$parent}, include=all";
+		}
+
+		// check if have the page already (multilingual aware)
+		$child = $pages->getRaw($selector, 'id');
+		$isMenuAlreadyExists = !empty($child);
+		// bd($post, __METHOD__ . ': $post at line #' . __LINE__);
+		// bd($parent, __METHOD__ . ': $parent at line #' . __LINE__);
+		// bd($selector, __METHOD__ . ': $selector FINAL at line #' . __LINE__);
+		// bd($child, __METHOD__ . ': $child at line #' . __LINE__);
+		// bd($isMenuAlreadyExists, __METHOD__ . ': $isMenuAlreadyExists at line #' . __LINE__);
+
+		// ---------
+		return $isMenuAlreadyExists;
+	}
+
+	private function getMultiLingualCheckNamesSelector($post) {
+		$sanitizer = $this->wire('sanitizer');
+		$selector = "";
+		if ($this->multilingual) {
+			$languages = $this->wire('languages');
+			$selectorsArray = [];
+			foreach ($languages as $language) {
+				if ($language->name == 'default') {
+					$title = $sanitizer->text($post->menus_add_title);
+					// sanitize and convert to a URL friendly page name
+					$name = $sanitizer->pageName($title);
+					$nameField = "name";
+				} else {
+					$id = $language->id;
+					$title = $sanitizer->text($post->{"menus_add_title__$id"});
+					// sanitize and convert to a URL friendly page name
+					$name = $sanitizer->pageName($title);
+					$nameField = "name$language";
+				}
+
+				if (empty($name)) continue;
+
+				// ---------
+				$selectorsArray[] = "($nameField=$name)";
+			}
+
+			$selector = implode(",", $selectorsArray);
+		}
+
+		// -----
+		return $selector;
+	}
+
+	private function getErrorMessage($errorType) {
+		$errorMessages = $this->getErrorMessages();
+		$errorMessage = !empty($errorMessages[$errorType]) ? $errorMessages[$errorType] : $errorMessages['unknown_error'];
+		// ------
+		return $errorMessage;
+	}
+
+	private function getErrorMessages() {
+		return [
+			'unknown_error' => $this->_("Menu Builder: Unknown error. Please try again."),
+			'no_menu_title' => $this->_("Menu Builder: You need to specify a menu title."),
+			'menu_already_exists' => $this->_("Menu Builder: A menu with that title already exists."),
+			'menu_already_exists_multilingual' => $this->_("Menu Builder: A menu with that title already exists. Please check all the language titles for uniqueness."),
+			'no_match_for_selector' => $this->_('Menu Builder: Your selector did not find any selectable pages for your menu! Confirm its validity.'),
+			'no_permission_to_delete_menus' => $this->_('Menu Builder: You have no permission to delete menus.'),
+			'menu_locked_for_edits' => $this->_('Menu Builder: This menu is locked for edits.'),
+			'cannot_trash_single_menu' => $this->_('Menu Builder: Unable to move menu to trash'),
+			'cannot_save_single_menu' => $this->_('Menu Builder: Error saving Menu.'),
+			'title_is_required_single_menu' => $this->_('Menu Builder: A title is required.'),
+			'no_action_selected' => $this->_("Menu Builder: You need to select an action."),
+			'no_menu_item_selected_to_action' => $this->_('Menu Builder: You need to select at least one menu before applying an action.')
+		];
+	}
+
 
 	/**
 	 * Delete given Menu's cache.
@@ -2934,19 +3017,18 @@ class ProcessMenuBuilder extends Process implements Module {
 	private function deleteMenuCache($menuID) {
 		$languageNames = $this->getLanguageSuffixes();
 		// multi-lingual site
-		if(!empty($languageNames)) {
+		if (!empty($languageNames)) {
 			foreach ($languageNames as $name) {
 				$cacheName = 'menu-builder-' . $menuID . '-' . $name;
-				$this->wire('cache')->delete($cacheName);// delete the cache
+				$this->wire('cache')->delete($cacheName); // delete the cache
 			}
 		}
 
 		// non-multi-lingual site
 		else {
 			$cacheName = 'menu-builder-' . $menuID;
-			$this->wire('cache')->delete($cacheName);// delete the cache
+			$this->wire('cache')->delete($cacheName); // delete the cache
 		}
-
 	}
 
 	/* ######################### - INSTALLERS - ######################### */
@@ -2969,24 +3051,24 @@ class ProcessMenuBuilder extends Process implements Module {
 		$pages = $this->wire('pages');
 		$fields = array(
 
-		'menu_pages' => array('name'=>'menu_pages', 'type'=> 'FieldtypeText', 'label'=>'Menu Pages', 'description'=>'JSON formatted values of optional ProcessWire selector to limit pages that can be added to this menu, whether to allow HTML (markup) in menu item titles and whether to use AsmSelect or PageAutocomplete in adding menu items. Example JSON: {"sel":"template=colours, limit=20, sort=title","input":2}. You don\'t need to edit these directly. Use Menu Builder instead.', 'maxlength'=>2048),
-		'menu_items' => array('name'=>'menu_items', 'type'=> 'FieldtypeTextarea', 'label'=>'Menu Items', 'description'=>'JSON values of the items in this menu. You don\'t need to edit these directly. Use Menu Builder instead.'),
-		'menu_settings' => array('name'=>'menu_settings', 'type'=> 'FieldtypeTextarea', 'label'=>'Menu Settings', 'description'=>'JSON values of this menu\'s settings. You don\'t need to edit these directly. Use Menu Builder instead.'),
+			'menu_pages' => array('name' => 'menu_pages', 'type' => 'FieldtypeText', 'label' => 'Menu Pages', 'description' => 'JSON formatted values of optional ProcessWire selector to limit pages that can be added to this menu, whether to allow HTML (markup) in menu item titles and whether to use AsmSelect or PageAutocomplete in adding menu items. Example JSON: {"sel":"template=colours, limit=20, sort=title","input":2}. You don\'t need to edit these directly. Use Menu Builder instead.', 'maxlength' => 2048),
+			'menu_items' => array('name' => 'menu_items', 'type' => 'FieldtypeTextarea', 'label' => 'Menu Items', 'description' => 'JSON values of the items in this menu. You don\'t need to edit these directly. Use Menu Builder instead.'),
+			'menu_settings' => array('name' => 'menu_settings', 'type' => 'FieldtypeTextarea', 'label' => 'Menu Settings', 'description' => 'JSON values of this menu\'s settings. You don\'t need to edit these directly. Use Menu Builder instead.'),
 
 		);
 
 		// first check that we don't already have fields named same as menu builderss
 		foreach ($fields as $field) {
 			// if we do, we abort before installing the module
-			if($this->wire('fields')->get($field['name'])) {
+			if ($this->wire('fields')->get($field['name'])) {
 				throw new WireException($this->_("Aborted installation. Confirm that you do not have fields called 'menu_pages', 'menu_settings' and 'menu_items' before installing this module."));
 			}
 		}
 
 		// check that we already don't have a template named same as menu builder's
 		// if we do, we abort before installing the module
-		if($this->wire('templates')->get('menus')) {
-				throw new WireException($this->_("Aborted installation. Confirm that you do not have a template called 'menus' before installing this module."));
+		if ($this->wire('templates')->get('menus')) {
+			throw new WireException($this->_("Aborted installation. Confirm that you do not have a template called 'menus' before installing this module."));
 		}
 
 		// if no errors, we are good to go
@@ -3005,8 +3087,7 @@ class ProcessMenuBuilder extends Process implements Module {
 
 			$f->tags = '-menu';
 			$f->save();
-
-		}// end foreach fields
+		} // end foreach fields
 
 
 		// create our 1 template + add above fields
@@ -3019,8 +3100,8 @@ class ProcessMenuBuilder extends Process implements Module {
 		$fg->add($title);
 
 		foreach ($fields as $key => $value) {
-				$f = $this->wire('fields')->get($key);
-				$fg->add($f);
+			$f = $this->wire('fields')->get($key);
+			$fg->add($f);
 		}
 
 		// save fieldgroup
@@ -3030,12 +3111,12 @@ class ProcessMenuBuilder extends Process implements Module {
 		// create a new template to use with this fieldgroup
 		$t = new Template();
 		$t->name = 'menus';
-		$t->fieldgroup = $fg;// add the fieldgroup
+		$t->fieldgroup = $fg; // add the fieldgroup
 
 		// add template settings we need
 		$t->label = 'Menus';
-		$t->noChildren = 1;// the pages using this template should not have children
-		$t->parentTemplates = array($this->wire('templates')->get('admin')->id);// needs to be added as array of template IDs. Allowed template for parents = 'admin'
+		$t->noChildren = 1; // the pages using this template should not have children
+		$t->parentTemplates = array($this->wire('templates')->get('admin')->id); // needs to be added as array of template IDs. Allowed template for parents = 'admin'
 		$t->tags = '-menu';
 
 		// save new template with fields and settings now added
@@ -3043,7 +3124,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$this->message('Created Template: menus');
 
 		// create menu builder page and permission
-		$p = $pages->get('template=admin, name='.self::PAGE_NAME);
+		$p = $pages->get('template=admin, name=' . self::PAGE_NAME);
 		if (!$p->id) {
 			$page = new Page();
 			$page->template = 'admin';
@@ -3067,7 +3148,6 @@ class ProcessMenuBuilder extends Process implements Module {
 			// tell the user we created this module's permission
 			$this->message('Created New Permission: menu-builder');
 		}
-
 	}
 
 	/**
@@ -3089,7 +3169,7 @@ class ProcessMenuBuilder extends Process implements Module {
 		$mbPage = $pages->get("template=admin, process=$moduleID, name=" . self::PAGE_NAME);
 		// $page = $pages->get('template=admin, name='.self::PAGE_NAME);
 
-		if($mbPage->id) {
+		if ($mbPage->id) {
 			// if we found the page, let the user know and delete it
 			$this->message($this->_('Deleted Page: ') . $mbPage->path);
 			// recursively delete the menu builder page (i.e. including all its children (the menus))
@@ -3100,10 +3180,9 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		// find and delete the menu builder permission and let the user know
 		$permission = $this->wire('permissions')->get('menu-builder');
-		if ($permission->id){
+		if ($permission->id) {
 			$permission->delete();
 			$this->message('Deleted Permission: menu-builder');
-
 		}
 
 		// find and delete our menus template
@@ -3111,19 +3190,16 @@ class ProcessMenuBuilder extends Process implements Module {
 
 		if ($t->id) {
 			$this->wire('templates')->delete($t);
-			$this->wire('fieldgroups')->delete($t->fieldgroup);// delete the associated fieldgroups
+			$this->wire('fieldgroups')->delete($t->fieldgroup); // delete the associated fieldgroups
 			$this->message('Deleted Template: menus');
 		}
 
 		// find and delete the 3 fields used by our menus
 		$fields = array('menu_pages', 'menu_items', 'menu_settings');
 		foreach ($fields as $field) {
-				$f = $this->wire('fields')->get($field);
-				if($f->id) $this->wire('fields')->delete($f);
-				$this->message('Deleted Fields: menu_pages, menu_items, menu_settings');
+			$f = $this->wire('fields')->get($field);
+			if ($f->id) $this->wire('fields')->delete($f);
+			$this->message('Deleted Fields: menu_pages, menu_items, menu_settings');
 		}
-
 	}
-
-
 }
