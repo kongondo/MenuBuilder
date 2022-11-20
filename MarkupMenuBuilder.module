@@ -175,7 +175,9 @@ class MarkupMenuBuilder extends WireData implements Module {
 
 		// if we have a menu page, check that the menu IS NOT unpublished
 		if ($menuPage && !$menuPage->is(Page::statusUnpublished)) {
-			$menuItems = json_decode($menuPage->menu_items, true);
+			if (!empty($menuPage->menu_items)) {
+				$menuItems = json_decode($menuPage->menu_items, true);
+			}
 		}
 
 		return $menuItems;
