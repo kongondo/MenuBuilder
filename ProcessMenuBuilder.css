@@ -186,3 +186,6 @@ div.handle i.fa-trash {
 /* nestedSortable styles */
 .placeholder {outline: 1px dashed #4183C4;}
 .notice {color: #C33;}
+
+/* duplicate input */
+#MenuBuilderEdit .Inputfields select#asmSelect0{display: none}
